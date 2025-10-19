@@ -15,10 +15,10 @@ Text-first presentation compiler with behavioral markup
     slidedown is a LaTeX-inspired markup language for creating
     interactive HTML presentations from plain text.
 
-    .o{📝 Text-first authoring - write presentations like you write code}
-    .o{🎭 Behavioral markup - .directive{content} syntax}
-    .o{🎨 Interactive effects - typewriter animations, progressive reveals}
-    .o{🚀 Single-file workflow - one .sd source → standalone HTML}
+    .o{Text-first authoring - write presentations like you write code}
+    .o{Behavioral markup - .directive{content} syntax}
+    .o{Interactive effects - typewriter animations, progressive reveals}
+    .o{Single-file workflow - one .sd source → standalone HTML}
   }
 }
 
@@ -38,7 +38,7 @@ Text-first presentation compiler with behavioral markup
     python3 -m http.server 8000
     # Open http://localhost:8000
 
-    That's it! 🎉
+    That's it!
   }
 }
 
@@ -96,14 +96,14 @@ Text-first presentation compiler with behavioral markup
 .slide{
   .title{Development Status}
   .body{
-    ✅ .bf{Working:}
+    .bf{Working:}
     .o{Parser - recursive directive parsing with placeholder substitution}
     .o{Compiler - AST to HTML with inside-out compilation}
     .o{CLI - functional command-line interface}
     .o{Tests - 65 tests passing (parser, modifiers, nesting, e2e)}
     .o{Assets - CSS/JS/HTML templates from tslide}
 
-    🚧 .bf{In Progress:}
+    .bf{In Progress:}
     .o{Browser effects debugging (typewriter, bullets, navigation)}
     .o{Documentation and examples}
     .o{Additional directives and features}
@@ -219,7 +219,7 @@ Text-first presentation compiler with behavioral markup
     .bf{Repository:} github.com/FNNDSC/slidedown
     .bf{Issues:} github.com/FNNDSC/slidedown/issues
 
-    .typewriter{> Happy presenting! 🎉}
+    .typewriter{> Happy presenting!}
   }
 }
 ```
@@ -246,9 +246,9 @@ pytest
 
 ## Status
 
-- ✅ Parser: Working
-- ✅ Compiler: Working
-- ✅ CLI: Working
-- 🚧 Browser effects: Debugging in progress
+- Parser: Working
+- Compiler: Working
+- CLI: Working
+- Browser effects: Debugging in progress
 
 See issues for current development status.
