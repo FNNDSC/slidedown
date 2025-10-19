@@ -1,0 +1,158 @@
+.slide{
+    .title{Welcome to slidedown}
+    .body{
+        <h1>A minimal example demonstrating all directives</h1>
+        <p>This presentation showcases every available .directive{} in slidedown.</p>
+        <p>Navigate: Arrow keys or click</p>
+    }
+}
+
+.slide{
+    .title{Text Formatting}
+    .body{
+        <h2>Text Formatting Aliases</h2>
+
+        <p>.bf{Bold text} produces bold (strong) text</p>
+
+        <p>.em{Emphasized text} produces italic (emphasis) text</p>
+
+        <p>.tt{Teletype text} produces monospace text</p>
+
+        <p>.code{function_name()} produces inline code</p>
+
+        <p>.underline{Underlined text} produces underlined text</p>
+
+        <p>Mix them: .bf{Bold with .em{italic inside}}</p>
+    }
+}
+
+.slide{
+    .title{Progressive Reveals}
+    .body{
+        <h2>Progressive Bullet Points</h2>
+        <p>Use .o{} for progressive reveal bullets:</p>
+
+        .o{First bullet appears}
+        .o{Second bullet appears on next click}
+        .o{Third bullet appears after that}
+        .o{Each .o{} creates a new snippet}
+        .o{Perfect for step-by-step explanations}
+    }
+}
+
+.slide{
+    .title{Typewriter Effect}
+    .body{
+        <h2>Character-by-Character Reveal</h2>
+        <p>The .typewriter{} behavior creates animated text:</p>
+
+        .typewriter{
+This text will appear
+character by character
+with a typing animation effect
+        }
+    }
+}
+
+.slide{
+    .title{ASCII Art - Figlet Fonts}
+    .body{
+        <h2>ASCII Art with .font-NAME{}</h2>
+
+        .font-standard{slidedown}
+
+        .font-slant{Slant Font}
+
+        .font-banner{BANNER}
+    }
+}
+
+.slide{
+    .title{More ASCII Art Fonts}
+    .body{
+        .font-doom{DOOM}
+
+        .font-basic{Basic Style}
+    }
+}
+
+.slide{
+    .title{Cowsay Speech Bubbles}
+    .body{
+        <h2>ASCII Characters with .cowpy-NAME{}</h2>
+
+        .cowpy-cow{Moo! I'm a cow saying hello from slidedown!}
+    }
+}
+
+.slide{
+    .title{More Cowsay Characters}
+    .body{
+        .cowpy-tux{Hello from Tux the penguin!}
+
+        .cowpy-dragon{Dragons can speak too!}
+    }
+}
+
+.slide{
+    .title{Combining Directives}
+    .body{
+        <h2>Directives Can Be Nested</h2>
+
+        .o{.bf{Bold} text in a bullet}
+        .o{.em{Emphasized} text in a bullet}
+        .o{.code{code()} inside a bullet}
+
+        <p>Mix structural and formatting directives for rich content.</p>
+    }
+}
+
+.slide{
+    .title{Advanced Nesting}
+    .body{
+        <h2>Complex Directive Combinations</h2>
+
+        <p>Bullets inside typewriter effect:</p>
+
+        .typewriter{
+Instructions:
+.o{First step appears after typing completes}
+.o{Second step appears on click}
+.o{Final step appears last}
+        }
+
+        <p>Creates typed content with progressive reveals.</p>
+    }
+}
+
+.slide{
+    .title{Raw HTML Support}
+    .body{
+        <h2>HTML Works Alongside Directives</h2>
+
+        <ul>
+            <li>Standard HTML tags work fine</li>
+            <li>Use directives for special effects</li>
+            <li>Use HTML for standard structure</li>
+        </ul>
+
+        <p>Best practice: .bf{Use directives for slidedown features},
+        HTML for standard document structure.</p>
+    }
+}
+
+.slide{
+    .title{Summary}
+    .body{
+        <h2>All Available Directives</h2>
+
+        .o{.bf{Structure:} .slide{}, .title{}, .body{}}
+        .o{.bf{Format:} .bf{}, .em{}, .tt{}, .code{}, .underline{}}
+        .o{.bf{Effects:} .typewriter{}, .o{}}
+        .o{.bf{ASCII Art:} .font-NAME{}, .cowpy-NAME{}}
+        .o{.bf{Nesting:} Directives compose freely}
+
+        <br>
+        <p>.em{Now you know all the directives in slidedown!}</p>
+    }
+}

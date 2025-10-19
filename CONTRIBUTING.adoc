@@ -1,0 +1,121 @@
+= Contributing to slidedown
+
+Thank you for your interest in contributing to slidedown!
+
+== Development Setup
+
+=== Prerequisites
+
+* Python 3.10 or higher
+* pip or uv for package management
+* Git
+
+=== Setup
+
+[source,bash]
+----
+# Clone the repository
+git clone https://github.com/FNNDSC/slidedown.git
+cd slidedown
+
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install in editable mode with dev dependencies
+pip install -e ".[dev]"
+
+# Or using uv
+uv pip install -e ".[dev]"
+
+# Try compiling an example
+cd examples/minimal
+../../src/slidedown . output/ --inputFile slides.sd
+----
+
+=== Running Tests
+
+[source,bash]
+----
+# Run all tests
+pytest
+
+# Run with coverage
+pytest --cov=slidedown --cov-report=html
+
+# Run specific test file
+pytest tests/test_parser.py
+----
+
+=== Code Style
+
+We use:
+
+* *black* for code formatting
+* *ruff* for linting
+* *mypy* for type checking
+
+[source,bash]
+----
+# Format code
+black src/
+
+# Lint
+ruff check src/
+
+# Type check
+mypy src/
+----
+
+=== Making Changes
+
+1. Create a feature branch: `git checkout -b feature/my-feature`
+2. Make your changes
+3. Add tests for new functionality
+4. Run tests and linters
+5. Commit with clear message
+6. Push and create pull request
+
+=== Commit Message Guidelines
+
+* Use present tense ("Add feature" not "Added feature")
+* Use imperative mood ("Move cursor to..." not "Moves cursor to...")
+* First line should be 50 characters or less
+* Reference issues and PRs liberally
+
+=== Adding New Behaviors
+
+To add a new behavior:
+
+1. Add handler function in `src/lib/behaviors.py`
+2. Register it in `BehaviorRegistry`
+3. Add tests in `tests/test_behaviors.py`
+4. Document in `docs/behaviors.adoc`
+5. Add example in `examples/`
+
+Example:
+
+[source,python]
+----
+def my_behavior_handler(node, compiler):
+    """Handle .mybehavior{} - does something cool"""
+    content = node.content
+    # Transform content
+    return f'<div class="my-behavior">{content}</div>'
+
+# In BehaviorRegistry.__init__:
+self.register('mybehavior', my_behavior_handler)
+----
+
+== Documentation
+
+When adding features, update:
+
+* `README.adoc` - if user-facing
+* `docs/syntax.adoc` - for syntax changes
+* `docs/behaviors.adoc` - for new behaviors
+* Docstrings in code
+
+== Questions?
+
+Open an issue or discussion on GitHub!
