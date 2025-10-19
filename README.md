@@ -204,9 +204,6 @@ Text-first presentation compiler with behavioral markup
     .o{.bf{pyfiglet} - ASCII art generation}
     .o{.bf{cowsay} - ASCII speech bubbles}
     .o{.bf{ChRIS plugin} - CLI framework pattern}
-
-    Developed with .em{Claude Code} - AI-assisted development
-    that actually works.
   }
 }
 
