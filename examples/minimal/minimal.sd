@@ -127,14 +127,14 @@ with a typing animation effect
     .body{
         <h2>HTML Works Alongside Directives</h2>
 
-        <ul>
-            <li>Standard HTML tags work fine</li>
-            <li>Use directives for special effects</li>
-            <li>Use HTML for standard structure</li>
-        </ul>
+        <p>You can freely mix HTML and slidedown directives:</p>
 
-        <p>Best practice: .bf{Use directives for slidedown features},
-        HTML for standard document structure.</p>
+        .o{HTML lists: <code>&lt;ul&gt;</code>, <code>&lt;ol&gt;</code>, <code>&lt;li&gt;</code>}
+        .o{HTML emphasis: <code>&lt;strong&gt;</code>, <code>&lt;em&gt;</code>, <code>&lt;code&gt;</code>}
+        .o{HTML structure: <code>&lt;div&gt;</code>, <code>&lt;span&gt;</code>, <code>&lt;p&gt;</code>}
+        .o{Slidedown directives: <code>.o&lbrace;&rbrace;</code>, <code>.typewriter&lbrace;&rbrace;</code>, <code>.style&lbrace;&rbrace;</code>}
+
+        <p>Best practice: .bf{Use directives for slidedown features}, HTML for standard document structure.</p>
     }
 }
 

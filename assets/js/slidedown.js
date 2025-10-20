@@ -593,6 +593,16 @@ Page.prototype = {
                                             'order-' + this.currentSlide +
                                             '-' + snippetToDisplayOFF
                                             );
+
+        // Restore any typewriters inside this snippet before hiding
+        let typewriterInSnippet = DOMsnippet.querySelector('[id^="typewriter-"]');
+        if (typewriterInSnippet) {
+            let str_idRef = typewriterInSnippet.id;
+            if (this.d_typewriterOriginalHTML[str_idRef]) {
+                typewriterInSnippet.innerHTML = this.d_typewriterOriginalHTML[str_idRef];
+            }
+        }
+
         DOMsnippet.style.display        = 'none';
         this.l_snippetPerSlideON[thisSlide] -= 1;
         return false;
@@ -625,11 +635,12 @@ Page.prototype = {
         let typewriterInSnippet = DOMsnippet.querySelector('[id^="typewriter-"]');
         if (typewriterInSnippet) {
             let str_idRef = typewriterInSnippet.id;
-            // Store original HTML on first reveal
+
+            // Store original HTML on FIRST reveal only
             if (!this.d_typewriterOriginalHTML[str_idRef]) {
                 this.d_typewriterOriginalHTML[str_idRef] = typewriterInSnippet.innerHTML;
             } else {
-                // Restore original HTML on revisit
+                // On revisit, restore the original HTML before animation
                 typewriterInSnippet.innerHTML = this.d_typewriterOriginalHTML[str_idRef];
             }
 
@@ -654,6 +665,18 @@ Page.prototype = {
                             'order-' + a_slideIndex +
                             '-' + snippet
             );
+
+            // If hiding, restore any typewriters inside this snippet
+            if (astr_state === 'none') {
+                let typewriterInSnippet = DOMsnippet.querySelector('[id^="typewriter-"]');
+                if (typewriterInSnippet) {
+                    let str_idRef = typewriterInSnippet.id;
+                    if (this.d_typewriterOriginalHTML[str_idRef]) {
+                        typewriterInSnippet.innerHTML = this.d_typewriterOriginalHTML[str_idRef];
+                    }
+                }
+            }
+
             DOMsnippet.style.display =  astr_state;
         }
         this.l_snippetPerSlideON[a_slideIndex-1] = 0;
@@ -703,6 +726,27 @@ Page.prototype = {
         }
         this.currentSlide           = index_followingSlide;
         this.slide_transition(index_currentSlide, index_followingSlide);
+    },
+
+    slide_restoreAllTypewriters:        function(index_slide) {
+        let str_help = `
+            Restore all typewriters on this slide (both slide-level and in snippets).
+            Only restores if the original HTML was previously stored.
+            Called when entering a slide to ensure clean state on revisits.
+        `;
+
+        // Find all typewriters on this slide
+        let slideElement = document.getElementById(this.str_slideIDprefix + index_slide);
+        if (slideElement) {
+            let typewriters = slideElement.querySelectorAll('[id^="typewriter-"]');
+            typewriters.forEach(typer => {
+                let str_idRef = typer.id;
+                // Only restore if we've stored the original HTML
+                if (this.d_typewriterOriginalHTML[str_idRef]) {
+                    typer.innerHTML = this.d_typewriterOriginalHTML[str_idRef];
+                }
+            });
+        }
     },
 
     slide_typewriterEffectProcess:      function(index_slide) {
@@ -757,6 +801,10 @@ Page.prototype = {
 
         DOMID_currentSlide.style.display    = "none";
         DOMID_followingSlide.style.display  = "block";
+
+        // Restore all typewriters on this slide (if previously stored)
+        this.slide_restoreAllTypewriters(index_followingSlide);
+
         this.slide_typewriterEffectProcess(index_followingSlide);
         // this.allSnippets_displaySet('none', index_followingSlide);
         if(DOMID_slideTitle !== null) {
@@ -918,9 +966,44 @@ let page            = new Page();
 // The whole document
 $body               = $("body");
 
+// Presentation scaling for 2K baseline (2560x1440)
+function scalePresentation() {
+    const BASELINE_WIDTH = 2560;
+    const BASELINE_HEIGHT = 1440;
+
+    const viewport = document.querySelector('.presentation-viewport');
+    if (!viewport) return;
+
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+
+    // Calculate scale to fit viewport while maintaining aspect ratio
+    const scaleX = windowWidth / BASELINE_WIDTH;
+    const scaleY = windowHeight / BASELINE_HEIGHT;
+    const scale = Math.min(scaleX, scaleY);
+
+    // Apply scale transform
+    viewport.style.transform = `scale(${scale})`;
+
+    // Center the presentation
+    const scaledWidth = BASELINE_WIDTH * scale;
+    const scaledHeight = BASELINE_HEIGHT * scale;
+    const offsetX = (windowWidth - scaledWidth) / 2;
+    const offsetY = (windowHeight - scaledHeight) / 2;
+
+    viewport.style.left = `${offsetX}px`;
+    viewport.style.top = `${offsetY}px`;
+}
+
 window.onload = function() {
+    // Scale presentation to fit viewport
+    scalePresentation();
+
     // Start on the first slide
     page.advance_toFirst();
 };
+
+// Rescale on window resize
+window.addEventListener('resize', scalePresentation);
 
 

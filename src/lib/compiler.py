@@ -182,21 +182,23 @@ class Compiler:
         navbar_html = self.template_load('navbar.html')
         footer_html = self.template_load('footer.html')
 
-        # Assemble document
+        # Assemble document with presentation viewport wrapper
         html = f"""<!DOCTYPE html>
 <html>
 {head_html}
 <body>
-    <div class="metaData" id="numberOfSlides" style="display: none;">{self.slide_count}</div>
-    <div class="metaData" id="slideIDprefix" style="display: none;">slide-</div>
+    <div class="presentation-viewport">
+        <div class="metaData" id="numberOfSlides" style="display: none;">{self.slide_count}</div>
+        <div class="metaData" id="slideIDprefix" style="display: none;">slide-</div>
 
-    {navbar_html}
+        {navbar_html}
 
-    <div class="formLayout">
-        {content}
+        <div class="formLayout">
+            {content}
+        </div>
+
+        {footer_html}
     </div>
-
-    {footer_html}
 
     <script src="js/slidedown.js"></script>
 </body>

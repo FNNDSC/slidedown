@@ -2,6 +2,11 @@
 /* Google Fonts */
 @import url(https://fonts.googleapis.com/css?family=Anonymous+Pro);
 
+/*
+ * Presentation Mode with 2K Resolution (2560x1440)
+ * Scales to fit any viewport while maintaining aspect ratio
+ */
+
 /* Global */
 html {
   min-height: 100%;
@@ -9,11 +14,23 @@ html {
 }
 
 body {
-  height: calc(100vh - 8em);
-  padding: 4em;
+  margin: 0;
+  padding: 0;
   color: rgba(255,255,255,.75);
-  /* font-family: 'Anonymous Pro', monospace;   */
   background-color: rgb(25,25,25);
+  overflow: hidden;
+}
+
+/* Presentation viewport wrapper - fixed 2K dimensions */
+.presentation-viewport {
+  position: absolute;
+  width: 2560px;
+  height: 1440px;
+  transform-origin: top left;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* Scale calculated by JavaScript on load/resize */
 }
 
 .tty {
@@ -114,8 +131,34 @@ body {
 }
 
 .slide {
-    display:block;
-    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+    padding: 0;
+}
+
+.slide h1 {
+    font-size: 2.8em;
+    margin: 0.3em 0;
+}
+
+.slide h2 {
+    font-size: 2.2em;
+    margin: 0.3em 0;
+}
+
+.slide p {
+    font-size: 1.2em;
+    line-height: 1.5;
+    margin: 0.5em 0;
+}
+
+.slide pre {
+    font-size: 0.7em;
+    line-height: 1.2;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 #slideProgress {
@@ -215,18 +258,14 @@ td, th {
 }
 
 .boxtext {
-    border:                0px;
-    /* border-color:        white; */
-    background-color:    #282D33;
-    color:               white;
-    margin-top:            auto;
-    /* font-family:           "Fira Mono", 'Consolas'; */
-    position:              relative;
-    margin-bottom:         -3px;
-    /* margin-left:           84px;
-    margin-right:          84px; */
-    /* padding-left:          20px; */
-    border-radius:         5px;
+    border: 0px;
+    background-color: #282D33;
+    color: white;
+    position: relative;
+    margin-bottom: -3px;
+    border-radius: 5px;
+    padding: 10px;
+    font-size: 24px;
 }
 
 button{
@@ -256,16 +295,16 @@ br {
 }
 
 .formLayout {
-    /* background-color: #f3f3f3; */
     background-color: #404346;
     border: solid 1px #a1a1a1;
-    padding: 10px;
-    /* width: 1240px; */
-    width: 80%;
-    height: 100%;
-    margin-left: auto;
-    margin-right:auto;
+    padding: 60px;
+    flex: 1;
     color: white;
+    font-size: 32px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
 }
 
 
@@ -373,12 +412,19 @@ body {
     /* line-height: 1.3; */
 }
 
-.footer {
-    font-family:    'Sans';
-    font-size:      70%;
+.footer-bar {
+    background-color: #404346;
+    border: solid 1px #a1a1a1;
+    border-top: none;
+    padding: 20px 60px;
     color: white;
-    padding: 1px;
-    margin: 1px;
+    font-size: 24px;
+    overflow: hidden;
+}
+
+.footer {
+    font-family: 'Sans';
+    color: white;
 }
 
 img {
