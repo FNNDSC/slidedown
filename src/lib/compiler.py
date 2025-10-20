@@ -127,6 +127,11 @@ class Compiler:
         """
         from ..config import appsettings
 
+        # PRE-COMPILATION: Increment slide counter for real slides (not empty examples)
+        # Must happen BEFORE children compile so snippets/typewriters see correct number
+        if node.directive == 'slide' and (node.children or (node.content and node.content.strip())):
+            self.slide_count += 1
+
         # Step 1: Recursively compile children (inside-out)
         compiled_children = []
         for child in node.children:

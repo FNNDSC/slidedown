@@ -35,7 +35,7 @@
         .o{First bullet appears}
         .o{Second bullet appears on next click}
         .o{Third bullet appears after that}
-        .o{Each .o{} creates a new snippet}
+        .o{Each .o{} creates a new reveal}
         .o{Perfect for step-by-step explanations}
     }
 }
@@ -57,7 +57,7 @@ with a typing animation effect
 .slide{
     .title{ASCII Art - Figlet Fonts}
     .body{
-        <h2>ASCII Art with .font-NAME{}</h2>
+        <h2>ASCII Art with <code>.font-NAME&lbrace;&rbrace;</code></h2>
 
         .font-standard{slidedown}
 
@@ -79,7 +79,7 @@ with a typing animation effect
 .slide{
     .title{Cowsay Speech Bubbles}
     .body{
-        <h2>ASCII Characters with .cowpy-NAME{}</h2>
+        <h2>ASCII Characters with <code>.cowpy-NAME&lbrace;&rbrace;</code></h2>
 
         .cowpy-cow{Moo! I'm a cow saying hello from slidedown!}
     }
@@ -112,16 +112,13 @@ with a typing animation effect
     .body{
         <h2>Complex Directive Combinations</h2>
 
-        <p>Bullets inside typewriter effect:</p>
+        <p>Typewriter effect inside bullets:</p>
 
-        .typewriter{
-Instructions:
-.o{First step appears after typing completes}
-.o{Second step appears on click}
-.o{Final step appears last}
-        }
+        .o{.typewriter{First step types out when revealed}}
+        .o{.typewriter{Second step types out on next click}}
+        .o{.typewriter{Final step types out last}}
 
-        <p>Creates typed content with progressive reveals.</p>
+        <p>Creates progressive reveals with typing animation.</p>
     }
 }
 
@@ -142,14 +139,45 @@ Instructions:
 }
 
 .slide{
+    .style{background: black; color: lightgreen;}
+    .title{Style Directive Examples}
+    .body{
+        <h2>Custom Styling with .style{}</h2>
+
+        .o{This slide has black background and light green text}
+        .o{Set with <code>.style&lbrace;background: black; color: lightgreen;&rbrace;</code>}
+        .o{The .style&lbrace;&rbrace; directive applies CSS to the slide}
+
+        <p>You can use any valid CSS properties.</p>
+    }
+}
+
+.slide{
+    .style{background: linear-gradient(to right, #2c3e50, #3498db); color: white; font-family: monospace;}
+    .title{More Style Examples}
+    .body{
+        <h2>Gradient Background + Monospace Font</h2>
+
+        <p>This slide demonstrates:</p>
+        .o{Linear gradient background}
+        .o{White text color}
+        .o{Monospace font family}
+
+        <p style="font-size: 1.2em; border: 2px solid white; padding: 10px;">
+            The .style&lbrace;&rbrace; directive is powerful!
+        </p>
+    }
+}
+
+.slide{
     .title{Summary}
     .body{
         <h2>All Available Directives</h2>
 
-        .o{.bf{Structure:} .slide{}, .title{}, .body{}}
-        .o{.bf{Format:} .bf{}, .em{}, .tt{}, .code{}, .underline{}}
-        .o{.bf{Effects:} .typewriter{}, .o{}}
-        .o{.bf{ASCII Art:} .font-NAME{}, .cowpy-NAME{}}
+        .o{.bf{Structure:} <code>.slide&lbrace;&rbrace;</code>, <code>.title&lbrace;&rbrace;</code>, <code>.body&lbrace;&rbrace;</code>}
+        .o{.bf{Format:} <code>.bf&lbrace;&rbrace;</code>, <code>.em&lbrace;&rbrace;</code>, <code>.tt&lbrace;&rbrace;</code>, <code>.code&lbrace;&rbrace;</code>, <code>.underline&lbrace;&rbrace;</code>}
+        .o{.bf{Effects:} <code>.typewriter&lbrace;&rbrace;</code>, <code>.o&lbrace;&rbrace;</code>}
+        .o{.bf{ASCII Art:} <code>.font-NAME&lbrace;&rbrace;</code>, <code>.cowpy-NAME&lbrace;&rbrace;</code>}
         .o{.bf{Nesting:} Directives compose freely}
 
         <br>

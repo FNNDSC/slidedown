@@ -471,6 +471,7 @@ function Page() {
     // an object for housing typewriter functions
     this.d_typerDOM     = {};
     this.d_typewriter   = {};
+    this.d_typewriterOriginalHTML = {};  // Store original HTML for reset
 }
 
 Page.prototype = {
@@ -562,7 +563,7 @@ Page.prototype = {
             }
 
             cursorPosition += 1;
-            if (cursorPosition < HTML.length - 1) {
+            if (cursorPosition < HTML.length) {
                 setTimeout(type, tempTypeSpeed);
             }
 
@@ -619,6 +620,24 @@ Page.prototype = {
                                                 '-' + snippetToDisplay
                                             );
         DOMsnippet.style.display        = 'block';
+
+        // Check if this snippet contains a typewriter and trigger it
+        let typewriterInSnippet = DOMsnippet.querySelector('[id^="typewriter-"]');
+        if (typewriterInSnippet) {
+            let str_idRef = typewriterInSnippet.id;
+            // Store original HTML on first reveal
+            if (!this.d_typewriterOriginalHTML[str_idRef]) {
+                this.d_typewriterOriginalHTML[str_idRef] = typewriterInSnippet.innerHTML;
+            } else {
+                // Restore original HTML on revisit
+                typewriterInSnippet.innerHTML = this.d_typewriterOriginalHTML[str_idRef];
+            }
+
+            this.d_typerDOM[str_idRef] = typewriterInSnippet;
+            this.d_typewriter[str_idRef] = this.setupTypewriter(this.d_typerDOM[str_idRef]);
+            this.d_typewriter[str_idRef].type();
+        }
+
         this.l_snippetPerSlideON[thisSlide]    += 1;
         return false;
     },
@@ -695,6 +714,17 @@ Page.prototype = {
         let str_idRef   = 'typewriter-' + index_slide;
         let typer       = document.getElementById(str_idRef);
         if(typer) {
+            // Store original HTML on first visit
+            if (!this.d_typewriterOriginalHTML[str_idRef]) {
+                this.d_typewriterOriginalHTML[str_idRef] = typer.innerHTML;
+            } else {
+                // Restore original HTML on revisit
+                typer.innerHTML = this.d_typewriterOriginalHTML[str_idRef];
+                // Reset snippet counter for this slide since snippets are back to original state
+                let slideIndex = index_slide - 1;
+                this.l_snippetPerSlideON[slideIndex] = 0;
+            }
+
             this.d_typerDOM[str_idRef]      = typer;
             this.d_typewriter[str_idRef]    = this.setupTypewriter(
                                                     this.d_typerDOM[str_idRef]

@@ -79,7 +79,11 @@ class DirectiveRegistry:
 
         def slide_handler(node, compiler):
             """Handle .slide{} - compile to slide div"""
-            compiler.slide_count += 1
+            # Skip empty slides (used as examples in text, not actual slides)
+            if not node.content or not node.content.strip():
+                return ''
+
+            # slide_count incremented in compiler.node_compile BEFORE children compiled
             slide_num = compiler.slide_count
 
             # node.content already has placeholders substituted by compiler
@@ -170,6 +174,13 @@ class DirectiveRegistry:
             """Handle .typewriter{} - character-by-character typing animation"""
             slide_num = compiler.slide_count
 
+            # node.content already has children compiled and placeholders substituted
+            content = node.content
+
+            # Skip empty typewriters (they break JS and serve no purpose)
+            if not content or not content.strip():
+                return ''
+
             # Track typewriter count per slide (for multiple typewriters)
             if slide_num not in compiler.typewriter_counters:
                 compiler.typewriter_counters[slide_num] = 0
@@ -179,8 +190,6 @@ class DirectiveRegistry:
 
             style = node.modifiers.get('style', '')
             style_attr = f' style="{style}"' if style else ''
-
-            content = compiler.ast_compile(node.children) if node.children else node.content
 
             # Use typewriter-{slide}-{num} for multiple typewriters per slide
             # JS expects typewriter-{slide} for the first one
@@ -194,6 +203,10 @@ class DirectiveRegistry:
         def snippet_handler(node, compiler):
             """Handle .o{} - progressive reveal bullet point"""
             slide_num = compiler.slide_count
+
+            # Skip empty snippets (they break JS and serve no purpose)
+            if not node.content or not node.content.strip():
+                return ''
 
             # Track snippet count per slide
             if slide_num not in compiler.snippet_counters:
