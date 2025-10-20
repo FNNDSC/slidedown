@@ -519,9 +519,15 @@ Page.prototype = {
             writingTag      = false,
             tagOpen         = false,
             typeSpeed       = 10,
-            tempTypeSpeed   = 0;
+            tempTypeSpeed   = 0,
+            isActive        = true;  // Flag to cancel animation
 
         var type = function() {
+            // CRITICAL: Check if this animation is still active
+            // If cleanup happened, stop immediately
+            if (!isActive) {
+                return;
+            }
 
             if (writingTag === true) {
                 tag += HTML[cursorPosition];
@@ -570,7 +576,10 @@ Page.prototype = {
         };
 
         return {
-            type: type
+            type: type,
+            cancel: function() {
+                isActive = false;  // Stop the animation
+            }
         };
     },
 
@@ -666,11 +675,18 @@ Page.prototype = {
                             '-' + snippet
             );
 
-            // If hiding, restore any typewriters inside this snippet
+            // If hiding, cancel and restore any typewriters inside this snippet
             if (astr_state === 'none') {
                 let typewriterInSnippet = DOMsnippet.querySelector('[id^="typewriter-"]');
                 if (typewriterInSnippet) {
                     let str_idRef = typewriterInSnippet.id;
+
+                    // Cancel the animation first
+                    if (this.d_typewriter[str_idRef] && this.d_typewriter[str_idRef].cancel) {
+                        this.d_typewriter[str_idRef].cancel();
+                    }
+
+                    // Then restore original HTML
                     if (this.d_typewriterOriginalHTML[str_idRef]) {
                         typewriterInSnippet.innerHTML = this.d_typewriterOriginalHTML[str_idRef];
                     }
@@ -728,55 +744,6 @@ Page.prototype = {
         this.slide_transition(index_currentSlide, index_followingSlide);
     },
 
-    slide_restoreAllTypewriters:        function(index_slide) {
-        let str_help = `
-            Restore all typewriters on this slide (both slide-level and in snippets).
-            Only restores if the original HTML was previously stored.
-            Called when entering a slide to ensure clean state on revisits.
-        `;
-
-        // Find all typewriters on this slide
-        let slideElement = document.getElementById(this.str_slideIDprefix + index_slide);
-        if (slideElement) {
-            let typewriters = slideElement.querySelectorAll('[id^="typewriter-"]');
-            typewriters.forEach(typer => {
-                let str_idRef = typer.id;
-                // Only restore if we've stored the original HTML
-                if (this.d_typewriterOriginalHTML[str_idRef]) {
-                    typer.innerHTML = this.d_typewriterOriginalHTML[str_idRef];
-                }
-            });
-        }
-    },
-
-    slide_typewriterEffectProcess:      function(index_slide) {
-        let str_help = `
-            Run the typewriter effect on tags, in order, that
-            might be displayed.
-        `;
-
-        let str_idRef   = 'typewriter-' + index_slide;
-        let typer       = document.getElementById(str_idRef);
-        if(typer) {
-            // Store original HTML on first visit
-            if (!this.d_typewriterOriginalHTML[str_idRef]) {
-                this.d_typewriterOriginalHTML[str_idRef] = typer.innerHTML;
-            } else {
-                // Restore original HTML on revisit
-                typer.innerHTML = this.d_typewriterOriginalHTML[str_idRef];
-                // Reset snippet counter for this slide since snippets are back to original state
-                let slideIndex = index_slide - 1;
-                this.l_snippetPerSlideON[slideIndex] = 0;
-            }
-
-            this.d_typerDOM[str_idRef]      = typer;
-            this.d_typewriter[str_idRef]    = this.setupTypewriter(
-                                                    this.d_typerDOM[str_idRef]
-                                                );
-            this.d_typewriter[str_idRef].type();
-        }
-    },
-
     slide_transition:                   function(index_currentSlide,
                                                  index_followingSlide) {
         let str_help = `
@@ -802,11 +769,41 @@ Page.prototype = {
         DOMID_currentSlide.style.display    = "none";
         DOMID_followingSlide.style.display  = "block";
 
-        // Restore all typewriters on this slide (if previously stored)
-        this.slide_restoreAllTypewriters(index_followingSlide);
+        // CRITICAL: Reset slide to initial state - hide all snippets and reset counter
+        // This cancels animations, restores HTML, and hides all snippets
+        this.allSnippets_displaySet('none', index_followingSlide);
 
-        this.slide_typewriterEffectProcess(index_followingSlide);
-        // this.allSnippets_displaySet('none', index_followingSlide);
+        // Process any typewriters directly on the slide (not in snippets)
+        // Find all typewriters on this slide that are NOT inside snippets
+        let slideElement = document.getElementById(this.str_slideIDprefix + index_followingSlide);
+        if (slideElement) {
+            // Get all typewriters on the slide
+            let allTypewriters = slideElement.querySelectorAll('[id^="typewriter-"]');
+            allTypewriters.forEach(typer => {
+                // Check if this typewriter is inside a snippet
+                let isInSnippet = typer.closest('.snippet') !== null;
+                if (!isInSnippet) {
+                    let str_idRef = typer.id;
+
+                    // Cancel any running animation first
+                    if (this.d_typewriter[str_idRef] && this.d_typewriter[str_idRef].cancel) {
+                        this.d_typewriter[str_idRef].cancel();
+                    }
+
+                    // Store original HTML on first visit
+                    if (!this.d_typewriterOriginalHTML[str_idRef]) {
+                        this.d_typewriterOriginalHTML[str_idRef] = typer.innerHTML;
+                    } else {
+                        // Restore original HTML on revisit
+                        typer.innerHTML = this.d_typewriterOriginalHTML[str_idRef];
+                    }
+
+                    this.d_typerDOM[str_idRef] = typer;
+                    this.d_typewriter[str_idRef] = this.setupTypewriter(this.d_typerDOM[str_idRef]);
+                    this.d_typewriter[str_idRef].type();
+                }
+            });
+        }
         if(DOMID_slideTitle !== null) {
             DOMID_pageTitle.innerHTML = DOMID_slideTitle.innerHTML;
         } else {

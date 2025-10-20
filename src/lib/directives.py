@@ -191,12 +191,8 @@ class DirectiveRegistry:
             style = node.modifiers.get('style', '')
             style_attr = f' style="{style}"' if style else ''
 
-            # Use typewriter-{slide}-{num} for multiple typewriters per slide
-            # JS expects typewriter-{slide} for the first one
-            if typewriter_num == 1:
-                typewriter_id = f'typewriter-{slide_num}'
-            else:
-                typewriter_id = f'typewriter-{slide_num}-{typewriter_num}'
+            # Always use typewriter-{slide}-{num} format for consistency
+            typewriter_id = f'typewriter-{slide_num}-{typewriter_num}'
 
             return f'<pre id="{typewriter_id}"{style_attr}>{content}</pre>'
 
