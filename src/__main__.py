@@ -121,6 +121,7 @@ def env_check(inputstate: ProgramState) -> ProgramState:
     LOG("Checking environment...", level=2)
 
     # Resolve paths
+    assert state.inputdir is not None, "inputdir must be set"
     input_file = state.inputdir / state.inputFile
 
     if not input_file.exists():
@@ -148,6 +149,7 @@ def env_check(inputstate: ProgramState) -> ProgramState:
     LOG(f"Assets directory: {state.assetsInputdir}", level=2)
 
     # Determine output subdirectory
+    assert state.outputdir is not None, "outputdir must be set"
     state.htmlOutputdir = state.outputdir / state.outputSubdir
     state.htmlOutputdir.mkdir(parents=True, exist_ok=True)
     LOG(f"Output directory: {state.htmlOutputdir}", level=2)
@@ -286,7 +288,7 @@ def results_report(inputstate: ProgramState) -> ProgramState:
     min_memory_limit="100Mi",
     min_cpu_limit="500m",
 )
-def main(options: Namespace, inputdir: Path, outputdir: Path):
+def main(options: Namespace, inputdir: Path, outputdir: Path) -> None:
     """
     Main entry point - compile slidedown presentation from .sd source to HTML.
 

@@ -149,7 +149,7 @@ class SlidedownLexer(RegexLexer):
     }
 
 
-def get_lexer():
+def get_lexer() -> SlidedownLexer:
     """
     Get the SlidedownLexer instance
 

@@ -5,11 +5,12 @@ Each directive transforms AST nodes into HTML with appropriate attributes/struct
 Uses DirectiveSpec for metadata and validation.
 """
 
-from typing import Callable, Dict, Optional
+from typing import Callable, Dict, Optional, Any
 from pyfiglet import Figlet
 import cowsay as cowsay_module
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name, TextLexer
+from pygments.lexer import Lexer
 from pygments.formatters import HtmlFormatter
 from pygments.util import ClassNotFound
 
@@ -25,7 +26,7 @@ class DirectiveRegistry:
     and compilation handlers.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the directive registry and register all built-in directives"""
         self.specs: Dict[str, DirectiveSpec] = {}
         self.coreDirectives_register()
@@ -41,7 +42,7 @@ class DirectiveRegistry:
         for alias in spec.aliases:
             self.specs[alias] = spec
 
-    def get(self, name: str) -> Optional[Callable]:
+    def get(self, name: str) -> Optional[Callable[[Any, Any], str]]:
         """
         Get directive handler by name
 
@@ -83,7 +84,7 @@ class DirectiveRegistry:
     def coreDirectives_register(self) -> None:
         """Register core structural directives"""
 
-        def slide_handler(node, compiler):
+        def slide_handler(node: Any, compiler: Any) -> str:
             """Handle .slide{} - compile to slide div"""
             # Skip empty slides (used as examples in text, not actual slides)
             if not node.content or not node.content.strip():
@@ -125,13 +126,13 @@ class DirectiveRegistry:
                 </div>
             """
 
-        def title_handler(node, compiler):
+        def title_handler(node: Any, compiler: Any) -> str:
             """Handle .title{} - slide title metadata (displayed in navbar, not body)"""
             # Title content is stored in hidden slide-N-title div (see slide_handler)
             # and displayed in navbar via JS, so we return empty string here
             return ""
 
-        def body_handler(node, compiler):
+        def body_handler(node: Any, compiler: Any) -> str:
             """Handle .body{} - slide content area"""
             # node.content already has placeholders substituted by compiler
             content = node.content
@@ -219,9 +220,9 @@ class DirectiveRegistry:
     def formattingDirectives_register(self) -> None:
         """Register HTML formatting directives"""
 
-        def make_html_wrapper(tag: str):
+        def make_html_wrapper(tag: str) -> Callable[[Any, Any], str]:
             """Factory for simple HTML tag wrappers"""
-            def handler(node, compiler):
+            def handler(node: Any, compiler: Any) -> str:
                 """Wrap content in HTML tag with optional style modifier"""
                 style = node.modifiers.get('style', '')
                 style_attr = f' style="{style}"' if style else ''
@@ -268,7 +269,7 @@ class DirectiveRegistry:
     def effectDirectives_register(self) -> None:
         """Register special effect directives"""
 
-        def typewriter_handler(node, compiler):
+        def typewriter_handler(node: Any, compiler: Any) -> str:
             """Handle .typewriter{} - character-by-character typing animation"""
             slide_num = compiler.slide_count
 
@@ -294,7 +295,7 @@ class DirectiveRegistry:
 
             return f'<pre id="{typewriter_id}"{style_attr}>{content}</pre>'
 
-        def snippet_handler(node, compiler):
+        def snippet_handler(node: Any, compiler: Any) -> str:
             """Handle .o{} - progressive reveal bullet point"""
             slide_num = compiler.slide_count
 
@@ -330,7 +331,7 @@ class DirectiveRegistry:
             examples=['.o{First bullet}', '.o{Second bullet}']
         ))
 
-        def column_handler(node, compiler):
+        def column_handler(node: Any, compiler: Any) -> str:
             """Handle .column{} - column layout container with optional styling"""
             # Build style attribute from modifiers
             styles = []
@@ -369,7 +370,7 @@ class DirectiveRegistry:
     def transformDirectives_register(self) -> None:
         """Register content transformation directives (ASCII art)"""
 
-        def font_handler(node, compiler):
+        def font_handler(node: Any, compiler: Any) -> str:
             """Handle .font-<name>{} - figlet ASCII art"""
             # Extract font name from directive (e.g., 'font-doom' -> 'doom')
             font_name = node.directive.split('-', 1)[1] if '-' in node.directive else 'standard'
@@ -381,7 +382,7 @@ class DirectiveRegistry:
             except Exception as e:
                 return f'<pre>ERROR: Figlet font "{font_name}" not found\n{node.content}</pre>'
 
-        def cowpy_handler(node, compiler):
+        def cowpy_handler(node: Any, compiler: Any) -> str:
             """Handle .cowpy-<char>{} - cowsay speech bubbles"""
             # Extract character name (e.g., 'cowpy-tux' -> 'tux')
             char_name = node.directive.split('-', 1)[1] if '-' in node.directive else 'default'
@@ -420,7 +421,7 @@ class DirectiveRegistry:
             ]
         ))
 
-        def code_handler(node, compiler):
+        def code_handler(node: Any, compiler: Any) -> str:
             """Handle .code{} - inline code OR syntax highlighted code blocks"""
             # Check if this is a syntax-highlighted code block (has .syntax{} modifier)
             if 'syntax' in node.modifiers:
@@ -433,6 +434,7 @@ class DirectiveRegistry:
                     language = language.split('=', 1)[1].strip()
 
                 # Get appropriate lexer
+                lexer: Lexer
                 try:
                     if language.lower() in ['slidedown', 'sd']:
                         lexer = SlidedownLexer()
@@ -466,7 +468,7 @@ class DirectiveRegistry:
             ]
         ))
 
-        def comment_handler(node, compiler):
+        def comment_handler(node: Any, compiler: Any) -> str:
             """Handle .comment{} - stripped from output"""
             return ""
 
@@ -490,11 +492,11 @@ class DirectiveRegistry:
         into the modifiers dict rather than creating child nodes.
         """
 
-        def style_handler(node, compiler):
+        def style_handler(node: Any, compiler: Any) -> str:
             """Should never be called - .style{} extracted by parser"""
             return ""
 
-        def class_handler(node, compiler):
+        def class_handler(node: Any, compiler: Any) -> str:
             """Should never be called - .class{} extracted by parser"""
             return ""
 
@@ -514,7 +516,7 @@ class DirectiveRegistry:
             examples=['.slide{.class{special-slide} .body{Content}}']
         ))
 
-        def syntax_handler(node, compiler):
+        def syntax_handler(node: Any, compiler: Any) -> str:
             """Should never be called - .syntax{} extracted by parser"""
             return ""
 

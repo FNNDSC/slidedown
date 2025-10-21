@@ -7,7 +7,7 @@ validation, documentation generation, and registry management.
 
 from enum import Enum
 from dataclasses import dataclass, field
-from typing import Callable, List, Optional, Set
+from typing import Callable, List, Optional, Set, Any
 
 
 class DirectiveCategory(Enum):
@@ -46,7 +46,7 @@ class DirectiveSpec:
     name: str
     category: DirectiveCategory
     description: str
-    handler: Callable
+    handler: Callable[[Any, Any], str]
     requires_children: bool = False
     allows_nesting: bool = True
     is_wildcard: bool = False

@@ -68,7 +68,7 @@ class Theme:
         """Load and parse theme.yaml"""
         try:
             with open(self.config_path, 'r') as f:
-                config = yaml.safe_load(f)
+                config: Any = yaml.safe_load(f)
                 if config is None:
                     config = {}
                 return config
@@ -107,8 +107,8 @@ class Theme:
         Returns:
             Configuration value or default
         """
-        keys = key.split('.')
-        value = self.config
+        keys: list[str] = key.split('.')
+        value: Any = self.config
 
         for k in keys:
             if isinstance(value, dict) and k in value:
@@ -141,12 +141,12 @@ def themes_listAvailable(themes_dir: str = "themes") -> list[str]:
     Returns:
         List of theme names (directory names with valid theme.yaml)
     """
-    themes_path = Path(themes_dir)
+    themes_path: Path = Path(themes_dir)
 
     if not themes_path.exists():
         return []
 
-    themes = []
+    themes: list[str] = []
     for item in themes_path.iterdir():
         if item.is_dir():
             # Check if it has a theme.yaml
@@ -168,7 +168,7 @@ def theme_validate(theme_name: str, themes_dir: str = "themes") -> tuple[bool, s
         Tuple of (is_valid, message)
     """
     try:
-        theme = Theme(theme_name, themes_dir)
+        theme: Theme = Theme(theme_name, themes_dir)
 
         # Check for CSS file
         if not theme.css_has():

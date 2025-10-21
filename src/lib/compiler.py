@@ -5,8 +5,9 @@ Transforms parsed AST nodes into complete HTML presentation.
 """
 
 import os
+import re
 import shutil
-from typing import List, Dict
+from typing import List, Dict, Optional, Any
 from pathlib import Path
 
 from .parser import ASTNode
@@ -32,8 +33,8 @@ class Compiler:
         output_dir: str,
         assets_dir: str,
         verbosity: int = 1,
-        protected_code_blocks: Dict[int, str] = None
-    ):
+        protected_code_blocks: Optional[Dict[int, str]] = None
+    ) -> None:
         """
         Initialize compiler
 
@@ -55,7 +56,7 @@ class Compiler:
         self.snippet_counters: Dict[int, int] = {}  # slide_num -> snippet_count
         self.typewriter_counters: Dict[int, int] = {}  # slide_num -> typewriter_count
 
-    def compile(self) -> Dict:
+    def compile(self) -> Dict[str, Any]:
         """
         Compile AST to HTML presentation
 
@@ -129,11 +130,12 @@ class Compiler:
         import re
         from pygments import highlight
         from pygments.lexers import get_lexer_by_name, TextLexer
+        from pygments.lexer import Lexer
         from pygments.formatters import HtmlFormatter
         from pygments.util import ClassNotFound
         from .lexer import SlidedownLexer
 
-        def expand_code_placeholder(match):
+        def expand_code_placeholder(match: re.Match[str]) -> str:
             """Expand a CODE_N placeholder with syntax-highlighted content"""
             code_id = int(match.group(1))
             if code_id not in self.protected_code_blocks:
@@ -159,6 +161,7 @@ class Compiler:
                 code_content = raw_content
 
             # Get lexer
+            lexer: Lexer
             try:
                 if language.lower() in ['slidedown', 'sd']:
                     lexer = SlidedownLexer()
