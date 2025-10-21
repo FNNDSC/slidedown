@@ -629,6 +629,12 @@ Page.prototype = {
                                                 'order-' + this.currentSlide +
                                                 '-' + snippetToDisplay
                                             );
+
+        // Safety check: if snippet doesn't exist, return true (no more snippets)
+        if (!DOMsnippet) {
+            return true;
+        }
+
         DOMsnippet.style.display        = 'block';
 
         // Check if this snippet contains a typewriter and trigger it

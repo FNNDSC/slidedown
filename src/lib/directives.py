@@ -133,7 +133,62 @@ class DirectiveRegistry:
         def body_handler(node, compiler):
             """Handle .body{} - slide content area"""
             # node.content already has placeholders substituted by compiler
-            return node.content
+            content = node.content
+
+            # If body contains column divs, wrap them in a flex container
+            # We need to properly match nested divs by counting depth
+            if '<div class="column"' in content:
+                result = []
+                i = 0
+                while i < len(content):
+                    # Look for start of column
+                    if content[i:].startswith('<div class="column"'):
+                        # Found start of columns - collect all consecutive columns
+                        flex_start = i
+                        columns = []
+
+                        while i < len(content) and '<div class="column"' in content[i:i+20]:
+                            # Find the opening tag
+                            col_start = i
+
+                            # Find matching closing </div> by counting nesting depth
+                            tag_start = content.find('<div class="column"', i)
+                            depth = 0
+                            j = tag_start
+
+                            while j < len(content):
+                                if content[j:j+4] == '<div':
+                                    depth += 1
+                                elif content[j:j+6] == '</div>':
+                                    depth -= 1
+                                    if depth == 0:
+                                        # Found matching closing tag
+                                        col_end = j + 6
+                                        columns.append(content[tag_start:col_end])
+                                        i = col_end
+                                        break
+                                j += 1
+
+                            # Skip whitespace between columns
+                            while i < len(content) and content[i] in ' \n\t':
+                                i += 1
+
+                            # Check if next thing is another column
+                            if not content[i:].startswith('<div class="column"'):
+                                break
+
+                        # Wrap all collected columns in flex container
+                        if columns:
+                            result.append('<div style="display: flex;">\n')
+                            result.append('\n'.join(columns))
+                            result.append('\n</div>\n')
+                    else:
+                        result.append(content[i])
+                        i += 1
+
+                content = ''.join(result)
+
+            return content
 
         self.register(DirectiveSpec(
             name='slide',
@@ -175,11 +230,31 @@ class DirectiveRegistry:
             ('bf', 'strong', 'Bold/strong text', ['.bf{bold text}']),
             ('em', 'em', 'Emphasized/italic text', ['.em{italic text}']),
             ('tt', 'tt', 'Teletype/monospace text', ['.tt{monospace}']),
-            ('code', 'code', 'Inline code', ['.code{function()}']),
+            # NOTE: .code{} is registered in transformDirectives_register() for syntax highlighting
+            # ('code', 'code', 'Inline code', ['.code{function()}']),
             ('underline', 'u', 'Underlined text', ['.underline{underlined}']),
         ]
 
         for name, tag, desc, examples in formatting_specs:
+            self.register(DirectiveSpec(
+                name=name,
+                category=DirectiveCategory.FORMATTING,
+                description=desc,
+                handler=make_html_wrapper(tag),
+                examples=examples
+            ))
+
+        # Heading aliases - cleaner syntax than <h1></h1>
+        heading_specs = [
+            ('h1', 'h1', 'Heading level 1 (largest)', ['.h1{Main Title}']),
+            ('h2', 'h2', 'Heading level 2', ['.h2{Section Title}']),
+            ('h3', 'h3', 'Heading level 3', ['.h3{Subsection Title}']),
+            ('h4', 'h4', 'Heading level 4', ['.h4{Minor Heading}']),
+            ('h5', 'h5', 'Heading level 5', ['.h5{Small Heading}']),
+            ('h6', 'h6', 'Heading level 6 (smallest)', ['.h6{Tiny Heading}']),
+        ]
+
+        for name, tag, desc, examples in heading_specs:
             self.register(DirectiveSpec(
                 name=name,
                 category=DirectiveCategory.FORMATTING,
@@ -253,6 +328,42 @@ class DirectiveRegistry:
             examples=['.o{First bullet}', '.o{Second bullet}']
         ))
 
+        def column_handler(node, compiler):
+            """Handle .column{} - column layout container with optional styling"""
+            # Build style attribute from modifiers
+            styles = []
+
+            # Handle align modifier
+            if 'align' in node.modifiers:
+                styles.append(f"text-align: {node.modifiers['align']}")
+
+            # Handle width modifier
+            if 'width' in node.modifiers:
+                styles.append(f"width: {node.modifiers['width']}")
+            else:
+                # Default: flex-grow so columns split equally
+                styles.append("flex: 1")
+
+            # Add any other custom CSS from .style{}
+            if 'style' in node.modifiers:
+                styles.append(node.modifiers['style'])
+
+            # Build style attribute
+            style_attr = f' style="{"; ".join(styles)}"' if styles else ''
+
+            return f'<div class="column"{style_attr}>{node.content}</div>'
+
+        self.register(DirectiveSpec(
+            name='column',
+            category=DirectiveCategory.EFFECT,
+            description='Column layout container for side-by-side content',
+            handler=column_handler,
+            examples=[
+                '.column{.style{align=left; width=50%}\n    Content here\n}',
+                '.column{.style{width=33%}\n    Narrow column\n}'
+            ]
+        ))
+
     def transformDirectives_register(self) -> None:
         """Register content transformation directives (ASCII art)"""
 
@@ -308,31 +419,38 @@ class DirectiveRegistry:
         ))
 
         def code_handler(node, compiler):
-            """Handle .code{.syntax{language=X} ...} - syntax highlighted code blocks"""
-            # Extract language from .syntax{} modifier
-            language = node.modifiers.get('syntax', 'text')
+            """Handle .code{} - inline code OR syntax highlighted code blocks"""
+            # Check if this is a syntax-highlighted code block (has .syntax{} modifier)
+            if 'syntax' in node.modifiers:
+                # SYNTAX-HIGHLIGHTED CODE BLOCK
+                language = node.modifiers['syntax']
 
-            # Parse language=value if present
-            if '=' in language:
-                # Handle language=python, language=c, etc.
-                language = language.split('=', 1)[1].strip()
+                # Parse language=value if present
+                if '=' in language:
+                    # Handle language=python, language=c, etc.
+                    language = language.split('=', 1)[1].strip()
 
-            # Get appropriate lexer
-            try:
-                if language.lower() in ['slidedown', 'sd']:
-                    lexer = SlidedownLexer()
-                else:
-                    lexer = get_lexer_by_name(language)
-            except ClassNotFound:
-                # Fallback to plain text if language not found
-                lexer = TextLexer()
+                # Get appropriate lexer
+                try:
+                    if language.lower() in ['slidedown', 'sd']:
+                        lexer = SlidedownLexer()
+                    else:
+                        lexer = get_lexer_by_name(language)
+                except ClassNotFound:
+                    # Fallback to plain text if language not found
+                    lexer = TextLexer()
 
-            # Generate highlighted HTML with inline styles
-            # noclasses=True means styles are inline, no external CSS needed
-            formatter = HtmlFormatter(style='monokai', noclasses=True)
-            highlighted = highlight(node.content, lexer, formatter)
+                # Generate highlighted HTML with inline styles
+                # noclasses=True means styles are inline, no external CSS needed
+                formatter = HtmlFormatter(style='monokai', noclasses=True)
+                highlighted = highlight(node.content, lexer, formatter)
 
-            return highlighted
+                return highlighted
+            else:
+                # INLINE CODE (no syntax highlighting, just <code> tag)
+                style = node.modifiers.get('style', '')
+                style_attr = f' style="{style}"' if style else ''
+                return f'<code{style_attr}>{node.content}</code>'
 
         self.register(DirectiveSpec(
             name='code',

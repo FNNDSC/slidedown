@@ -218,6 +218,21 @@ body {
     list-style-position: inside;
 }
 
+/* Column layout support */
+.slide .column {
+    flex: 1;
+    padding: 0 10px;
+    box-sizing: border-box;
+}
+
+.slide .column:first-of-type {
+    padding-left: 0;
+}
+
+.slide .column:last-of-type {
+    padding-right: 0;
+}
+
 dialog {
     padding: 0;
     border: 0;

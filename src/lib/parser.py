@@ -133,15 +133,23 @@ class Parser:
                 # Extract raw content (including .syntax{} modifier if present)
                 raw_content = self.source[brace_start + 1:brace_end]
 
-                # Store protected content
-                self.protected_code_blocks[code_id] = raw_content
+                # Only protect if it contains .syntax{} modifier (multi-line code block)
+                # Inline .code{} should be processed normally
+                if re.match(r'^\s*\.syntax\{', raw_content):
+                    # Store protected content
+                    self.protected_code_blocks[code_id] = raw_content
 
-                # Replace with placeholder
-                result.append(f'\x00CODE_{code_id}\x00')
-                code_id += 1
+                    # Replace entire .code{...} with placeholder
+                    result.append(f'.code{{\x00CODE_{code_id}\x00}}')
+                    code_id += 1
 
-                # Skip past this .code{} block
-                pos = brace_end + 1
+                    # Skip past this .code{} block
+                    pos = brace_end + 1
+                else:
+                    # Not a syntax-highlighted code block, keep the .code{} directive intact
+                    # so it can be processed normally by the directive handler
+                    result.append(self.source[pos:brace_end + 1])
+                    pos = brace_end + 1
             else:
                 # Regular character, keep it
                 result.append(self.source[pos])
@@ -469,21 +477,27 @@ class Parser:
             # Extract modifier value
             modifier_value = content[brace_start + 1:brace_pos - 1]
 
-            # Special handling for .style{} - extract align= if present
+            # Special handling for .style{} - extract align= and width= if present
             if modifier_name == 'style':
-                align_match = re.search(r'align\s*=\s*(\w+)', modifier_value)
+                style_value = modifier_value
+
+                # Extract align= if present
+                align_match = re.search(r'align\s*=\s*(\w+)', style_value)
                 if align_match:
-                    # Extract align value as separate modifier
                     modifiers['align'] = align_match.group(1)
-                    # Remove align= from style value
-                    style_value = re.sub(r'align\s*=\s*\w+\s*;?\s*', '', modifier_value).strip()
-                    # Remove trailing semicolon if it's the only thing left
-                    style_value = style_value.rstrip(';').strip()
-                    if style_value:
-                        modifiers[modifier_name] = style_value
-                    # Don't add empty style modifier
-                else:
-                    modifiers[modifier_name] = modifier_value
+                    style_value = re.sub(r'align\s*=\s*\w+\s*;?\s*', '', style_value).strip()
+
+                # Extract width= if present
+                width_match = re.search(r'width\s*=\s*([\w%]+)', style_value)
+                if width_match:
+                    modifiers['width'] = width_match.group(1)
+                    style_value = re.sub(r'width\s*=\s*[\w%]+\s*;?\s*', '', style_value).strip()
+
+                # Remove trailing semicolon if it's the only thing left
+                style_value = style_value.rstrip(';').strip()
+                if style_value:
+                    modifiers[modifier_name] = style_value
+                # Don't add empty style modifier
             else:
                 modifiers[modifier_name] = modifier_value
 

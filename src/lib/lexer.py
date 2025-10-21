@@ -67,11 +67,11 @@ class SlidedownLexer(RegexLexer):
              bygroups(Punctuation, Name.Decorator, None, Punctuation)),
 
             # Behavioral/Effect directives (yellow/orange) - Literal.Number
-            (r'(\.)((o|typewriter))(\{)?',
+            (r'(\.)((o|typewriter|column))(\{)?',
              bygroups(Punctuation, Literal.Number, None, Punctuation)),
 
             # Formatting directives (green) - Name.Function
-            (r'(\.)((bf|em|tt|code|underline))(\{)?',
+            (r'(\.)((bf|em|tt|code|underline|h1|h2|h3|h4|h5|h6))(\{)?',
              bygroups(Punctuation, Name.Function, None, Punctuation)),
 
             # Transform directives (orange) - Number (font-*, cowpy-*)
@@ -115,11 +115,11 @@ class SlidedownLexer(RegexLexer):
              bygroups(Punctuation, Name.Decorator, None, Punctuation)),
 
             # Behavioral/Effect directives (yellow/orange)
-            (r'(\.)((o|typewriter))(\{)?',
+            (r'(\.)((o|typewriter|column))(\{)?',
              bygroups(Punctuation, Literal.Number, None, Punctuation)),
 
             # Formatting directives (green)
-            (r'(\.)((bf|em|tt|code|underline))(\{)?',
+            (r'(\.)((bf|em|tt|code|underline|h1|h2|h3|h4|h5|h6))(\{)?',
              bygroups(Punctuation, Name.Function, None, Punctuation)),
 
             # Transform directives (orange)

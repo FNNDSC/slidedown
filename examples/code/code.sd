@@ -11,7 +11,7 @@
     .style{align=center}
     .title{Code Syntax Highlighting Demo}
     .body{
-        <h2>Syntax Highlighting with Pygments</h2>
+        .h2{Syntax Highlighting with Pygments}
         <p>This presentation demonstrates syntax highlighting for multiple languages using the code directive.</p>
         .comment{List of languages we'll demonstrate in following slides}
         <ul>
@@ -29,7 +29,7 @@
     .style{background: #1e1e1e; color: #d4d4d4; align=center}
     .title{Source: Python Example}
     .body{
-        <h2>Fibonacci Function in Python</h2>
+        .h2{Fibonacci Function in Python}
         .code{.syntax{language=python}
 def fibonacci(n):
     """Calculate the nth Fibonacci number recursively."""
@@ -49,7 +49,7 @@ for i in range(10):
 .slide{
     .title{Result: Python Execution}
     .body{
-        <h2>Output from Fibonacci Function</h2>
+        .h2{Output from Fibonacci Function}
         .comment{Pre-formatted output from running the fibonacci code above}
         <pre>
 fibonacci(0) = 0
@@ -73,7 +73,7 @@ fibonacci(9) = 34
     .style{background: #1e1e1e; color: #d4d4d4; align=center}
     .title{Source: C Example}
     .body{
-        <h2>Linked List in C</h2>
+        .h2{Linked List in C}
         .code{.syntax{language=c}
 #include <stdio.h>
 #include <stdlib.h>
@@ -111,7 +111,7 @@ void print_list(Node* head) {
 .slide{
     .title{Result: C Concepts}
     .body{
-        <h2>Key C Programming Concepts</h2>
+        .h2{Key C Programming Concepts}
         <!-- Note: These concepts are fundamental to systems programming -->
         <ul>
             <li><code>typedef struct</code> - Define custom data types</li>
@@ -133,7 +133,7 @@ void print_list(Node* head) {
     .style{background: #1e1e1e; color: #d4d4d4;}
     .title{Source: JavaScript Example}
     .body{
-        <h2>Async/Await in JavaScript</h2>
+        .h2{Async/Await in JavaScript}
         .code{.syntax{language=javascript}
 async function fetchUserData(userId) {
     try {
@@ -162,7 +162,7 @@ fetchUserData(123)
 .slide{
     .title{Result: JavaScript Features}
     .body{
-        <h2>Modern JavaScript</h2>
+        .h2{Modern JavaScript}
         .comment{Highlighting key ES6+ features used in the example}
         <ul>
             <li><code>async/await</code> - Cleaner asynchronous code</li>
@@ -184,7 +184,7 @@ fetchUserData(123)
     .style{background: #1e1e1e; color: #d4d4d4;}
     .title{Source: Slidedown Markup}
     .body{
-        <h2>Slidedown Syntax Example</h2>
+        .h2{Slidedown Syntax Example}
         .code{.syntax{language=slidedown}
 .comment{This is a slidedown comment - won't appear in output}
 
@@ -193,7 +193,7 @@ fetchUserData(123)
 .slide{
     .title{Welcome to Slidedown}
     .body{
-        <h2>Text Formatting</h2>
+        .h2{Text Formatting}
 
         <p>.bf{Bold text} and .em{emphasized text}</p>
 
@@ -217,7 +217,7 @@ with animation
 .slide{
     .title{Result: Slidedown Features}
     .body{
-        <h2>What Slidedown Provides</h2>
+        .h2{What Slidedown Provides}
         <!-- Comprehensive list of slidedown capabilities -->
         <ul>
             <li>Structure directives: slide, title, body</li>
@@ -240,7 +240,7 @@ with animation
 .slide{
     .title{Summary}
     .body{
-        <h2>Syntax Highlighting Works!</h2>
+        .h2{Syntax Highlighting Works!}
 
         <p>The code directive successfully highlights multiple languages:</p>
 
