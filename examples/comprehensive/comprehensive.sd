@@ -387,6 +387,73 @@ with a typing effect
     }
 }
 
+<!-- Three Column Layout Example -->
+
+.slide{
+    .style{background: #1e1e1e; color: #d4d4d4;}
+    .title{Source: Three Column Layout}
+    .body{
+        .h2{Complete Slide Definition}
+        .code{.syntax{language=slidedown}
+.slide{
+    .title{Three Column Layout}
+    .body{.style{align=center}
+        .h2{Triple Column Design}
+
+        .column{.style{align=center; width=33%}
+            .h3{Column 1}
+            .o{Feature A}
+            .o{Benefit A}
+            .o{Use case A}
+        }
+
+        .column{.style{align=center; width=33%}
+            .h3{Column 2}
+            .o{Feature B}
+            .o{Benefit B}
+            .o{Use case B}
+        }
+
+        .column{.style{align=center; width=34%}
+            .h3{Column 3}
+            .o{Feature C}
+            .o{Benefit C}
+            .o{Use case C}
+        }
+    }
+}
+        }
+    }
+}
+
+.slide{
+    .title{Three Column Layout}
+    .body{.style{align=center}
+        .h2{Triple Column Design}
+
+        .column{.style{align=center; width=33%}
+            .h3{Column 1}
+            .o{Feature A}
+            .o{Benefit A}
+            .o{Use case A}
+        }
+
+        .column{.style{align=center; width=33%}
+            .h3{Column 2}
+            .o{Feature B}
+            .o{Benefit B}
+            .o{Use case B}
+        }
+
+        .column{.style{align=center; width=34%}
+            .h3{Column 3}
+            .o{Feature C}
+            .o{Benefit C}
+            .o{Use case C}
+        }
+    }
+}
+
 <!-- Summary -->
 
 .slide{
