@@ -13,6 +13,7 @@ from pathlib import Path
 from .parser import ASTNode
 from .directives import DirectiveRegistry
 from .log import LOG
+from .theme import Theme
 
 
 class Compiler:
@@ -33,7 +34,8 @@ class Compiler:
         output_dir: str,
         assets_dir: str,
         verbosity: int = 1,
-        protected_code_blocks: Optional[Dict[int, str]] = None
+        protected_code_blocks: Optional[Dict[int, str]] = None,
+        theme_name: str = "default"
     ) -> None:
         """
         Initialize compiler
@@ -44,6 +46,7 @@ class Compiler:
             assets_dir: Directory containing runtime assets (css/js/html)
             verbosity: Output verbosity level (0-3)
             protected_code_blocks: Dict of protected .code{} block content from parser
+            theme_name: Name of theme to use (default: "default")
         """
         self.ast = ast
         self.output_dir = Path(output_dir)
@@ -51,6 +54,10 @@ class Compiler:
         self.verbosity = verbosity
         self.protected_code_blocks = protected_code_blocks or {}
         self.directives = DirectiveRegistry()
+
+        # Load theme
+        self.theme = Theme(theme_name)
+        LOG(f"Loaded theme: {self.theme.name}", level=2)
 
         self.slide_count = 0
         self.snippet_counters: Dict[int, int] = {}  # slide_num -> snippet_count
@@ -170,8 +177,9 @@ class Compiler:
             except ClassNotFound:
                 lexer = TextLexer()
 
-            # Generate highlighted HTML
-            formatter = HtmlFormatter(style='monokai', noclasses=True)
+            # Generate highlighted HTML (use theme's Pygments style)
+            pygments_style = self.theme.pygmentsStyle_get()
+            formatter = HtmlFormatter(style=pygments_style, noclasses=True)
             highlighted = highlight(code_content, lexer, formatter)
 
             return highlighted
@@ -289,7 +297,8 @@ class Compiler:
             return ""
 
     def assets_copy(self) -> None:
-        """Copy CSS/JS/image assets to output directory"""
+        """Copy CSS/JS/image assets and theme files to output directory"""
+        # Copy standard slidedown assets
         for asset_dir in ['css', 'js', 'images', 'logos']:
             src = self.assets_dir / asset_dir
             dst = self.output_dir / asset_dir
@@ -297,3 +306,18 @@ class Compiler:
             if src.exists():
                 shutil.copytree(src, dst, dirs_exist_ok=True)
                 LOG(f"Copied {asset_dir}/ to output", level=3)
+
+        # Copy theme CSS
+        theme_css_path = self.theme.cssPath_get()
+        if theme_css_path and theme_css_path.exists():
+            dst_css = self.output_dir / "css" / "theme.css"
+            dst_css.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(theme_css_path, dst_css)
+            LOG(f"Copied theme CSS: {self.theme.name}", level=2)
+
+        # Copy theme assets
+        theme_assets_dir = self.theme.assetsDir_get()
+        if theme_assets_dir and theme_assets_dir.exists():
+            dst_theme_assets = self.output_dir / "theme-assets"
+            shutil.copytree(theme_assets_dir, dst_theme_assets, dirs_exist_ok=True)
+            LOG(f"Copied theme assets: {theme_assets_dir}", level=3)

@@ -55,6 +55,7 @@ class ProgramState:
     inputFile: str = field(default="")
     assetsDir: Optional[str] = field(default=None)
     outputSubdir: str = field(default=".")
+    themeName: str = field(default="default")
 
     # Pipeline state
     envOK: bool = field(default=False)

@@ -82,6 +82,14 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--theme",
+    dest="themeName",
+    default="default",
+    type=str,
+    help="Theme name to use for styling (default: default)",
+)
+
+parser.add_argument(
     "-v",
     "--verbosity",
     action="count",
@@ -236,6 +244,7 @@ def html_compile(inputstate: ProgramState) -> ProgramState:
             assets_dir=str(state.assetsInputdir),
             verbosity=state.verbosity,
             protected_code_blocks=state.protectedCodeBlocks,
+            theme_name=state.themeName,
         )
         state.compileResult = compiler.compile()
         LOG(f"Compilation complete: {state.compileResult['slide_count']} slides", level=2)
