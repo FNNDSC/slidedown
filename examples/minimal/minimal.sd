@@ -1,64 +1,143 @@
+.comment{
+    Minimal Slidedown Example - Source/Result Pairs
+    Each feature shown as: Complete source slide → Exact result
+}
+
 .slide{
     .title{Welcome to slidedown}
     .body{
-        <h1>A minimal example demonstrating all directives</h1>
-        <p>This presentation showcases every available .directive{} in slidedown.</p>
-        <p>Navigate: Arrow keys or click</p>
+        <h1>A Complete Guide to Slidedown Directives</h1>
+        <p>This presentation shows .bf{complete slide source} followed by .bf{exact rendered output}.</p>
+        <p>Navigate: Arrow keys or navigation buttons</p>
+    }
+}
+
+<!-- Text Formatting Example -->
+
+.slide{
+    .style{background: #1e1e1e; color: #d4d4d4;}
+    .title{Source: Text Formatting}
+    .body{
+        <h2>Complete Slide Definition</h2>
+        .code{.syntax{language=slidedown}
+.slide{
+    .title{Text Formatting}
+    .body{
+        <p>.bf{Bold text} produces bold</p>
+        <p>.em{Emphasized text} produces italic</p>
+        <p>.tt{Teletype} produces monospace</p>
+        <p>.code{inline_code()} produces code</p>
+        <p>.underline{Underlined} produces underline</p>
+        <p>.bf{Bold with .em{italic inside}}</p>
+    }
+}
+        }
     }
 }
 
 .slide{
     .title{Text Formatting}
     .body{
-        <h2>Text Formatting Aliases</h2>
-
-        <p>.bf{Bold text} produces bold (strong) text</p>
-
-        <p>.em{Emphasized text} produces italic (emphasis) text</p>
-
-        <p>.tt{Teletype text} produces monospace text</p>
-
-        <p>.code{function_name()} produces inline code</p>
-
-        <p>.underline{Underlined text} produces underlined text</p>
-
-        <p>Mix them: .bf{Bold with .em{italic inside}}</p>
+        <p>.bf{Bold text} produces bold</p>
+        <p>.em{Emphasized text} produces italic</p>
+        <p>.tt{Teletype} produces monospace</p>
+        <p>.code{inline_code()} produces code</p>
+        <p>.underline{Underlined} produces underline</p>
+        <p>.bf{Bold with .em{italic inside}}</p>
     }
 }
 
-.slide{
-    .title{Progressive Reveals}
-    .body{
-        <h2>Progressive Bullet Points</h2>
-        <p>Use .o{} for progressive reveal bullets:</p>
+<!-- Progressive Reveal Example -->
 
+.slide{
+    .style{background: #1e1e1e; color: #d4d4d4;}
+    .title{Source: Progressive Reveals}
+    .body{
+        <h2>Complete Slide Definition</h2>
+        .code{.syntax{language=slidedown}
+.slide{
+    .title{Progressive Bullets}
+    .body{
         .o{First bullet appears}
-        .o{Second bullet appears on next click}
-        .o{Third bullet appears after that}
+        .o{Second bullet on next click}
+        .o{Third bullet after that}
         .o{Each .o{} creates a new reveal}
-        .o{Perfect for step-by-step explanations}
+        .o{Perfect for step-by-step}
     }
 }
-
-.slide{
-    .title{Typewriter Effect}
-    .body{
-        <h2>Character-by-Character Reveal</h2>
-        <p>The .typewriter{} behavior creates animated text:</p>
-
-        .typewriter{
-This text will appear
-character by character
-with a typing animation effect
         }
     }
 }
 
 .slide{
-    .title{ASCII Art - Figlet Fonts}
+    .title{Progressive Bullets}
     .body{
-        <h2>ASCII Art with <code>.font-NAME&lbrace;&rbrace;</code></h2>
+        .o{First bullet appears}
+        .o{Second bullet on next click}
+        .o{Third bullet after that}
+        .o{Each .o{} creates a new reveal}
+        .o{Perfect for step-by-step}
+    }
+}
 
+<!-- Typewriter Effect Example -->
+
+.slide{
+    .style{background: #1e1e1e; color: #d4d4d4;}
+    .title{Source: Typewriter Effect}
+    .body{
+        <h2>Complete Slide Definition</h2>
+        .code{.syntax{language=slidedown}
+.slide{
+    .title{Typewriter Animation}
+    .body{
+        .typewriter{
+This text will appear
+character by character
+with a typing effect
+        }
+    }
+}
+        }
+    }
+}
+
+.slide{
+    .title{Typewriter Animation}
+    .body{
+        .typewriter{
+This text will appear
+character by character
+with a typing effect
+        }
+    }
+}
+
+<!-- ASCII Art - Figlet Example -->
+
+.slide{
+    .style{background: #1e1e1e; color: #d4d4d4;}
+    .title{Source: ASCII Art - Figlet}
+    .body{
+        <h2>Complete Slide Definition</h2>
+        .code{.syntax{language=slidedown}
+.slide{
+    .title{Figlet Fonts}
+    .body{
+        .font-standard{slidedown}
+
+        .font-slant{Slant Font}
+
+        .font-banner{BANNER}
+    }
+}
+        }
+    }
+}
+
+.slide{
+    .title{Figlet Fonts}
+    .body{
         .font-standard{slidedown}
 
         .font-slant{Slant Font}
@@ -67,120 +146,209 @@ with a typing animation effect
     }
 }
 
-.slide{
-    .title{More ASCII Art Fonts}
-    .body{
-        .font-doom{DOOM}
+<!-- Cowsay Example -->
 
-        .font-basic{Basic Style}
+.slide{
+    .style{background: #1e1e1e; color: #d4d4d4;}
+    .title{Source: Cowsay Characters}
+    .body{
+        <h2>Complete Slide Definition</h2>
+        .code{.syntax{language=slidedown}
+.slide{
+    .title{Cowsay Speech Bubbles}
+    .body{
+        .cowpy-cow{Moo! Hello from slidedown!}
+
+        .cowpy-tux{Hello from Tux!}
+
+        .cowpy-dragon{Dragons speak too!}
+    }
+}
+        }
     }
 }
 
 .slide{
     .title{Cowsay Speech Bubbles}
     .body{
-        <h2>ASCII Characters with <code>.cowpy-NAME&lbrace;&rbrace;</code></h2>
+        .cowpy-cow{Moo! Hello from slidedown!}
 
-        .cowpy-cow{Moo! I'm a cow saying hello from slidedown!}
+        .cowpy-tux{Hello from Tux!}
+
+        .cowpy-dragon{Dragons speak too!}
     }
 }
 
-.slide{
-    .title{More Cowsay Characters}
-    .body{
-        .cowpy-tux{Hello from Tux the penguin!}
+<!-- Nesting Directives -->
 
-        .cowpy-dragon{Dragons can speak too!}
+.slide{
+    .style{background: #1e1e1e; color: #d4d4d4;}
+    .title{Source: Nesting Directives}
+    .body{
+        <h2>Complete Slide Definition</h2>
+        .code{.syntax{language=slidedown}
+.slide{
+    .title{Combining Directives}
+    .body{
+        .o{.bf{Bold} text in bullet}
+        .o{.em{Italic} text in bullet}
+        .o{.code{code()} in bullet}
+
+        <p>.bf{Bold with .em{italic inside}}</p>
+    }
+}
+        }
     }
 }
 
 .slide{
     .title{Combining Directives}
     .body{
-        <h2>Directives Can Be Nested</h2>
+        .o{.bf{Bold} text in bullet}
+        .o{.em{Italic} text in bullet}
+        .o{.code{code()} in bullet}
 
-        .o{.bf{Bold} text in a bullet}
-        .o{.em{Emphasized} text in a bullet}
-        .o{.code{code()} inside a bullet}
+        <p>.bf{Bold with .em{italic inside}}</p>
+    }
+}
 
-        <p>Mix structural and formatting directives for rich content.</p>
+<!-- Advanced: Typewriter in Bullets -->
+
+.slide{
+    .style{background: #1e1e1e; color: #d4d4d4;}
+    .title{Source: Advanced Nesting}
+    .body{
+        <h2>Complete Slide Definition</h2>
+        .code{.syntax{language=slidedown}
+.slide{
+    .title{Progressive + Typewriter}
+    .body{
+        .o{.typewriter{First step types out}}
+        .o{.typewriter{Second step types next}}
+        .o{.typewriter{Final step types last}}
+    }
+}
+        }
     }
 }
 
 .slide{
-    .title{Advanced Nesting}
+    .title{Progressive + Typewriter}
     .body{
-        <h2>Complex Directive Combinations</h2>
-
-        <p>Typewriter effect inside bullets:</p>
-
-        .o{.typewriter{First step types out when revealed}}
-        .o{.typewriter{Second step types out on next click}}
-        .o{.typewriter{Final step types out last}}
-
-        <p>Creates progressive reveals with typing animation.</p>
+        .o{.typewriter{First step types out}}
+        .o{.typewriter{Second step types next}}
+        .o{.typewriter{Final step types last}}
     }
 }
 
+<!-- Style Directive -->
+
 .slide{
-    .title{Raw HTML Support}
+    .style{background: #1e1e1e; color: #d4d4d4;}
+    .title{Source: Custom Styling}
     .body{
-        <h2>HTML Works Alongside Directives</h2>
-
-        <p>You can freely mix HTML and slidedown directives:</p>
-
-        .o{HTML lists: <code>&lt;ul&gt;</code>, <code>&lt;ol&gt;</code>, <code>&lt;li&gt;</code>}
-        .o{HTML emphasis: <code>&lt;strong&gt;</code>, <code>&lt;em&gt;</code>, <code>&lt;code&gt;</code>}
-        .o{HTML structure: <code>&lt;div&gt;</code>, <code>&lt;span&gt;</code>, <code>&lt;p&gt;</code>}
-        .o{Slidedown directives: <code>.o&lbrace;&rbrace;</code>, <code>.typewriter&lbrace;&rbrace;</code>, <code>.style&lbrace;&rbrace;</code>}
-
-        <p>Best practice: .bf{Use directives for slidedown features}, HTML for standard document structure.</p>
+        <h2>Complete Slide Definition</h2>
+        .code{.syntax{language=slidedown}
+.slide{
+    .style{background: black; color: lightgreen;}
+    .title{Custom Colors}
+    .body{
+        <p>Black background!</p>
+        <p>Light green text!</p>
+    }
+}
+        }
     }
 }
 
 .slide{
     .style{background: black; color: lightgreen;}
-    .title{Style Directive Examples}
+    .title{Custom Colors}
     .body{
-        <h2>Custom Styling with .style{}</h2>
+        <p>Black background!</p>
+        <p>Light green text!</p>
+    }
+}
 
-        .o{This slide has black background and light green text}
-        .o{Set with <code>.style&lbrace;background: black; color: lightgreen;&rbrace;</code>}
-        .o{The .style&lbrace;&rbrace; directive applies CSS to the slide}
+<!-- Gradient Style Example -->
 
-        <p>You can use any valid CSS properties.</p>
+.slide{
+    .style{background: #1e1e1e; color: #d4d4d4;}
+    .title{Source: Advanced Styling}
+    .body{
+        <h2>Complete Slide Definition</h2>
+        .code{.syntax{language=slidedown}
+.slide{
+    .style{
+        background: linear-gradient(
+            to right, #2c3e50, #3498db
+        );
+        color: white;
+        font-family: monospace;
+    }
+    .title{Gradient Slide}
+    .body{<p>Beautiful gradient!</p>}
+}
+        }
     }
 }
 
 .slide{
-    .style{background: linear-gradient(to right, #2c3e50, #3498db); color: white; font-family: monospace;}
-    .title{More Style Examples}
+    .style{
+        background: linear-gradient(
+            to right, #2c3e50, #3498db
+        );
+        color: white;
+        font-family: monospace;
+    }
+    .title{Gradient Slide}
+    .body{<p>Beautiful gradient!</p>}
+}
+
+<!-- Comments -->
+
+.slide{
+    .style{background: #1e1e1e; color: #d4d4d4;}
+    .title{Source: Comments}
     .body{
-        <h2>Gradient Background + Monospace Font</h2>
-
-        <p>This slide demonstrates:</p>
-        .o{Linear gradient background}
-        .o{White text color}
-        .o{Monospace font family}
-
-        <p style="font-size: 1.2em; border: 2px solid white; padding: 10px;">
-            The .style&lbrace;&rbrace; directive is powerful!
-        </p>
+        <h2>Complete Slide Definition</h2>
+        .code{.syntax{language=slidedown}
+.slide{
+    .title{Comments Demo}
+    .body{
+        .comment{Won't appear in output}
+        <p>This appears</p>
+        <!-- This won't appear either -->
+    }
+}
+        }
     }
 }
 
 .slide{
-    .title{Summary}
+    .title{Comments Demo}
     .body{
-        <h2>All Available Directives</h2>
+        .comment{Won't appear in output}
+        <p>This appears</p>
+        <!-- This won't appear either -->
+    }
+}
+
+<!-- Summary -->
+
+.slide{
+    .title{Summary: All Directives}
+    .body{
+        <h2>Complete Directive Reference</h2>
 
         .o{.bf{Structure:} <code>.slide&lbrace;&rbrace;</code>, <code>.title&lbrace;&rbrace;</code>, <code>.body&lbrace;&rbrace;</code>}
         .o{.bf{Format:} <code>.bf&lbrace;&rbrace;</code>, <code>.em&lbrace;&rbrace;</code>, <code>.tt&lbrace;&rbrace;</code>, <code>.code&lbrace;&rbrace;</code>, <code>.underline&lbrace;&rbrace;</code>}
         .o{.bf{Effects:} <code>.typewriter&lbrace;&rbrace;</code>, <code>.o&lbrace;&rbrace;</code>}
-        .o{.bf{ASCII Art:} <code>.font-NAME&lbrace;&rbrace;</code>, <code>.cowpy-NAME&lbrace;&rbrace;</code>}
-        .o{.bf{Nesting:} Directives compose freely}
+        .o{.bf{ASCII Art:} <code>.font-standard&lbrace;&rbrace;</code>, <code>.font-slant&lbrace;&rbrace;</code>, <code>.cowpy-cow&lbrace;&rbrace;</code>, <code>.cowpy-tux&lbrace;&rbrace;</code>}
+        .o{.bf{Modifiers:} <code>.style&lbrace;&rbrace;</code>, <code>.syntax&lbrace;&rbrace;</code>}
+        .o{.bf{Comments:} <code>.comment&lbrace;&rbrace;</code>, <code>&lt;!-- --&gt;</code>}
 
         <br>
-        <p>.em{Now you know all the directives in slidedown!}</p>
+        <p>.em{You now know every slidedown directive!}</p>
     }
 }

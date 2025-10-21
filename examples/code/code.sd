@@ -1,0 +1,256 @@
+.comment{
+    Code Syntax Highlighting Demo Presentation
+    Author: slidedown team
+    Date: 2025
+    Purpose: Demonstrate Pygments integration with Python, C, JavaScript, and Slidedown
+}
+
+<!-- Opening slide introduces the demo -->
+
+.slide{
+    .style{align=center}
+    .title{Code Syntax Highlighting Demo}
+    .body{
+        <h2>Syntax Highlighting with Pygments</h2>
+        <p>This presentation demonstrates syntax highlighting for multiple languages using the code directive.</p>
+        .comment{List of languages we'll demonstrate in following slides}
+        <ul>
+            <li>Python</li>
+            <li>C</li>
+            <li>JavaScript</li>
+            <li>Slidedown markup</li>
+        </ul>
+    }
+}
+
+<!-- Python example: recursive Fibonacci implementation -->
+
+.slide{
+    .style{background: #1e1e1e; color: #d4d4d4; align=center}
+    .title{Source: Python Example}
+    .body{
+        <h2>Fibonacci Function in Python</h2>
+        .code{.syntax{language=python}
+def fibonacci(n):
+    """Calculate the nth Fibonacci number recursively."""
+    if n <= 1:
+        return n
+    return fibonacci(n-1) + fibonacci(n-2)
+
+# Test it
+for i in range(10):
+    print(f"fibonacci({i}) = {fibonacci(i)}")
+        }
+    }
+}
+
+<!-- Result slide shows actual output from running the Python code -->
+
+.slide{
+    .title{Result: Python Execution}
+    .body{
+        <h2>Output from Fibonacci Function</h2>
+        .comment{Pre-formatted output from running the fibonacci code above}
+        <pre>
+fibonacci(0) = 0
+fibonacci(1) = 1
+fibonacci(2) = 1
+fibonacci(3) = 2
+fibonacci(4) = 3
+fibonacci(5) = 5
+fibonacci(6) = 8
+fibonacci(7) = 13
+fibonacci(8) = 21
+fibonacci(9) = 34
+        </pre>
+    }
+}
+
+.comment{C language example demonstrates pointers and manual memory management}
+<!-- C example: linked list data structure -->
+
+.slide{
+    .style{background: #1e1e1e; color: #d4d4d4; align=center}
+    .title{Source: C Example}
+    .body{
+        <h2>Linked List in C</h2>
+        .code{.syntax{language=c}
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct Node {
+    int data;
+    struct Node* next;
+} Node;
+
+Node* create_node(int data) {
+    Node* new_node = (Node*)malloc(sizeof(Node));
+    if (new_node == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(1);
+    }
+    new_node->data = data;
+    new_node->next = NULL;
+    return new_node;
+}
+
+void print_list(Node* head) {
+    Node* current = head;
+    while (current != NULL) {
+        printf("%d -> ", current->data);
+        current = current->next;
+    }
+    printf("NULL\n");
+}
+        }
+    }
+}
+
+<!-- Explanation slide for C concepts -->
+
+.slide{
+    .title{Result: C Concepts}
+    .body{
+        <h2>Key C Programming Concepts</h2>
+        <!-- Note: These concepts are fundamental to systems programming -->
+        <ul>
+            <li><code>typedef struct</code> - Define custom data types</li>
+            <li><code>malloc()</code> - Dynamic memory allocation</li>
+            <li>Pointer manipulation with <code>-></code> operator</li>
+            <li><code>NULL</code> checking for safety</li>
+            <li>Manual memory management (no garbage collector)</li>
+        </ul>
+        .comment{Could add code example showing memory leaks vs proper free() calls}
+    }
+}
+
+.comment{
+    JavaScript example shows modern async/await patterns
+    Note: Uses ES6+ features like template literals and arrow functions
+}
+
+.slide{
+    .style{background: #1e1e1e; color: #d4d4d4;}
+    .title{Source: JavaScript Example}
+    .body{
+        <h2>Async/Await in JavaScript</h2>
+        .code{.syntax{language=javascript}
+async function fetchUserData(userId) {
+    try {
+        const response = await fetch(`/api/users/${userId}`);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Failed to fetch user:', error);
+        throw error;
+    }
+}
+
+// Usage
+fetchUserData(123)
+    .then(user => console.log(user))
+    .catch(err => console.error(err));
+        }
+    }
+}
+
+.slide{
+    .title{Result: JavaScript Features}
+    .body{
+        <h2>Modern JavaScript</h2>
+        .comment{Highlighting key ES6+ features used in the example}
+        <ul>
+            <li><code>async/await</code> - Cleaner asynchronous code</li>
+            <li>Template literals with <code>${}</code></li>
+            <li><code>fetch()</code> API for HTTP requests</li>
+            <li>Promise chaining with <code>.then()</code></li>
+            <li>Error handling with try/catch</li>
+        </ul>
+    }
+}
+
+<!-- Most interesting: showing slidedown source code with syntax highlighting! -->
+.comment{
+    Meta-moment: Using slidedown to show slidedown markup
+    The custom SlidedownLexer highlights directives in pink/red
+}
+
+.slide{
+    .style{background: #1e1e1e; color: #d4d4d4;}
+    .title{Source: Slidedown Markup}
+    .body{
+        <h2>Slidedown Syntax Example</h2>
+        .code{.syntax{language=slidedown}
+.comment{This is a slidedown comment - won't appear in output}
+
+<!-- HTML comment also supported -->
+
+.slide{
+    .title{Welcome to Slidedown}
+    .body{
+        <h2>Text Formatting</h2>
+
+        <p>.bf{Bold text} and .em{emphasized text}</p>
+
+        .comment{Comments can appear anywhere}
+        .o{First progressive bullet}
+        .o{Second progressive bullet}
+        .o{Third progressive bullet}
+
+        <!-- Comments are useful for TODO notes -->
+        .typewriter{
+This text appears
+character by character
+with animation
+        }
+    }
+}
+        }
+    }
+}
+
+.slide{
+    .title{Result: Slidedown Features}
+    .body{
+        <h2>What Slidedown Provides</h2>
+        <!-- Comprehensive list of slidedown capabilities -->
+        <ul>
+            <li>Structure directives: slide, title, body</li>
+            <li>Formatting directives: bf, em, tt, code, underline</li>
+            <li>Progressive reveal bullets</li>
+            <li>Typewriter animated text reveal</li>
+            <li>ASCII art with figlet fonts and cowsay characters</li>
+            <li>Custom CSS styling per slide</li>
+            <li>Syntax highlighted code blocks with Pygments</li>
+        </ul>
+        .comment{Don't forget: also supports .comment{} and HTML comments!}
+    }
+}
+
+.comment{
+    Final summary slide with progressive reveal bullets
+    TODO: Consider adding a slide about the two comment styles
+}
+
+.slide{
+    .title{Summary}
+    .body{
+        <h2>Syntax Highlighting Works!</h2>
+
+        <p>The code directive successfully highlights multiple languages:</p>
+
+        .o{Python with function definitions, keywords, strings}
+        .o{C with types, pointers, preprocessor directives}
+        .o{JavaScript with async/await, template literals}
+        .o{Slidedown with directive syntax highlighting}
+
+        <p>All using Pygments with inline monokai theme styles.</p>
+
+        .comment{Could add info about supported languages: 500+ via Pygments}
+    }
+}

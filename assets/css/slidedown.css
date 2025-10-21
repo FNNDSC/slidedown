@@ -141,11 +141,13 @@ body {
 .slide h1 {
     font-size: 2.8em;
     margin: 0.3em 0;
+    text-align: center;
 }
 
 .slide h2 {
     font-size: 2.2em;
     margin: 0.3em 0;
+    text-align: center;
 }
 
 .slide p {
@@ -185,12 +187,35 @@ body {
 }
 
 .container {
-    text-align: center;
+    text-align: left;
   }
 
  .container pre {
    display: inline-block;
    text-align: left;
+}
+
+/* Alignment modifiers */
+.align-left {
+    text-align: left;
+}
+
+.align-center {
+    text-align: center;
+}
+
+.align-center ul,
+.align-center ol {
+    list-style-position: inside;
+}
+
+.align-right {
+    text-align: right;
+}
+
+.align-right ul,
+.align-right ol {
+    list-style-position: inside;
 }
 
 dialog {
@@ -266,6 +291,25 @@ td, th {
     border-radius: 5px;
     padding: 10px;
     font-size: 24px;
+}
+
+/* Navbar container for inline title layout */
+.navbar-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Navbar title - centered between buttons */
+.navbar-title {
+    flex: 1;
+    text-align: center;
+    font-size: 1.5em;
+    font-weight: bold;
+    padding: 0 20px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 button{

@@ -88,6 +88,7 @@ class DirectiveSpec:
 RESERVED_DIRECTIVES: Set[str] = {
     'style',   # .style{css} - extracted as modifier
     'class',   # .class{classname} - extracted as modifier
+    'syntax',  # .syntax{language=X} - extracted as modifier for .code{}
 }
 
 

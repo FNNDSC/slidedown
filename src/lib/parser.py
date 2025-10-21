@@ -93,12 +93,61 @@ class Parser:
             position: Current character position in source (for scanning)
             line_number: Current line number in source (for error reporting)
             ast: Accumulated list of parsed top-level nodes
+            protected_code_blocks: Dict mapping placeholder IDs to raw .code{} content
         """
         self.source = source
         self.debug = debug
         self.position = 0
         self.line_number = 1
         self.ast: List[ASTNode] = []
+        self.protected_code_blocks: Dict[int, str] = {}
+
+    def codeblocks_protect(self) -> str:
+        """
+        Pre-process source to protect .code{} blocks from directive parsing
+
+        Scans for .code{} directives and replaces them with placeholders to prevent
+        nested directives inside code blocks from being parsed. The raw content is
+        stored for later restoration during compilation.
+
+        Returns:
+            Modified source with .code{} blocks replaced by placeholders
+
+        Example:
+            Input: ".code{.syntax{language=python}\ndef foo(): pass\n}"
+            Output: "\x00CODE_0\x00"
+            Stores: protected_code_blocks[0] = ".syntax{language=python}\ndef foo(): pass\n"
+        """
+        result = []
+        pos = 0
+        code_id = 0
+
+        while pos < len(self.source):
+            # Look for .code{ directive
+            match = re.match(r'\.code\{', self.source[pos:])
+            if match:
+                # Found .code{ - find matching closing brace
+                brace_start = pos + match.end() - 1  # Position of opening {
+                brace_end = self.brace_findMatching(brace_start)
+
+                # Extract raw content (including .syntax{} modifier if present)
+                raw_content = self.source[brace_start + 1:brace_end]
+
+                # Store protected content
+                self.protected_code_blocks[code_id] = raw_content
+
+                # Replace with placeholder
+                result.append(f'\x00CODE_{code_id}\x00')
+                code_id += 1
+
+                # Skip past this .code{} block
+                pos = brace_end + 1
+            else:
+                # Regular character, keep it
+                result.append(self.source[pos])
+                pos += 1
+
+        return ''.join(result)
 
     def parse(self) -> List[ASTNode]:
         """
@@ -124,6 +173,9 @@ class Parser:
             'slide'
         """
         nodes = []
+
+        # Pre-process: protect .code{} blocks from parsing
+        self.source = self.codeblocks_protect()
 
         # Skip leading whitespace
         self.source = self.source.strip()
@@ -352,7 +404,7 @@ class Parser:
         """
         Extract modifier directives from content beginning
 
-        Scans for .style{} and .class{} directives at the start of content
+        Scans for .style{}, .class{}, and .syntax{} directives at the start of content
         (after optional leading whitespace). Extracts their values into a dict
         and returns the remaining content with modifiers removed.
 
@@ -368,9 +420,9 @@ class Parser:
                 - remaining: Content with modifiers stripped
 
         Example:
-            Input: ".style{color: red} .class{big} Content"
+            Input: ".style{color: red} .class{big} .syntax{language=python} Content"
             Output: ExtractedModifiers(
-                modifiers={"style": "color: red", "class": "big"},
+                modifiers={"style": "color: red", "class": "big", "syntax": "language=python"},
                 remaining="Content"
             )
 
@@ -388,9 +440,9 @@ class Parser:
         # Check if there's a modifier at this position
         first_modifier_found = False
 
-        # Look for .style{} and .class{} at the start
+        # Look for .style{}, .class{}, and .syntax{} at the start
         while pos < len(content):
-            match = re.match(r'^\.((style|class))\{', content[pos:])
+            match = re.match(r'^\.((style|class|syntax))\{', content[pos:])
             if not match:
                 break
 
@@ -416,7 +468,24 @@ class Parser:
 
             # Extract modifier value
             modifier_value = content[brace_start + 1:brace_pos - 1]
-            modifiers[modifier_name] = modifier_value
+
+            # Special handling for .style{} - extract align= if present
+            if modifier_name == 'style':
+                align_match = re.search(r'align\s*=\s*(\w+)', modifier_value)
+                if align_match:
+                    # Extract align value as separate modifier
+                    modifiers['align'] = align_match.group(1)
+                    # Remove align= from style value
+                    style_value = re.sub(r'align\s*=\s*\w+\s*;?\s*', '', modifier_value).strip()
+                    # Remove trailing semicolon if it's the only thing left
+                    style_value = style_value.rstrip(';').strip()
+                    if style_value:
+                        modifiers[modifier_name] = style_value
+                    # Don't add empty style modifier
+                else:
+                    modifiers[modifier_name] = modifier_value
+            else:
+                modifiers[modifier_name] = modifier_value
 
             # Move past this modifier
             pos = brace_pos

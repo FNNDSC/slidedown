@@ -5,49 +5,51 @@
             <div id="slideBar"></div>
         </div>
 
-        <div id="pageTitle" style="text-align: center; padding: 5px;"></div>
+        <div class="navbar-container">
+            <input  type    =  "button"
+                    onclick =  "page.advance_toFirst()"
+                    value   =  "&#xf077"
+                    style   =  "float: left;"
+                    id      =  "first"
+                    name    =  "first"
+                    class   =  "pure-button
+                                pure-button-primary
+                                fas fa-chevron-up">
+            </input>
+            <input  type    =  "button"
+                    onclick =  "page.advance_toPrevious()"
+                    style   =  "float: left;"
+                    value   =  "&#xf053"
+                    id      =  "previous"
+                    name    =  "previous"
+                    class   =  "pure-button
+                                pure-button-primary
+                                fas fas-chevron-left">
+            </input>
 
-        <input  type    =  "button" 
-                onclick =  "page.advance_toFirst()" 
-                value   =  "&#xf077" 
-                style   =  "float: left;"
-                id      =  "first" 
-                name    =  "first" 
-                class   =  "pure-button 
-                            pure-button-primary 
-                            fas fa-chevron-up">
-        </input>
-        <input  type    =  "button" 
-                onclick =  "page.advance_toPrevious()" 
-                style   =  "float: left;"
-                value   =  "&#xf053" 
-                id      =  "previous" 
-                name    =  "previous" 
-                class   =  "pure-button 
-                            pure-button-primary 
-                            fas fas-chevron-left">
-        </input>
+            <div id="pageTitle" class="navbar-title"></div>
 
-        <input  type    =  "button" 
-                onclick =  "page.advance_toLast()" 
-                value   =  "&#xf078" 
-                style   =  "float: right;"
-                id      =  "last" 
-                name    =  "last" 
-                class   =  "pure-button 
-                            pure-button-primary 
-                            fas fa-chevron-down">
-        </input>
-        <input  type    =  "button" 
-                onclick =  "page.advance_toNext()" 
-                value   =  "&#xf054" 
-                style   = "float: right;"
-                id      =  "next" 
-                name    =  "next" 
-                class   =  "pure-button 
-                            pure-button-primary 
-                            fas fas-chevron-right">
-        </input>
-        <br>
+            <input  type    =  "button"
+                    onclick =  "page.advance_toLast()"
+                    value   =  "&#xf078"
+                    style   =  "float: right;"
+                    id      =  "last"
+                    name    =  "last"
+                    class   =  "pure-button
+                                pure-button-primary
+                                fas fa-chevron-down">
+            </input>
+            <input  type    =  "button"
+                    onclick =  "page.advance_toNext()"
+                    value   =  "&#xf054"
+                    style   = "float: right;"
+                    id      =  "next"
+                    name    =  "next"
+                    class   =  "pure-button
+                                pure-button-primary
+                                fas fas-chevron-right">
+            </input>
+        </div>
+        <br style="clear: both;">
     </div>
 

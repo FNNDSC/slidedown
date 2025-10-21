@@ -8,8 +8,13 @@ Uses DirectiveSpec for metadata and validation.
 from typing import Callable, Dict, Optional
 from pyfiglet import Figlet
 import cowsay as cowsay_module
+from pygments import highlight
+from pygments.lexers import get_lexer_by_name, TextLexer
+from pygments.formatters import HtmlFormatter
+from pygments.util import ClassNotFound
 
 from ..models.directives import DirectiveSpec, DirectiveCategory, RESERVED_DIRECTIVES
+from .lexer import SlidedownLexer
 
 
 class DirectiveRegistry:
@@ -89,6 +94,20 @@ class DirectiveRegistry:
             # node.content already has placeholders substituted by compiler
             content = node.content
 
+            # Extract title content from children (before title_handler returned empty)
+            # Find title child node and get its content
+            title_content = ""
+            for child in node.children:
+                if child.directive == 'title':
+                    title_content = child.content
+                    break
+
+            # Build CSS classes - add alignment class if specified
+            css_classes = "container slide"
+            align = node.modifiers.get('align', '')
+            if align:
+                css_classes += f" align-{align}"
+
             # Build style attribute - all slides hidden by default, JS shows slide 1
             user_style = node.modifiers.get('style', '')
             if user_style:
@@ -98,16 +117,18 @@ class DirectiveRegistry:
 
             return f"""
                 <div id="slide-{slide_num}-title" style="display: none;">
+                    {title_content}
                 </div>
-                <div class="container slide " id="slide-{slide_num}" name="slide-{slide_num}" {style_attr}>
+                <div class="{css_classes}" id="slide-{slide_num}" name="slide-{slide_num}" {style_attr}>
                     {content}
                 </div>
             """
 
         def title_handler(node, compiler):
-            """Handle .title{} - slide title metadata"""
-            # node.content already has placeholders substituted
-            return node.content
+            """Handle .title{} - slide title metadata (displayed in navbar, not body)"""
+            # Title content is stored in hidden slide-N-title div (see slide_handler)
+            # and displayed in navbar via JS, so we return empty string here
+            return ""
 
         def body_handler(node, compiler):
             """Handle .body{} - slide content area"""
@@ -286,6 +307,61 @@ class DirectiveRegistry:
             ]
         ))
 
+        def code_handler(node, compiler):
+            """Handle .code{.syntax{language=X} ...} - syntax highlighted code blocks"""
+            # Extract language from .syntax{} modifier
+            language = node.modifiers.get('syntax', 'text')
+
+            # Parse language=value if present
+            if '=' in language:
+                # Handle language=python, language=c, etc.
+                language = language.split('=', 1)[1].strip()
+
+            # Get appropriate lexer
+            try:
+                if language.lower() in ['slidedown', 'sd']:
+                    lexer = SlidedownLexer()
+                else:
+                    lexer = get_lexer_by_name(language)
+            except ClassNotFound:
+                # Fallback to plain text if language not found
+                lexer = TextLexer()
+
+            # Generate highlighted HTML with inline styles
+            # noclasses=True means styles are inline, no external CSS needed
+            formatter = HtmlFormatter(style='monokai', noclasses=True)
+            highlighted = highlight(node.content, lexer, formatter)
+
+            return highlighted
+
+        self.register(DirectiveSpec(
+            name='code',
+            category=DirectiveCategory.TRANSFORM,
+            description='Syntax highlighted code blocks',
+            handler=code_handler,
+            examples=[
+                '.code{.syntax{language=python}\ndef hello():\n    print("Hi")\n}',
+                '.code{.syntax{language=slidedown}\n.slide{.title{Demo}}\n}',
+                '.code{.syntax{language=c}\nint main() { return 0; }\n}'
+            ]
+        ))
+
+        def comment_handler(node, compiler):
+            """Handle .comment{} - stripped from output"""
+            return ""
+
+        self.register(DirectiveSpec(
+            name='comment',
+            category=DirectiveCategory.STRUCTURAL,
+            description='Comments that are stripped from compiled output',
+            handler=comment_handler,
+            examples=[
+                '.comment{This is a comment}',
+                '.comment{TODO: Fix this slide later}',
+                '.comment{Multi-line\ncomment\ntext}'
+            ]
+        ))
+
     def modifierDirectives_register(self) -> None:
         """
         Register reserved modifier directives
@@ -316,4 +392,16 @@ class DirectiveRegistry:
             description='CSS class name (parser-extracted modifier)',
             handler=class_handler,
             examples=['.slide{.class{special-slide} .body{Content}}']
+        ))
+
+        def syntax_handler(node, compiler):
+            """Should never be called - .syntax{} extracted by parser"""
+            return ""
+
+        self.register(DirectiveSpec(
+            name='syntax',
+            category=DirectiveCategory.MODIFIER,
+            description='Programming language for .code{} (parser-extracted modifier)',
+            handler=syntax_handler,
+            examples=['.code{.syntax{language=python} def foo(): pass}']
         ))

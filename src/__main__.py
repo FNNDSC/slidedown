@@ -189,6 +189,7 @@ def source_parse(inputstate: ProgramState) -> ProgramState:
     try:
         slidedown_parser = Parser(source, debug=(state.verbosity >= 3))
         state.parsedSource = slidedown_parser.parse()
+        state.protectedCodeBlocks = slidedown_parser.protected_code_blocks
         LOG(f"Parsed {len(state.parsedSource)} top-level nodes", level=2)
     except SyntaxError as e:
         print(f"Parse error: {e}", file=sys.stderr)
@@ -232,6 +233,7 @@ def html_compile(inputstate: ProgramState) -> ProgramState:
             output_dir=str(state.htmlOutputdir),
             assets_dir=str(state.assetsInputdir),
             verbosity=state.verbosity,
+            protected_code_blocks=state.protectedCodeBlocks,
         )
         state.compileResult = compiler.compile()
         LOG(f"Compilation complete: {state.compileResult['slide_count']} slides", level=2)

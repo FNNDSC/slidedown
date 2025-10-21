@@ -31,7 +31,8 @@ class Compiler:
         ast: List[ASTNode],
         output_dir: str,
         assets_dir: str,
-        verbosity: int = 1
+        verbosity: int = 1,
+        protected_code_blocks: Dict[int, str] = None
     ):
         """
         Initialize compiler
@@ -41,11 +42,13 @@ class Compiler:
             output_dir: Directory for compiled output
             assets_dir: Directory containing runtime assets (css/js/html)
             verbosity: Output verbosity level (0-3)
+            protected_code_blocks: Dict of protected .code{} block content from parser
         """
         self.ast = ast
         self.output_dir = Path(output_dir)
         self.assets_dir = Path(assets_dir)
         self.verbosity = verbosity
+        self.protected_code_blocks = protected_code_blocks or {}
         self.directives = DirectiveRegistry()
 
         self.slide_count = 0
@@ -110,6 +113,69 @@ class Compiler:
 
         return '\n'.join(html_parts)
 
+    def codeblocks_expand(self, content: str) -> str:
+        """
+        Expand protected .code{} block placeholders to highlighted HTML
+
+        Finds \x00CODE_N\x00 placeholders in content and replaces them with
+        syntax-highlighted HTML by processing the stored raw content.
+
+        Args:
+            content: String potentially containing CODE placeholders
+
+        Returns:
+            Content with placeholders replaced by highlighted code blocks
+        """
+        import re
+        from pygments import highlight
+        from pygments.lexers import get_lexer_by_name, TextLexer
+        from pygments.formatters import HtmlFormatter
+        from pygments.util import ClassNotFound
+        from .lexer import SlidedownLexer
+
+        def expand_code_placeholder(match):
+            code_id = int(match.group(1))
+            if code_id not in self.protected_code_blocks:
+                return match.group(0)  # Leave placeholder if not found
+
+            raw_content = self.protected_code_blocks[code_id]
+
+            # Extract .syntax{language=X} modifier if present
+            syntax_match = re.match(r'^\s*\.syntax\{([^}]+)\}\s*', raw_content)
+            if syntax_match:
+                language_spec = syntax_match.group(1)
+                # Remove .syntax{} from content
+                code_content = raw_content[syntax_match.end():]
+
+                # Parse language=value
+                if '=' in language_spec:
+                    language = language_spec.split('=', 1)[1].strip()
+                else:
+                    language = language_spec.strip()
+            else:
+                # No .syntax{} modifier, treat as plain text
+                language = 'text'
+                code_content = raw_content
+
+            # Get lexer
+            try:
+                if language.lower() in ['slidedown', 'sd']:
+                    lexer = SlidedownLexer()
+                else:
+                    lexer = get_lexer_by_name(language)
+            except ClassNotFound:
+                lexer = TextLexer()
+
+            # Generate highlighted HTML
+            formatter = HtmlFormatter(style='monokai', noclasses=True)
+            highlighted = highlight(code_content, lexer, formatter)
+
+            return highlighted
+
+        # Replace all \x00CODE_N\x00 placeholders
+        result = re.sub(r'\x00CODE_(\d+)\x00', expand_code_placeholder, content)
+        return result
+
     def node_compile(self, node: ASTNode) -> str:
         """
         Compile a single AST node to HTML
@@ -145,6 +211,9 @@ class Compiler:
             content_with_children = content_with_children.replace(
                 placeholder, compiled_child
             )
+
+        # Step 2b: Expand protected .code{} placeholders
+        content_with_children = self.codeblocks_expand(content_with_children)
 
         # Step 3: Create a modified node with substituted content
         # (We don't modify original node, create view with substituted content)
