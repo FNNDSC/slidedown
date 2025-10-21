@@ -940,3 +940,62 @@ mark {
   .iframe-container-4x3 {
     padding-top: 75%;
   }
+
+/* Watermark system */
+.slide .watermark {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Watermark positioning - 9 positions */
+.watermark.top-left {
+  top: 30px;
+  left: 30px;
+}
+
+.watermark.top-center {
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.watermark.top-right {
+  top: 30px;
+  right: 30px;
+}
+
+.watermark.center-left {
+  top: 50%;
+  left: 30px;
+  transform: translateY(-50%);
+}
+
+.watermark.center-right {
+  top: 50%;
+  right: 30px;
+  transform: translateY(-50%);
+}
+
+.watermark.bottom-left {
+  bottom: 30px;
+  left: 30px;
+}
+
+.watermark.bottom-center {
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.watermark.bottom-right {
+  bottom: 30px;
+  right: 30px;
+}
+
+/* Center position (both axes) */
+.watermark.center {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}

@@ -1,0 +1,62 @@
+name: "Conventional Light"
+description: "Clean, professional theme similar to Google Slides"
+author: "slidedown team"
+version: "1.0"
+
+# Color palette - Professional and clean
+colors:
+  background: "#ffffff"
+  foreground: "#212121"
+  accent: "#4285f4"
+  code_bg: "#f5f5f5"
+
+# Typography - Modern, readable fonts
+fonts:
+  body:
+    family: "'Red Hat Display', 'Helvetica Neue', 'Arial', sans-serif"
+    size: "32px"
+    line_height: "1.5"
+  code:
+    family: "'Red Hat Mono', 'Courier New', monospace"
+    size: "24px"
+
+# Layout
+layout:
+  slide_padding: "80px"
+  viewport_width: "2560px"
+  viewport_height: "1440px"
+
+# Header/Footer
+header:
+  enabled: false
+
+footer:
+  enabled: true
+  height: "60px"
+  show_navigation: true
+  show_page_numbers: true
+
+# Navigation buttons
+navigation:
+  button_style: "rounded"
+  position: "bottom-right"
+
+# Slide master
+slide_master:
+  background:
+    color: "#ffffff"
+  watermarks: []
+    # Example watermark configuration:
+    # - image: "logos/company-logo.svg"
+    #   position: "bottom-right"  # Positions: top-left, top-center, top-right, center-left, center-right, bottom-left, bottom-center, bottom-right, center
+    #   opacity: 0.15
+    #   size: "120px"
+
+# Code highlighting
+code:
+  pygments_style: "default"
+  show_line_numbers: false
+
+# Effects
+effects:
+  typewriter_speed: 40

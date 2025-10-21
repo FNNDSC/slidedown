@@ -117,11 +117,15 @@ class DirectiveRegistry:
             else:
                 style_attr = 'style="display:none;"'
 
+            # Generate watermarks from theme config
+            watermarks_html = compiler.watermarks_generate()
+
             return f"""
                 <div id="slide-{slide_num}-title" style="display: none;">
                     {title_content}
                 </div>
                 <div class="{css_classes}" id="slide-{slide_num}" name="slide-{slide_num}" {style_attr}>
+                    {watermarks_html}
                     {content}
                 </div>
             """

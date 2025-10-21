@@ -321,3 +321,49 @@ class Compiler:
             dst_theme_assets = self.output_dir / "theme-assets"
             shutil.copytree(theme_assets_dir, dst_theme_assets, dirs_exist_ok=True)
             LOG(f"Copied theme assets: {theme_assets_dir}", level=3)
+
+    def watermarks_generate(self) -> str:
+        """
+        Generate watermark HTML from theme configuration.
+
+        Reads watermark settings from theme.yaml slide_master.watermarks
+        and generates appropriate HTML img tags with positioning classes.
+
+        Returns:
+            HTML string with watermark img tags, or empty string if no watermarks
+        """
+        watermarks = self.theme.config_get('slide_master.watermarks', [])
+
+        if not watermarks:
+            return ""
+
+        html_parts = []
+        for wm in watermarks:
+            # Required: image path
+            image = wm.get('image', '')
+            if not image:
+                continue
+
+            # Optional: position (default: bottom-right)
+            position = wm.get('position', 'bottom-right')
+
+            # Optional: opacity (default: 0.3)
+            opacity = wm.get('opacity', 0.3)
+
+            # Optional: size (width in pixels, default: 100px)
+            size = wm.get('size', '100px')
+
+            # Build inline styles
+            style_parts = [
+                f"opacity: {opacity}",
+                f"width: {size}"
+            ]
+            style_attr = '; '.join(style_parts)
+
+            # Generate img tag
+            html_parts.append(
+                f'<img src="{image}" class="watermark {position}" '
+                f'style="{style_attr}" alt="watermark">'
+            )
+
+        return '\n        '.join(html_parts)

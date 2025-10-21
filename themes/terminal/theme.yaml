@@ -1,0 +1,57 @@
+name: "Terminal"
+description: "Retro terminal-style theme with green on black"
+author: "slidedown team"
+version: "1.0"
+
+# Color palette - classic terminal colors
+colors:
+  background: "#000000"
+  foreground: "#00ff00"
+  accent: "#00ff00"
+  code_bg: "#0a0a0a"
+
+# Typography - terminal-style fonts
+fonts:
+  body:
+    family: "'VT323', 'Courier New', monospace"
+    size: "28px"
+    line_height: "1.4"
+  code:
+    family: "'VT323', 'Courier New', monospace"
+    size: "24px"
+
+# Layout
+layout:
+  slide_padding: "40px"
+  viewport_width: "2560px"
+  viewport_height: "1440px"
+
+# Header/Footer
+header:
+  enabled: false
+
+footer:
+  enabled: true
+  height: "60px"
+  show_navigation: true
+  show_page_numbers: false
+
+# Navigation buttons
+navigation:
+  button_style: "square"
+  position: "bottom-right"
+
+# Slide master
+slide_master:
+  background:
+    color: "#000000"
+  watermarks: []
+
+# Code highlighting
+code:
+  pygments_style: "monokai"
+  show_line_numbers: true
+
+# Effects
+effects:
+  typewriter_speed: 30

@@ -1,0 +1,350 @@
+
+/* Terminal Theme - Retro terminal look and feel */
+
+/* VT323 Font - Classic terminal font */
+@font-face {
+  font-family: 'VT323';
+  font-style: normal;
+  src: local('VT323 Regular'), local('VT323-Regular'), url(https://fonts.gstatic.com/s/vt323/v9/pxiKyp0ihIEF2isfFJA.ttf) format('truetype');
+}
+
+/* Global */
+html {
+  min-height: 100%;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  color: #00ff00;
+  background-color: #000000;
+  overflow: hidden;
+  font-family: 'VT323', 'Courier New', monospace;
+}
+
+/* Presentation viewport wrapper - fixed 2K dimensions */
+.presentation-viewport {
+  position: absolute;
+  width: 2560px;
+  height: 1440px;
+  transform-origin: top left;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* Terminal-style border and shadow */
+  border: 3px solid #00ff00;
+  box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+}
+
+/* Terminal window effect */
+.presentation-viewport::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.15),
+      rgba(0, 0, 0, 0.15) 1px,
+      transparent 1px,
+      transparent 2px
+    );
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* CRT screen flicker effect */
+@keyframes flicker {
+  0% { opacity: 0.95; }
+  5% { opacity: 0.97; }
+  10% { opacity: 0.92; }
+  15% { opacity: 0.96; }
+  20% { opacity: 0.94; }
+  25% { opacity: 0.98; }
+  30% { opacity: 0.95; }
+  35% { opacity: 0.93; }
+  40% { opacity: 0.97; }
+  45% { opacity: 0.96; }
+  50% { opacity: 0.94; }
+  55% { opacity: 0.98; }
+  60% { opacity: 0.95; }
+  65% { opacity: 0.92; }
+  70% { opacity: 0.97; }
+  75% { opacity: 0.94; }
+  80% { opacity: 0.96; }
+  85% { opacity: 0.93; }
+  90% { opacity: 0.98; }
+  95% { opacity: 0.95; }
+  100% { opacity: 0.96; }
+}
+
+body {
+  animation: flicker 3s infinite;
+}
+
+/* Text glow effect */
+.slide {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  padding: 40px;
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+}
+
+.slide h1 {
+  font-size: 3.5em;
+  margin: 0.3em 0;
+  text-align: center;
+  color: #00ff00;
+  text-shadow: 0 0 15px rgba(0, 255, 0, 1);
+  font-weight: normal;
+}
+
+.slide h2 {
+  font-size: 2.8em;
+  margin: 0.3em 0;
+  text-align: center;
+  color: #00ff00;
+  text-shadow: 0 0 12px rgba(0, 255, 0, 0.9);
+  font-weight: normal;
+}
+
+.slide h3 {
+  font-size: 2.2em;
+  margin: 0.3em 0;
+  color: #00ff00;
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+  font-weight: normal;
+}
+
+.slide p {
+  font-size: 1.8em;
+  line-height: 1.4;
+  margin: 0.5em 0;
+  color: #00ff00;
+}
+
+.slide ul, .slide ol {
+  font-size: 1.6em;
+  line-height: 1.5;
+  margin: 0.5em 0;
+}
+
+.slide li {
+  margin: 0.3em 0;
+}
+
+/* Code blocks with terminal styling */
+.slide pre {
+  font-size: 1.4em;
+  line-height: 1.3;
+  max-width: 100%;
+  overflow: hidden;
+  background-color: #0a0a0a;
+  border: 1px solid #00ff00;
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+}
+
+.slide code {
+  font-family: 'VT323', 'Courier New', monospace;
+  color: #00ff00;
+}
+
+/* Terminal prompt style */
+.slide strong {
+  color: #00ff00;
+  font-weight: normal;
+  text-shadow: 0 0 15px rgba(0, 255, 0, 1);
+}
+
+.slide em {
+  color: #00cc00;
+  font-style: normal;
+}
+
+/* Slide progress bar */
+#slideProgress {
+  width: 100%;
+  background-color: #003300;
+}
+
+#slideBar {
+  width: 1%;
+  height: 5px;
+  background-color: #00ff00;
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+}
+
+/* Alignment modifiers */
+.align-left {
+  text-align: left;
+}
+
+.align-center {
+  text-align: center;
+}
+
+.align-center ul,
+.align-center ol {
+  list-style-position: inside;
+}
+
+.align-right {
+  text-align: right;
+}
+
+.align-right ul,
+.align-right ol {
+  list-style-position: inside;
+}
+
+/* Column layout support */
+.slide .column {
+  flex: 1;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+.slide .column:first-of-type {
+  padding-left: 0;
+}
+
+.slide .column:last-of-type {
+  padding-right: 0;
+}
+
+/* Terminal-style buttons */
+button {
+  background-color: #003300;
+  border: 2px solid #00ff00;
+  color: #00ff00;
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 1.2em;
+  padding: 10px 20px;
+  cursor: pointer;
+  text-shadow: 0 0 5px rgba(0, 255, 0, 0.8);
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+}
+
+button:hover {
+  background-color: #004400;
+  box-shadow: 0 0 15px rgba(0, 255, 0, 0.6);
+}
+
+/* Footer bar */
+.footer-bar {
+  background-color: #001100;
+  border-top: 2px solid #00ff00;
+  padding: 20px 60px;
+  color: #00ff00;
+  font-size: 24px;
+  overflow: hidden;
+  box-shadow: 0 -5px 15px rgba(0, 255, 0, 0.2);
+}
+
+/* Tables */
+td, th {
+  border: 1px solid #00ff00;
+  padding: 0.5rem;
+  text-align: center;
+  color: #00ff00;
+}
+
+th {
+  background-color: #003300;
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+}
+
+/* Images with terminal border */
+img {
+  max-width: 100%;
+  height: auto;
+  border: 2px solid #00ff00;
+  box-shadow: 0 0 15px rgba(0, 255, 0, 0.4);
+}
+
+/* Links */
+a {
+  color: #00ff00;
+  text-decoration: underline;
+  text-shadow: 0 0 8px rgba(0, 255, 0, 0.8);
+}
+
+a:hover {
+  color: #00cc00;
+  text-shadow: 0 0 12px rgba(0, 255, 0, 1);
+}
+
+/* Selection */
+::selection {
+  background: #00ff00;
+  color: #000000;
+  text-shadow: none;
+}
+
+/* Watermark system */
+.slide .watermark {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  /* Terminal theme watermarks also get green glow */
+  filter: drop-shadow(0 0 8px rgba(0, 255, 0, 0.6));
+}
+
+/* Watermark positioning - 9 positions */
+.watermark.top-left {
+  top: 30px;
+  left: 30px;
+}
+
+.watermark.top-center {
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.watermark.top-right {
+  top: 30px;
+  right: 30px;
+}
+
+.watermark.center-left {
+  top: 50%;
+  left: 30px;
+  transform: translateY(-50%);
+}
+
+.watermark.center-right {
+  top: 50%;
+  right: 30px;
+  transform: translateY(-50%);
+}
+
+.watermark.bottom-left {
+  bottom: 30px;
+  left: 30px;
+}
+
+.watermark.bottom-center {
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.watermark.bottom-right {
+  bottom: 30px;
+  right: 30px;
+}
+
+/* Center position (both axes) */
+.watermark.center {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
