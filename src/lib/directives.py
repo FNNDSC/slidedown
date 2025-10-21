@@ -26,6 +26,7 @@ class DirectiveRegistry:
     """
 
     def __init__(self):
+        """Initialize the directive registry and register all built-in directives"""
         self.specs: Dict[str, DirectiveSpec] = {}
         self.coreDirectives_register()
         self.formattingDirectives_register()
@@ -221,6 +222,7 @@ class DirectiveRegistry:
         def make_html_wrapper(tag: str):
             """Factory for simple HTML tag wrappers"""
             def handler(node, compiler):
+                """Wrap content in HTML tag with optional style modifier"""
                 style = node.modifiers.get('style', '')
                 style_attr = f' style="{style}"' if style else ''
                 return f'<{tag}{style_attr}>{node.content}</{tag}>'

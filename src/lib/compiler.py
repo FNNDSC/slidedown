@@ -134,6 +134,7 @@ class Compiler:
         from .lexer import SlidedownLexer
 
         def expand_code_placeholder(match):
+            """Expand a CODE_N placeholder with syntax-highlighted content"""
             code_id = int(match.group(1))
             if code_id not in self.protected_code_blocks:
                 return match.group(0)  # Leave placeholder if not found

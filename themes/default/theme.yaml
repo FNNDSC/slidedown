@@ -1,0 +1,57 @@
+name: "Default"
+description: "Default slidedown theme with dark background"
+author: "slidedown team"
+version: "1.0"
+
+# Color palette
+colors:
+  background: "rgb(25,25,25)"
+  foreground: "rgba(255,255,255,.75)"
+  accent: "#3498db"
+  code_bg: "#272822"
+
+# Typography
+fonts:
+  body:
+    family: "'Anonymous Pro', monospace"
+    size: "24px"
+    line_height: "1.6"
+  code:
+    family: "monospace"
+    size: "14px"
+
+# Layout
+layout:
+  slide_padding: "40px"
+  viewport_width: "2560px"
+  viewport_height: "1440px"
+
+# Header/Footer (disabled for default theme)
+header:
+  enabled: false
+
+footer:
+  enabled: true
+  height: "60px"
+  show_navigation: true
+  show_page_numbers: false
+
+# Navigation buttons
+navigation:
+  button_style: "rounded"
+  position: "bottom-right"
+
+# Slide master (background, watermarks)
+slide_master:
+  background:
+    color: "rgb(25,25,25)"
+  watermarks: []
+
+# Code highlighting
+code:
+  pygments_style: "monokai"
+  show_line_numbers: false
+
+# Effects
+effects:
+  typewriter_speed: 50  # milliseconds per character

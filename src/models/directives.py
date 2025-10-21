@@ -92,6 +92,6 @@ RESERVED_DIRECTIVES: Set[str] = {
 }
 
 
-def is_reserved(directive_name: str) -> bool:
+def reserved_is(directive_name: str) -> bool:
     """Check if a directive name is reserved"""
     return directive_name in RESERVED_DIRECTIVES

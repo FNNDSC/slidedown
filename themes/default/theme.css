@@ -1,0 +1,942 @@
+
+/* Google Fonts */
+@import url(https://fonts.googleapis.com/css?family=Anonymous+Pro);
+
+/*
+ * Presentation Mode with 2K Resolution (2560x1440)
+ * Scales to fit any viewport while maintaining aspect ratio
+ */
+
+/* Global */
+html {
+  min-height: 100%;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  color: rgba(255,255,255,.75);
+  background-color: rgb(25,25,25);
+  overflow: hidden;
+}
+
+/* Presentation viewport wrapper - fixed 2K dimensions */
+.presentation-viewport {
+  position: absolute;
+  width: 2560px;
+  height: 1440px;
+  transform-origin: top left;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* Scale calculated by JavaScript on load/resize */
+}
+
+.tty {
+    color: rgba(255,255,255,.75);
+    /* font-family: 'Anonymous Pro', monospace;   */
+    background-color: rgb(25,25,25);
+}
+
+.line-1{
+    position: relative;
+    top: 5%;
+    width: 50em;
+    margin: 0 auto;
+    /* border-right: 2px solid rgba(255,255,255,.75); */
+    font-size: 180%;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    transform: translateY(-50%);
+}
+
+/* Animation */
+.anim-typewriter{
+  animation: typewriter 4s steps(44) 1s 1 normal both,
+             blinkTextCursor 500ms steps(44) infinite normal;
+}
+@keyframes typewriter{
+  from{width: 0;}
+  to{width: 50em;}
+}
+@keyframes blinkTextCursor{
+  from{border-right-color: rgba(255,255,255,.75);}
+  to{border-right-color: transparent;}
+}
+
+/*
+    from https://https://www.codesdope.com/blog/article/12-creative-css-and-javascript-text-typing-animati/#:~:text=Multiline%20Typewriter%20Effect,if%20they%20are%20being%20typed.
+ */
+
+.var-highlight{
+    color: #C0AD60;
+}
+.string-highlight{
+    color: rgba(253, 149, 90, 0.8);
+}
+
+.typing{
+        font-size: 2em;
+        margin: 0;
+        font-family: "Courier New";
+
+        &:after{
+            content: "|";
+            animation: blink 500ms linear infinite alternate;
+        }
+}
+
+@-webkit-keyframes blink{
+    0%{opacity: 0;}
+    100%{opacity: 1;}
+}
+
+@-moz-keyframes blink{
+    0%{opacity: 0;}
+    100%{opacity: 1;}
+}
+
+@keyframes blink{
+    0%{opacity: 0;}
+    100%{opacity: 1;}
+}
+
+/*
+    from https://css-tricks.com/snippets/css/typewriter-effect/
+ */
+
+.typewriter pre {
+    overflow: hidden; /* Ensures the content is not revealed until the animation */
+    border-right: .15em solid orange; /* The typwriter cursor */
+    white-space: nowrap; /* Keeps the content on a single line */
+    margin: 0 auto; /* Gives that scrolling effect as the typing happens */
+    letter-spacing: .15em; /* Adjust as needed */
+    animation:
+      typing 3.5s steps(40, end),
+      blink-caret .75s step-end infinite;
+}
+
+/* The typing effect */
+@keyframes typing {
+    from { width: 0 }
+    to { width: 100% }
+}
+
+/* The typewriter cursor effect */
+@keyframes blink-caret {
+    from, to { border-color: transparent }
+    50% { border-color: orange; }
+}
+
+.slide {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+    padding: 0;
+}
+
+.slide h1 {
+    font-size: 2.8em;
+    margin: 0.3em 0;
+    text-align: center;
+}
+
+.slide h2 {
+    font-size: 2.2em;
+    margin: 0.3em 0;
+    text-align: center;
+}
+
+.slide p {
+    font-size: 1.2em;
+    line-height: 1.5;
+    margin: 0.5em 0;
+}
+
+.slide pre {
+    font-size: 0.7em;
+    line-height: 1.2;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+#slideProgress {
+    width: 100%;
+    background-color: grey;
+  }
+
+#slideBar {
+    width: 1%;
+    height: 5px;
+    background-color: rgb(9, 250, 9);
+  }
+
+
+.blinking{
+    animation:blinkingText 1.2s infinite;
+}
+@keyframes blinkingText{
+    0%{     color: #000;          }
+    49%{    color: #000;          }
+    60%{    color: transparent;     }
+    99%{    color: transparent;     }
+    100%{   color: #000;          }
+}
+
+.container {
+    text-align: left;
+  }
+
+ .container pre {
+   display: inline-block;
+   text-align: left;
+}
+
+/* Alignment modifiers */
+.align-left {
+    text-align: left;
+}
+
+.align-center {
+    text-align: center;
+}
+
+.align-center ul,
+.align-center ol {
+    list-style-position: inside;
+}
+
+.align-right {
+    text-align: right;
+}
+
+.align-right ul,
+.align-right ol {
+    list-style-position: inside;
+}
+
+/* Column layout support */
+.slide .column {
+    flex: 1;
+    padding: 0 10px;
+    box-sizing: border-box;
+}
+
+.slide .column:first-of-type {
+    padding-left: 0;
+}
+
+.slide .column:last-of-type {
+    padding-right: 0;
+}
+
+dialog {
+    padding: 0;
+    border: 0;
+    border-radius: 0.6rem;
+    box-shadow: 0 0 1em black;
+}
+
+dialog::backdrop {
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+dialog + .backdrop {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+dialog[open] {
+    animation: slide-up 0.4s ease-out;
+}
+
+.close {
+    position: absolute;
+    top: 0.2em;
+    right: 0.2em;
+    padding: 0.3em;
+    line-height: 0.6;
+    background-color: transparent;
+    border: 0;
+    font-size: 2em;
+}
+
+.modal-header,
+.modal-body,
+.modal-footer {
+    padding: 1em;
+}
+
+.modal-header {
+    margin: 0;
+    padding-bottom: 0.6em;
+    background-color: hsl(211, 90%, 90%);
+    border-top-left-radius: 0.6rem;
+    border-top-right-radius: 0.6rem;
+    border-bottom: 1px solid hsl(211, 51%, 65%);
+}
+
+.modal-footer {
+    border-top: 1px solid hsl(211, 51%, 65%);
+}
+
+td, th {
+    border: 1px solid #999;
+    padding: 0.5rem;
+    text-align: center;
+}
+
+.fa-icon-innter-text {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    margin: 0;
+    text-align: left;
+}
+
+.boxtext {
+    border: 0px;
+    background-color: #282D33;
+    color: white;
+    position: relative;
+    margin-bottom: -3px;
+    border-radius: 5px;
+    padding: 10px;
+    font-size: 24px;
+}
+
+/* Navbar container for inline title layout */
+.navbar-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Navbar title - centered between buttons */
+.navbar-title {
+    flex: 1;
+    text-align: center;
+    font-size: 1.5em;
+    font-weight: bold;
+    padding: 0 20px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+button{
+    float:left;
+}
+
+h2:hover .overlay {
+    display:block;
+    background-color:white;
+    opacity:0.75;
+}
+
+.metadata {
+    display: none;
+}
+
+.snippet {
+    /* all snippets start off being not displayed */
+    display: none;
+    height: 1.5em;
+}
+
+br {
+    display: block;
+    content: "";
+    margin: 0;
+}
+
+.formLayout {
+    background-color: #404346;
+    border: solid 1px #a1a1a1;
+    padding: 60px;
+    flex: 1;
+    color: white;
+    font-size: 32px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+
+prebox {outline: 1px solid #ccc; padding: 5px; margin: 5px; }
+.string     { font-family:courier; color: lightgreen; }
+.number     { font-family:courier; color: orange; }
+.boolean    { font-family:courier; color: lightblue; }
+.null       { font-family:courier; color: magenta; }
+.key        { font-family:courier; color: cyan; }
+
+.input {
+    font-family: courier;
+}
+
+.input-dark {
+    background-color:#555;
+    color: #fff;
+}
+
+.formLayout label {
+    text-align: right;
+    padding-right: 20px;
+}
+
+br {
+    clear: left;
+}
+
+.modal {
+    display:    none;
+    position:   fixed;
+    z-index:    1000;
+    top:        0;
+    left:       0;
+    height:     100%;
+    width:      100%;
+    background: rgba( 255, 255, 255, .8 )
+    url('http://i.stack.imgur.com/FhHRx.gif')
+    50% 50%
+    no-repeat;
+}
+
+/* When the body has the loading class, we turn
+the scrollbar off with overflow:hidden */
+body.loading {
+    overflow: hidden;
+}
+
+/* Anytime the body has the loading class, our
+modal element will be visible */
+body.loading .modal {
+    display: block;
+}
+
+
+.button-xsmall {
+    font-size: 70%;
+}
+
+.button-xxsmall {
+    font-size: 10%;
+    padding: .1em .1em;
+}
+
+.button-red {
+    background: rgb(202, 25, 25); /* this is a red */
+}
+
+.button-patternflyblue {
+    background: rgb(0, 100, 200); /* this is a patternfly blue */
+
+}
+
+.button-green {
+    background: rgb(28, 184, 65); /* this is a green */
+}
+
+.button-orange {
+    background: rgb(223, 117, 20); /* this is an orange */
+}
+
+html {
+    box-sizing: border-box;
+}
+
+*, *:before, *:after {
+    box-sizing: inherit;
+}
+.cf:before, .cf:after {
+    display: table;
+    content: ' ';
+}
+.cf:after {
+    clear: both;
+}
+.cf {
+    *zoom: 1;
+}
+
+body {
+    font-family: 'Anonymous Pro', monospace;
+    margin:         0;
+    color:          #555;
+    background-color: #55575a;
+    /* line-height: 1.3; */
+}
+
+.footer-bar {
+    background-color: #404346;
+    border: solid 1px #a1a1a1;
+    border-top: none;
+    padding: 20px 60px;
+    color: white;
+    font-size: 24px;
+    overflow: hidden;
+}
+
+.footer {
+    font-family: 'Sans';
+    color: white;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+figure {
+    margin: 0;
+    padding: 10px;
+}
+
+figure a {
+    display: block;
+}
+
+mark {
+    padding: 0 5px;
+    background-color: #ddd;
+}
+::backdrop {
+    background-color: rgba(0,0,0,0.5);
+}
+
+
+
+
+  /***************************************************************************************/
+  /* terminal.css */
+  /***************************************************************************************/
+
+  /* @font-face {
+    font-family: 'Inconsolata';
+    font-style: normal;
+    font-weight: normal;
+    src: local('Inconsolata'), url('Inconsolata.woff') format('woff');
+  } */
+
+  @font-face {
+    font-family: 'VT323';
+    font-style: normal;
+    src: local('VT323 Regular'), local('VT323-Regular'), url(https://fonts.gstatic.com/s/vt323/v9/pxiKyp0ihIEF2isfFJA.ttf) format('truetype');
+  }
+
+.terminal pre {
+    font-family: 'VT323';
+    font-size: 200%;
+    font-weight: normal;
+}
+
+  /*@-webkit-keyframes pulse {
+   0% {
+    opacity: 0;
+   }
+   25% {
+    opacity: 0.2;
+   }
+   50% {
+    opacity: 0;
+   }
+   75% {
+    opacity: 0;
+   }
+   100% {
+     opacity: 0.2;
+   }
+  }
+  */
+  /*
+  @-webkit-keyframes flicker {
+    0% { opacity: 0.95; }
+    10% { opacity: 0.9; }
+    20% { opacity: 0.85; }
+    30% { opacity: 0.9; }
+    40% { opacity: 0.95; }
+    50% { opacity: 0.9; }
+    60% { opacity: 0.95; }
+    70% { opacity: 0.92; }
+    80% { opacity: 0.85; }
+    90% { opacity: 0.92; }
+    100% { opacity: 0.9; }
+  }
+  */
+  @-webkit-keyframes flicker {
+    0% { opacity: 0.75; }
+    10% { opacity: 0.7; }
+    20% { opacity: 0.65; }
+    30% { opacity: 0.7; }
+    40% { opacity: 0.75; }
+    50% { opacity: 0.65; }
+    60% { opacity: 0.75; }
+    70% { opacity: 0.72; }
+    80% { opacity: 0.65; }
+    90% { opacity: 0.72; }
+    100% { opacity: 0.7; }
+  }
+
+  ::selection {
+    background: #0080FF;
+    text-shadow: none !important;
+  }
+
+  /* html, body {
+    margin: 0;
+    height: 100%;
+  } */
+
+  .terminal {
+    font-family: Inconsolata, monospace;
+    color: white;
+    background: -webkit-radial-gradient(center center, contain, rgba(0,150,0,1), black) center center no-repeat, black; /*center center for the gradient scrolls with the page :(*/
+    /*background: -webkit-radial-gradient(center 75%, contain, rgba(0,75,0,0.8), black) center center no-repeat, black;*/
+    -webkit-background-size: 110% 100%;
+  }
+  .offscreen {
+    background: -webkit-linear-gradient(top, #000, #333);
+  }
+  .offscreen .CRT {
+    background: rgba(0,0,0,0.7);
+    height: 100%;
+    position: fixed;
+    text-shadow: none;
+    box-shadow: 0 0 15px black;
+  }
+  .offscreen .CRT output {
+    overflow-x: hidden;
+    display: inline-block;
+    height: 100px;
+  }
+  .offscreen .interlace {
+    display: none;
+  }
+  .CRT {
+    -webkit-transition: -webkit-transform 1.5s ease-in-out;
+    width: 100%;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+  }
+
+  .dropping {
+    /*background: -webkit-linear-gradient(
+      bottom,
+      rgb(209,144,23) 13%,
+      rgb(251,173,51) 57%,
+      rgb(255,208,77) 79%
+    );*/
+    background: -webkit-radial-gradient(center center, contain, rgba(0,175,0,1), black) center center no-repeat;
+    -webkit-background-size: 125% 125%;
+  }
+  /*
+  .crt {
+    z-index: 50;
+    width: 100%;
+    height: 50px;
+    position: fixed;
+    /*margin: 15px 31px 0px 32px;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    background: -webkit-gradient(radial, 50% 10057%, 4999, 50% 10055%, 5000, from(transparent), to(black) ) transparent no-repeat 10% 100%;
+  }
+  .crt.top {
+    top: -20px;
+  }
+  .crt.bottom {
+    -webkit-transform: rotate(180deg);
+    bottom: -20px;
+  }*/
+  .crt {
+    z-index: 50;
+    width: 100%;
+    height: 50px;
+    position: fixed;
+    background: black;
+  }
+  .crt.top {
+    top: 0;
+  }
+  .crt.bottom {
+    bottom: 0;
+    -webkit-transform: rotate(180deg);
+  }
+  .hz {
+    -webkit-animation-name: hz;
+    -webkit-animation-duration: 30s;
+    -webkit-animation-iteration-count: infinite;
+  }
+
+  .flicker {
+    -webkit-animation-name: flicker;
+    -webkit-animation-duration: 1s;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-timing-function: ease-in-out;
+  }
+  .interlace {
+    position: absolute;
+    left: 0;
+    top: 0;
+    background: url(interlace.png) top left repeat, rgba(255,255,255,0.5);
+    width: 100%;
+    height: 100%;
+    opacity: 0.2;
+    z-index: 10;
+    pointer-events: none;
+    /*border-top-left-radius: 150px 50px;
+    border-top-right-radius: 150px 50px;
+    border-bottom-left-radius: 150px 50px;
+    border-bottom-right-radius: 150px 50px;*/
+  }
+  .hidden {
+    display: none !important;
+  }
+  .dim > * {
+    opacity: 0.4;
+  }
+  .dim .help {
+    opacity: 1;
+  }
+  iframe#fsn {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    border: none;
+  }
+
+  /* #container <--> .CRT */
+
+  .CRT {
+    padding: 1em 1.5em 1em 1em;
+    text-shadow: 0 0 5px #C8C8C8;
+    /*overflow: hidden;
+    white-space: nowrap;*/
+
+    /*box-shadow: 10px 5px 20px rgba(255,255,255,0.2) inset,
+                -10px -5px 20px rgba(255,255,255,0.2) inset;
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.1);*/
+  }
+  .CRT output {
+    clear: both;
+    width: 100%;
+  }
+  .CRT output h3 {
+    margin: 0;
+  }
+  .CRT output pre {
+    margin: 0;
+  }
+  .CRT output textarea {
+    width: 100%;
+    height: 200px;
+    background-color: rgba(255,255,255,0.1);
+    border: none;
+    color: inherit;
+    font: inherit;
+    outline: 0;
+    border-radius: 10px;
+    padding: 5px;
+  }
+  .CRT output textarea::selection {
+    background: red;
+  }
+  .CRT output textarea::-webkit-scrollbar {
+    width: 1ex;
+  }
+  .CRT output textarea::-webkit-scrollbar-thumb {
+    border-top: 1px solid #fff;
+    background: #ccc -webkit-linear-gradient(rgb(240, 240, 240), rgb(210, 210, 210));
+    border-radius: 1ex;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  }
+  .input-line {
+    display: -webkit-box;
+    -webkit-box-orient: horizontal;
+    -webkit-box-align: stretch;
+    display: box;
+    box-orient: horizontal;
+    box-align: stretch;
+    clear: both;
+  }
+  .input-line > div:nth-child(2) {
+    -webkit-box-flex: 1;
+    box-flex: 1;
+  }
+  .prompt {
+    white-space: nowrap;
+    color: #ffcc00; /*green;*/
+    margin-right: 7px;
+    display: -webkit-box;
+    -webkit-box-pack: center;
+    -webkit-box-orient: vertical;
+    display: box;
+    box-pack: center;
+    box-orient: vertical;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .cmdline {
+    outline: none;
+    background-color: transparent;
+    margin: 0;
+    width: 100%;
+    font: inherit;
+    border: none;
+    color: inherit;
+  }
+  .folder {
+    color: #ffcc00;
+  }
+  .ls-files {
+    /*height: 45px;*/
+    /* Default, but changed by js depending on length of filename */
+    -webkit-column-width: 100px;
+    column-width: 100px;
+  }
+  .ls-files span {
+    cursor: pointer;
+  }
+  .ls-files span:hover {
+    text-decoration: underline;
+  }
+  button {
+    background: -webkit-gradient(linear, 0% 40%, 0% 70%, from(#F9F9F9), to(#E3E3E3));
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    color: black;
+    padding: 5px 8px;
+    outline: none;
+    white-space: nowrap;
+    vertical-align: middle;
+    -webkit-user-select:none;
+    user-select: none;
+    cursor: pointer;
+  }
+  button:not([disabled]):hover {
+    border-color: #ffcc00;
+  }
+  button:not([disabled]):active {
+    background: -webkit-gradient(linear, 0% 40%, 0% 70%, from(#E3E3E3), to(#F9F9F9));
+  }
+  button[disabled] {
+    color: #ccc;
+  }
+  .help {
+    font-family: 'Droid Sans', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+    display: -webkit-box;
+    -webkit-box-align: center;
+    -webkit-box-pack: center;
+    -webkit-box-orient: vertical;
+    -webkit-user-select: none;
+    user-select: none;
+    font-size: 10pt;
+  }
+  .help,
+  .help > section {
+    border-radius: 10px;
+  }
+  .help > section {
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.3);
+    -webkit-box-shadow: 3px 3px 5px rgba(0,0,0,0.6);
+    border-radius: 10px;
+    color: white;
+    position: relative;
+    width: 610px;
+  }
+  .help section > div:first-child {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+  }
+  .help section > div:last-child {
+    padding-top: 0;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+  }
+  .help > section > div {
+    background: rgba(0, 0, 0, 1);
+    padding: 20px;
+  }
+  .help h2 {
+    padding-bottom: 8px;
+    margin-top: 0;
+    margin-bottom: 25px;
+    border-bottom: 1px solid #fff;
+    color: #ffcc00;
+  }
+  .help p strong {
+    width: 60px;
+    display: inline-block;
+  }
+  .help #close {
+    border-radius: 20px;
+    padding: 2px 6px 2px 7px;
+    border: 2px solid #fff;
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    cursor: pointer;
+    font-size: 90%;
+    font-weight: bold;
+    line-height: 17px;
+  }
+  .help #close:active {
+    right: 19px;
+    top: 21px;
+  }
+  .help .shortcuts {
+    -webkit-columns: 2;
+    columns: 2;
+  }
+
+
+  /* Themes */
+  .cream {
+    color: black;
+    background: #fffff3;
+  }
+  .cream .interlace {
+    opacity: 0.1;
+  }
+  .cream .prompt {
+    color: purple;
+  }
+  .cream .cmdline {
+    color: black;
+  }
+
+
+
+/* iframe stuff */
+
+.iframe-container {
+    overflow: hidden;
+    padding-top: 56.25%;
+    position: relative;
+  }
+
+  .iframe-container iframe {
+     border: 0;
+     height: 100%;
+     left: 0;
+     position: absolute;
+     top: 0;
+     width: 100%;
+  }
+
+  /* 4x3 Aspect Ratio */
+  .iframe-container-4x3 {
+    padding-top: 75%;
+  }
