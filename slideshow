@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# slideshow - Compile slidedown presentations with automatic path handling
+# slideshow - Parse/Compile/Deploy slidedown presentations
 #
 # Usage: slideshow <path-to-sd-file> [options]
 #
@@ -11,7 +11,8 @@
 #   1. Extracts the directory name from the path (e.g., "terminal" from "examples/terminal")
 #   2. Compiles the presentation
 #   3. Outputs to ./output/<name>/
-#   4. All assets are resolved relative to the input directory
+#   4. Starts HTTP server in output directory
+#   5. All assets are resolved relative to the input directory
 #
 
 set -euo pipefail
@@ -21,7 +22,7 @@ usage() {
     cat <<EOF
 Usage: slideshow <path-to-sd-file> [options]
 
-Compile a slidedown presentation with automatic path handling.
+Parse, compile, and deploy a slidedown presentation with automatic path handling.
 
 Arguments:
   <path-to-sd-file>     Path to .sd file (e.g., examples/terminal/terminal.sd)
@@ -29,17 +30,22 @@ Arguments:
 Options:
   --theme <name>        Theme to use (default: default)
   --outputdir <path>    Output directory base (default: ./output)
+  --port <number>       HTTP server port (default: 8000)
+  --no-serve            Compile only, don't start HTTP server
   -h, --help           Show this help message
 
 Examples:
   slideshow examples/terminal/terminal.sd
   slideshow examples/minimal/minimal.sd --theme conventional-light
-  slideshow examples/code/code.sd --theme retro-terminal --outputdir /tmp/slides
+  slideshow examples/code/code.sd --theme retro-terminal --port 9000
+  slideshow examples/code/code.sd --no-serve --outputdir /tmp/slides
 
 Notes:
   - The output name is extracted from the parent directory of the .sd file
   - All assets (images, logos, etc.) are resolved relative to the input directory
   - Output is saved to <outputdir>/<name>/
+  - HTTP server starts automatically unless --no-serve is specified
+  - Press Ctrl+C to stop the server
 
 EOF
     exit 0
@@ -63,6 +69,8 @@ shift
 
 THEME="default"
 OUTPUT_BASE="./output"
+PORT="8000"
+SERVE="true"
 
 # Parse optional arguments
 while [[ $# -gt 0 ]]; do
@@ -74,6 +82,14 @@ while [[ $# -gt 0 ]]; do
         --outputdir)
             OUTPUT_BASE="$2"
             shift 2
+            ;;
+        --port)
+            PORT="$2"
+            shift 2
+            ;;
+        --no-serve)
+            SERVE="false"
+            shift
             ;;
         *)
             echo "Error: Unknown option $1"
@@ -145,6 +161,21 @@ echo "Compilation complete!"
 echo "View at: $OUTPUT_DIR/index.html"
 echo "=================================================="
 echo ""
-echo "To serve locally:"
-echo "  cd $OUTPUT_DIR"
-echo "  python3 -m http.server 8000"
+
+# Start HTTP server if requested
+if [ "$SERVE" == "true" ]; then
+    echo "Starting HTTP server on port $PORT..."
+    echo "Open: http://localhost:$PORT/index.html"
+    echo ""
+    echo "Press Ctrl+C to stop server"
+    echo "=================================================="
+    echo ""
+
+    cd "$OUTPUT_DIR"
+    python3 -m http.server "$PORT"
+else
+    echo "Skipping HTTP server (--no-serve specified)"
+    echo "To serve manually:"
+    echo "  cd $OUTPUT_DIR"
+    echo "  python3 -m http.server $PORT"
+fi
