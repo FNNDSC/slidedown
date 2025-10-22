@@ -1,28 +1,28 @@
-name: "Terminal"
-description: "Modern terminal aesthetic inspired by iTerm2 and VSCode"
+name: "Retro Terminal"
+description: "Retro terminal-style theme with green on black and CRT effects"
 author: "slidedown team"
 version: "1.0"
 
-# Color palette - modern terminal colors
+# Color palette - classic terminal colors
 colors:
-  background: "#1e1e1e"
-  foreground: "#d4d4d4"
-  accent: "#4ec9b0"
-  code_bg: "#252526"
+  background: "#000000"
+  foreground: "#00ff00"
+  accent: "#00ff00"
+  code_bg: "#0a0a0a"
 
-# Typography - modern monospace fonts
+# Typography - terminal-style fonts
 fonts:
   body:
-    family: "'Fira Code', 'JetBrains Mono', 'Consolas', monospace"
+    family: "'VT323', 'Courier New', monospace"
     size: "28px"
-    line_height: "1.5"
+    line_height: "1.4"
   code:
-    family: "'Fira Code', 'JetBrains Mono', 'Consolas', monospace"
+    family: "'VT323', 'Courier New', monospace"
     size: "24px"
 
 # Layout
 layout:
-  slide_padding: "50px"
+  slide_padding: "40px"
   viewport_width: "2560px"
   viewport_height: "1440px"
 
@@ -44,7 +44,7 @@ navigation:
 # Slide master
 slide_master:
   background:
-    color: "#1e1e1e"
+    color: "#000000"
   watermarks: []
 
 # Code highlighting
@@ -54,4 +54,4 @@ code:
 
 # Effects
 effects:
-  typewriter_speed: 40
+  typewriter_speed: 30

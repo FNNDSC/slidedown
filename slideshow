@@ -1,0 +1,150 @@
+#!/usr/bin/env bash
+#
+# slideshow - Compile slidedown presentations with automatic path handling
+#
+# Usage: slideshow <path-to-sd-file> [options]
+#
+# Example:
+#   slideshow examples/terminal/terminal.sd --theme terminal
+#
+# The script:
+#   1. Extracts the directory name from the path (e.g., "terminal" from "examples/terminal")
+#   2. Compiles the presentation
+#   3. Outputs to ./output/<name>/
+#   4. All assets are resolved relative to the input directory
+#
+
+set -euo pipefail
+
+# Show usage
+usage() {
+    cat <<EOF
+Usage: slideshow <path-to-sd-file> [options]
+
+Compile a slidedown presentation with automatic path handling.
+
+Arguments:
+  <path-to-sd-file>     Path to .sd file (e.g., examples/terminal/terminal.sd)
+
+Options:
+  --theme <name>        Theme to use (default: default)
+  --outputdir <path>    Output directory base (default: ./output)
+  -h, --help           Show this help message
+
+Examples:
+  slideshow examples/terminal/terminal.sd
+  slideshow examples/minimal/minimal.sd --theme conventional-light
+  slideshow examples/code/code.sd --theme retro-terminal --outputdir /tmp/slides
+
+Notes:
+  - The output name is extracted from the parent directory of the .sd file
+  - All assets (images, logos, etc.) are resolved relative to the input directory
+  - Output is saved to <outputdir>/<name>/
+
+EOF
+    exit 0
+}
+
+# Check for help flag
+if [[ "${1:-}" == "-h" ]] || [[ "${1:-}" == "--help" ]]; then
+    usage
+fi
+
+# Check if argument provided
+if [ $# -lt 1 ]; then
+    echo "Error: Missing path to .sd file"
+    echo ""
+    usage
+fi
+
+# Parse arguments
+SD_FILE_PATH="$1"
+shift
+
+THEME="default"
+OUTPUT_BASE="./output"
+
+# Parse optional arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --theme)
+            THEME="$2"
+            shift 2
+            ;;
+        --outputdir)
+            OUTPUT_BASE="$2"
+            shift 2
+            ;;
+        *)
+            echo "Error: Unknown option $1"
+            echo ""
+            usage
+            ;;
+    esac
+done
+
+# Validate sd file exists
+if [ ! -f "$SD_FILE_PATH" ]; then
+    echo "Error: File not found: $SD_FILE_PATH"
+    exit 1
+fi
+
+# Extract the directory containing the .sd file
+INPUT_DIR=$(dirname "$SD_FILE_PATH")
+
+# Extract the name from the directory path
+# e.g., "examples/terminal/terminal.sd" -> "terminal"
+# e.g., "examples/minimal/minimal.sd" -> "minimal"
+NAME=$(basename "$INPUT_DIR")
+
+# If the input dir is just "." or the current directory, use the sd filename without extension
+if [ "$NAME" == "." ] || [ "$NAME" == "" ]; then
+    SD_FILENAME=$(basename "$SD_FILE_PATH")
+    NAME="${SD_FILENAME%.sd}"
+fi
+
+# Extract just the filename from the path
+SD_FILENAME=$(basename "$SD_FILE_PATH")
+
+# Build output directory
+OUTPUT_DIR="$OUTPUT_BASE/$NAME"
+
+# Create output directory
+mkdir -p "$OUTPUT_DIR"
+
+echo "=================================================="
+echo "Slideshow Compiler"
+echo "=================================================="
+echo "Input directory: $INPUT_DIR"
+echo "Input file:      $SD_FILENAME"
+echo "Output name:     $NAME"
+echo "Output dir:      $OUTPUT_DIR"
+echo "Theme:           $THEME"
+echo "=================================================="
+echo ""
+
+# Find the slidedown script (either in venv or system)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+if [ -f "$SCRIPT_DIR/venv/bin/slidedown" ]; then
+    SLIDEDOWN="$SCRIPT_DIR/venv/bin/slidedown"
+elif command -v slidedown &> /dev/null; then
+    SLIDEDOWN="slidedown"
+else
+    echo "Error: slidedown not found. Please install or activate venv."
+    exit 1
+fi
+
+# Run slidedown
+# All paths are relative to INPUT_DIR, including assets
+"$SLIDEDOWN" "$INPUT_DIR" "$OUTPUT_DIR" --inputFile "$SD_FILENAME" --theme "$THEME"
+
+echo ""
+echo "=================================================="
+echo "Compilation complete!"
+echo "View at: $OUTPUT_DIR/index.html"
+echo "=================================================="
+echo ""
+echo "To serve locally:"
+echo "  cd $OUTPUT_DIR"
+echo "  python3 -m http.server 8000"
