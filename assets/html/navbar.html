@@ -7,16 +7,6 @@
 
         <div class="navbar-container">
             <input  type    =  "button"
-                    onclick =  "page.advance_toFirst()"
-                    value   =  "&#xf077"
-                    style   =  "float: left;"
-                    id      =  "first"
-                    name    =  "first"
-                    class   =  "pure-button
-                                pure-button-primary
-                                fas fa-chevron-up">
-            </input>
-            <input  type    =  "button"
                     onclick =  "page.advance_toPrevious()"
                     style   =  "float: left;"
                     value   =  "&#xf053"
@@ -26,18 +16,28 @@
                                 pure-button-primary
                                 fas fas-chevron-left">
             </input>
+            <input  type    =  "button"
+                    onclick =  "page.advance_toFirst()"
+                    value   =  "&#xf078"
+                    style   =  "float: left;"
+                    id      =  "first"
+                    name    =  "first"
+                    class   =  "pure-button
+                                pure-button-primary
+                                fas fa-chevron-down">
+            </input>
 
             <div id="pageTitle" class="navbar-title"></div>
 
             <input  type    =  "button"
                     onclick =  "page.advance_toLast()"
-                    value   =  "&#xf078"
+                    value   =  "&#xf077"
                     style   =  "float: right;"
                     id      =  "last"
                     name    =  "last"
                     class   =  "pure-button
                                 pure-button-primary
-                                fas fa-chevron-down">
+                                fas fa-chevron-up">
             </input>
             <input  type    =  "button"
                     onclick =  "page.advance_toNext()"
