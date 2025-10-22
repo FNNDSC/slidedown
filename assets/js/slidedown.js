@@ -446,6 +446,7 @@ function Page() {
 
     this.currentSlide               = 1;
     document.onkeydown              = this.checkForArrowKeyPress;
+    document.onclick                = this.checkForMouseClick;
 
 
     // Keys parsed from the URL
@@ -947,6 +948,47 @@ Page.prototype = {
         else if (e.keyCode == '39') {
            // right arrow
            console.log('right arrow')
+            page.rightArrow_process();
+        }
+    },
+
+    // Page
+    checkForMouseClick:             function(e) {
+        let str_help = `
+
+            Handle mouse clicks for navigation.
+
+            Click on left half of page -> go to previous slide
+            Click on right half of page -> go to next slide
+
+            Ignore clicks on buttons and interactive elements.
+
+        `;
+
+        e = e || window.event;
+
+        // Ignore clicks on buttons, links, and other interactive elements
+        let target = e.target || e.srcElement;
+        if (target.tagName === 'BUTTON' ||
+            target.tagName === 'INPUT' ||
+            target.tagName === 'A' ||
+            target.tagName === 'TEXTAREA' ||
+            target.tagName === 'SELECT') {
+            return;
+        }
+
+        // Get the click position relative to the window
+        let clickX = e.clientX;
+        let windowWidth = window.innerWidth;
+
+        // Determine if click is on left or right half
+        if (clickX < windowWidth / 2) {
+            // Left half - go to previous slide
+            console.log('mouse click: left half')
+            page.leftArrow_process();
+        } else {
+            // Right half - go to next slide
+            console.log('mouse click: right half')
             page.rightArrow_process();
         }
     },
