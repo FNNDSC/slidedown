@@ -22,6 +22,7 @@ class DirectiveCategory(Enum):
     EFFECT = "effect"           # .typewriter{}, .o{}
     TRANSFORM = "transform"     # .font-*, .cowpy-*
     MODIFIER = "modifier"       # .style{}, .class{} (reserved)
+    METADATA = "metadata"       # .meta{}, .comment{}
 
 
 @dataclass

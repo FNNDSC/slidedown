@@ -34,6 +34,7 @@ class DirectiveRegistry:
         self.effectDirectives_register()
         self.transformDirectives_register()
         self.modifierDirectives_register()
+        self.metadataDirectives_register()
 
     def register(self, spec: DirectiveSpec) -> None:
         """Register a directive specification"""
@@ -530,4 +531,128 @@ class DirectiveRegistry:
             description='Programming language for .code{} (parser-extracted modifier)',
             handler=syntax_handler,
             examples=['.code{.syntax{language=python} def foo(): pass}']
+        ))
+
+    def metadataDirectives_register(self) -> None:
+        """
+        Register metadata directives
+
+        These directives provide presentation-level metadata and configuration
+        that overrides theme settings.
+        """
+
+        def meta_handler(node: Any, compiler: Any) -> str:
+            """
+            Handle .meta{} - presentation metadata and configuration
+
+            Parses YAML content, validates file paths, and stores in compiler
+            for merging with theme configuration.
+            """
+            import yaml
+            from pathlib import Path
+
+            # node.content contains the YAML configuration
+            yaml_content = node.content.strip()
+
+            if not yaml_content:
+                return ""
+
+            try:
+                # Dedent YAML content
+                # The parser strips leading whitespace from the first line but may leave
+                # it on subsequent lines. We need to detect and remove this base indentation.
+                lines = yaml_content.split('\n')
+                non_empty_lines = [line for line in lines if line.strip()]
+
+                if non_empty_lines and len(non_empty_lines) > 1:
+                    # The parser strips leading whitespace from the first line but may leave
+                    # it on subsequent lines. We detect this by looking at the indentation
+                    # of lines that appear to be at the root level.
+
+                    first_indent = len(non_empty_lines[0]) - len(non_empty_lines[0].lstrip())
+
+                    # Find lines that look like root-level YAML keys
+                    # These are lines that: start with a letter (after spaces), contain :,
+                    # and are not list items (don't start with -)
+                    root_level_indents = []
+                    for i, line in enumerate(non_empty_lines):
+                        stripped = line.lstrip()
+                        if (stripped and
+                            stripped[0].isalpha() and
+                            ':' in stripped and
+                            not stripped.startswith('-')):
+                            indent = len(line) - len(stripped)
+                            # Skip the first line's indent, we want to find the base indent of others
+                            if i > 0 or indent > 0:
+                                root_level_indents.append(indent)
+
+                    # Get the minimum non-zero indentation as base indent
+                    non_zero_indents = [ind for ind in root_level_indents if ind > 0]
+
+                    if first_indent == 0 and non_zero_indents:
+                        # Find the smallest non-zero indent - this is likely the base indentation
+                        # that needs to be removed from all lines
+                        base_indent = min(non_zero_indents)
+
+                        # Remove base_indent spaces from all lines (only remove actual spaces, not content)
+                        dedented_lines = []
+                        for line in lines:
+                            if line.strip():  # Non-empty line
+                                # Count leading spaces
+                                leading_spaces = len(line) - len(line.lstrip(' '))
+                                # Remove up to base_indent spaces (but not more than exist)
+                                spaces_to_remove = min(leading_spaces, base_indent)
+                                dedented_lines.append(line[spaces_to_remove:])
+                            else:  # Empty line
+                                dedented_lines.append(line)
+                        yaml_content = '\n'.join(dedented_lines)
+
+                # Parse YAML
+                meta_config = yaml.safe_load(yaml_content)
+                if meta_config is None:
+                    meta_config = {}
+
+                # Store in compiler for later merging
+                if not hasattr(compiler, 'meta_config'):
+                    compiler.meta_config = {}
+
+                # Validate watermark image paths if present
+                if 'watermarks' in meta_config:
+                    watermarks = meta_config['watermarks']
+                    if not isinstance(watermarks, list):
+                        watermarks = [watermarks]
+
+                    for wm in watermarks:
+                        if isinstance(wm, dict) and 'image' in wm:
+                            # Resolve path relative to input directory
+                            image_path = wm['image']
+                            # Input dir is the directory of the source file
+                            # We'll validate this path during compilation
+                            # Store it as-is for now
+                            pass
+
+                # Merge into compiler meta_config
+                compiler.meta_config.update(meta_config)
+
+            except yaml.YAMLError as e:
+                from .log import LOG
+                LOG(f"Error parsing .meta{{}} YAML: {e}", level=1)
+                return ""
+            except Exception as e:
+                from .log import LOG
+                LOG(f"Error processing .meta{{}}: {e}", level=1)
+                return ""
+
+            # .meta{} doesn't produce any output HTML
+            return ""
+
+        self.register(DirectiveSpec(
+            name='meta',
+            category=DirectiveCategory.METADATA,
+            description='Presentation metadata and configuration (overrides theme settings)',
+            handler=meta_handler,
+            examples=[
+                '.meta{\n  navigation:\n    show_buttons: false\n}',
+                '.meta{\n  watermarks:\n    - image: logos/company.svg\n      position: bottom-right\n}'
+            ]
         ))

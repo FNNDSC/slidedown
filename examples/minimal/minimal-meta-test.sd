@@ -1,0 +1,35 @@
+.comment{Test .meta{} directive functionality}
+
+.meta{
+  navigation:
+    show_buttons: false
+  watermarks:
+    - image: logos/chris-logo.png
+      position: bottom-right
+      opacity: 0.2
+      size: 100px
+}
+
+.slide{
+    .title{Meta Test}
+    .body{
+        .h1{Testing .meta{} Directive}
+
+        <p>This slide should have:</p>
+
+        .o{No navigation buttons (hidden via .meta{{}})}
+        .o{Watermark in bottom-right (chris-logo.png)}
+        .o{Mouse click navigation still works}
+    }
+}
+
+.slide{
+    .title{Second Slide}
+    .body{
+        .h2{Config Override Works}
+
+        <p>The .meta{{}} directive successfully overrides theme settings.</p>
+
+        <p>Navigation buttons are hidden but keyboard and mouse navigation still work.</p>
+    }
+}

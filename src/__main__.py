@@ -245,6 +245,7 @@ def html_compile(inputstate: ProgramState) -> ProgramState:
             verbosity=state.verbosity,
             protected_code_blocks=state.protectedCodeBlocks,
             theme_name=state.themeName,
+            input_dir=str(state.inputdir),
         )
         state.compileResult = compiler.compile()
         LOG(f"Compilation complete: {state.compileResult['slide_count']} slides", level=2)

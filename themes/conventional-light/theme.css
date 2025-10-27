@@ -16,7 +16,7 @@ body {
   color: #212121;
   background-color: #ffffff;
   overflow: hidden;
-  font-family: 'Red Hat Display', 'Helvetica Neue', 'Arial', sans-serif;
+  font-family: 'Red Hat Display', 'Helvetica Neue', 'Arial', sans-serif !important;
 }
 
 /* Presentation viewport wrapper - fixed 2K dimensions */
@@ -567,6 +567,11 @@ pre[id^="typewriter-"] {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+
+/* Navbar title override - ensure Red Hat Display */
+.navbar-title {
+  font-family: 'Red Hat Display', 'Helvetica Neue', 'Arial', sans-serif !important;
 }
 
 /* Responsive font scaling is handled by JavaScript */

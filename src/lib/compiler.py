@@ -35,7 +35,8 @@ class Compiler:
         assets_dir: str,
         verbosity: int = 1,
         protected_code_blocks: Optional[Dict[int, str]] = None,
-        theme_name: str = "default"
+        theme_name: str = "default",
+        input_dir: str = "."
     ) -> None:
         """
         Initialize compiler
@@ -47,10 +48,12 @@ class Compiler:
             verbosity: Output verbosity level (0-3)
             protected_code_blocks: Dict of protected .code{} block content from parser
             theme_name: Name of theme to use (default: "default")
+            input_dir: Input directory for resolving relative paths (default: ".")
         """
         self.ast = ast
         self.output_dir = Path(output_dir)
         self.assets_dir = Path(assets_dir)
+        self.input_dir = Path(input_dir)
         self.verbosity = verbosity
         self.protected_code_blocks = protected_code_blocks or {}
         self.directives = DirectiveRegistry()
@@ -62,6 +65,7 @@ class Compiler:
         self.slide_count = 0
         self.snippet_counters: Dict[int, int] = {}  # slide_num -> snippet_count
         self.typewriter_counters: Dict[int, int] = {}  # slide_num -> typewriter_count
+        self.meta_config: Dict[str, Any] = {}  # Configuration from .meta{} directive
 
     def compile(self) -> Dict[str, Any]:
         """
@@ -260,8 +264,11 @@ class Compiler:
         """
         # Load HTML templates
         head_html = self.template_load('head.html')
-        navbar_html = self.template_load('navbar.html')
         footer_html = self.template_load('footer.html')
+
+        # Conditionally load navbar based on config
+        show_nav_buttons = self.config_getMerged('navigation.show_buttons', True)
+        navbar_html = self.template_load('navbar.html') if show_nav_buttons else ""
 
         # Assemble document with presentation viewport wrapper
         html = f"""<!DOCTYPE html>
@@ -322,17 +329,44 @@ class Compiler:
             shutil.copytree(theme_assets_dir, dst_theme_assets, dirs_exist_ok=True)
             LOG(f"Copied theme assets: {theme_assets_dir}", level=3)
 
+    def config_getMerged(self, key: str, default: Any = None) -> Any:
+        """
+        Get configuration value with .meta{} overrides.
+
+        Precedence: .meta{} config > theme config > default
+
+        Args:
+            key: Configuration key (supports dot notation like 'slide_master.watermarks')
+            default: Default value if key not found
+
+        Returns:
+            Configuration value from meta or theme, or default
+        """
+        # Check meta_config first (highest priority)
+        keys = key.split('.')
+        value = self.meta_config
+        for k in keys:
+            if isinstance(value, dict) and k in value:
+                value = value[k]
+            else:
+                # Not found in meta, check theme
+                return self.theme.config_get(key, default)
+        return value
+
     def watermarks_generate(self) -> str:
         """
-        Generate watermark HTML from theme configuration.
+        Generate watermark HTML from merged configuration.
 
-        Reads watermark settings from theme.yaml slide_master.watermarks
-        and generates appropriate HTML img tags with positioning classes.
+        Reads watermark settings from .meta{} if present, otherwise theme.yaml.
+        Validates file paths and generates appropriate HTML img tags.
 
         Returns:
             HTML string with watermark img tags, or empty string if no watermarks
         """
-        watermarks = self.theme.config_get('slide_master.watermarks', [])
+        # Use merged config (meta overrides theme)
+        watermarks = self.config_getMerged('watermarks', [])
+        if not watermarks:
+            watermarks = self.config_getMerged('slide_master.watermarks', [])
 
         if not watermarks:
             return ""
@@ -342,6 +376,13 @@ class Compiler:
             # Required: image path
             image = wm.get('image', '')
             if not image:
+                continue
+
+            # Validate image path (relative to input directory)
+            image_full_path = self.input_dir / image
+            if not image_full_path.exists():
+                LOG(f"Warning: Watermark image not found: {image}", level=1)
+                LOG(f"         Expected at: {image_full_path}", level=1)
                 continue
 
             # Optional: position (default: bottom-right)

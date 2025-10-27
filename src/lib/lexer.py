@@ -58,6 +58,10 @@ class SlidedownLexer(RegexLexer):
             # .comment{} directive - special handling
             (r'(\.)(comment)(\{)', bygroups(Punctuation, Name.Tag, Punctuation), 'comment'),
 
+            # Metadata directives (gray/white) - Generic.Heading
+            (r'(\.)((meta))(\{)?',
+             bygroups(Punctuation, Generic.Heading, None, Punctuation)),
+
             # Structural directives (blue/cyan) - Keyword.Declaration
             (r'(\.)((slide|title|body))(\{)?',
              bygroups(Punctuation, Keyword.Declaration, None, Punctuation)),
