@@ -5,6 +5,7 @@ cowsay>=6.1
 loguru>=0.7.0
 pydantic>=2.0
 pydantic-settings>=2.0
+PyYAML>=6.0
 
 # Development dependencies (optional, install with: pip install -e ".[dev]")
 # pytest>=8.0
