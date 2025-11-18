@@ -1,0 +1,79 @@
+.meta{
+  title: "Slidedown Light Demo"
+  watermarks:
+    - image: logos/slidedown-light.svg
+      position: bottom-right
+      size: "180px"
+      opacity: 1.0
+    - image: logos/ChRONOS.png
+      position: top-left
+      size: "140px"
+      opacity: 1.0 
+}
+
+.slide{
+  .title{Slidedown, but lighter}
+  .body{
+    .typewriter{> Welcome to the light theme demo}
+    .o{Text-first authoring with plain `.sd` files}
+    .o{Behavioral markup drives effects (no JS editing needed)}
+    .o{Standalone HTML output with embedded assets}
+  }
+}
+
+.slide{
+  .title{Markup at a Glance}
+  .body{
+    .code{.syntax{language=slidedown}
+.slide{
+  .title{Hello}
+  .body{
+    .o{Bullets reveal in order}
+    .typewriter{Typed text}
+    .code{.syntax{language=python}print("hi")}
+  }
+}}
+    .o{Directives wrap content: `.directive{...}`}
+    .o{Modifiers add styling: `.style{align=center; width=60%}`}
+    .o{Children become placeholders → compiled with their parent}
+  }
+}
+
+.slide{
+  .title{Effects}
+  .body{
+    .o{.typewriter{Typewriter effect reveals characters}}
+    .o{.o{Progressive} .o{snippet} .o{bullets}}
+    .o{.font-slant{FIGLET FLAIR}}
+    .o{.cowpy-tux{Penguin says "Hello from slidedown!"}}
+  }
+}
+
+.slide{
+  .title{Layouts}
+  .body{
+    .typewriter{> Columns, widths, and alignment}
+    .column{.style{width=45%}
+      .bf{Left}
+      - Aligned via `.style{align=left;}`
+      - Useful for text + code
+    }
+    .column{.style{width=55%}
+      .code{.syntax{language=python}
+def inside_out(nodes):
+    return [compile(c) for c in nodes]
+      }
+    }
+  }
+}
+
+.slide{
+  .title{Assets & Themes}
+  .body{
+    .o{Light palette via `--theme conventional-light`}
+    .o{Watermarks: bottom-right slidedown-light, top-left ChRONOS}
+    .o{CSS/JS assets copied alongside `index.html`}
+    .o{Use `.meta{}` to override theme config and add watermarks}
+    .typewriter{> Run: ./slideshow examples/watermarked/light-watermarks-demo.sd --theme conventional-light}
+  }
+}
