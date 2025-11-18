@@ -85,4 +85,5 @@ def LOG(message: str, level: int = 1, **kwargs: Any) -> None:
     state: Optional[Any] = _program_state.get()
 
     if state and hasattr(state, 'verbosity') and state.verbosity >= level:
-        logger.debug(message, **kwargs)
+        # depth=1 attributes the log record to the caller of LOG() instead of LOG itself
+        logger.opt(depth=1).debug(message, **kwargs)

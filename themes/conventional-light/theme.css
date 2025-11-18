@@ -135,19 +135,19 @@ body {
   line-height: 1.5;
   max-width: 100%;
   overflow: auto;
-  background-color: #f5f5f5;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  padding: 24px;
+  background-color: transparent; /* no tint */
+  border: none;
+  border-radius: 0;
+  padding: 24px 0;
   margin: 1em 0;
 }
 
 .slide code {
   font-family: 'Red Hat Mono', 'Courier New', monospace;
-  font-size: 0.9em;
-  background-color: #f5f5f5;
-  padding: 2px 6px;
-  border-radius: 3px;
+  font-size: 0.95em;
+  background-color: transparent; /* no tint for inline code */
+  padding: 0 2px;
+  border-radius: 0;
   color: #c7254e;
 }
 
@@ -514,52 +514,55 @@ pre[id^="typewriter-"] {
 .slide .watermark {
   position: absolute;
   pointer-events: none;
-  z-index: 0;
+  z-index: 0; /* behind nav/buttons */
+  background: transparent;
+  mix-blend-mode: normal; /* avoid tinting from blending modes */
+  filter: none; /* keep source colors */
 }
 
 /* Watermark positioning - 9 positions */
 .watermark.top-left {
-  top: 40px;
-  left: 40px;
+  top: 80px; /* clear navbar */
+  left: 12px;
 }
 
 .watermark.top-center {
-  top: 40px;
+  top: 80px; /* clear navbar */
   left: 50%;
   transform: translateX(-50%);
 }
 
 .watermark.top-right {
-  top: 40px;
-  right: 40px;
+  top: 80px; /* clear navbar */
+  right: 12px;
 }
 
 .watermark.center-left {
   top: 50%;
-  left: 40px;
+  left: 12px;
   transform: translateY(-50%);
 }
 
 .watermark.center-right {
   top: 50%;
-  right: 40px;
+  right: 12px;
   transform: translateY(-50%);
 }
 
 .watermark.bottom-left {
-  bottom: 40px;
-  left: 40px;
+  bottom: 12px;
+  left: 12px;
 }
 
 .watermark.bottom-center {
-  bottom: 40px;
+  bottom: 12px;
   left: 50%;
   transform: translateX(-50%);
 }
 
 .watermark.bottom-right {
-  bottom: 40px;
-  right: 40px;
+  bottom: 60px; /* clear slide index/nav, slightly lower */
+  right: 12px;
 }
 
 /* Center position (both axes) */
@@ -572,6 +575,22 @@ pre[id^="typewriter-"] {
 /* Navbar title override - ensure Red Hat Display */
 .navbar-title {
   font-family: 'Red Hat Display', 'Helvetica Neue', 'Arial', sans-serif !important;
+}
+
+/* Light theme navbar/background cleanup */
+.boxtext {
+  background: transparent;
+  border: 0;
+  margin-bottom: 0;
+}
+
+#slideProgress {
+  background: transparent;
+  box-shadow: none;
+}
+
+#slideBar {
+  background: #4285f4;
 }
 
 /* Responsive font scaling is handled by JavaScript */
