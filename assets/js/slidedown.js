@@ -513,7 +513,8 @@ Page.prototype = {
             ///////// from https://codepen.io/stevn/pen/jEZvXa
 
         `;
-        var HTML            = t.innerHTML;
+        // Read from data-text attribute to bypass HTML entity parsing issues
+        var HTML            = t.getAttribute('data-text') || t.innerHTML;
         t.innerHTML         = "";
 
         var cursorPosition  = 0,

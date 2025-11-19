@@ -305,10 +305,13 @@ class Compiler:
         show_nav_buttons = self.config_getMerged('navigation.show_buttons', True)
         navbar_html = self.template_load('navbar.html') if show_nav_buttons else ""
 
+        # Generate custom CSS from .meta{css: ...}
+        custom_css = self.customCSS_generate()
+
         # Assemble document with presentation viewport wrapper
         html = f"""<!DOCTYPE html>
 <html>
-{head_html}
+{head_html}{custom_css}
 <body>
     <div class="presentation-viewport">
         <div class="metaData" id="numberOfSlides" style="display: none;">{self.slide_count}</div>
@@ -387,6 +390,47 @@ class Compiler:
                 # Not found in meta, check theme
                 return self.theme.config_get(key, default)
         return value
+
+    def customCSS_generate(self) -> str:
+        """
+        Generate custom CSS from .meta{css: {...}} configuration.
+
+        Returns inline <style> tag with custom CSS rules for .container class.
+
+        Example .meta{} usage:
+            .meta{
+              css:
+                font-size: "24px"
+                line-height: "1.6"
+            }
+
+        Returns:
+            HTML <style> tag with CSS rules, or empty string if no custom CSS
+        """
+        css_config = self.meta_config.get('css', {})
+
+        if not css_config or not isinstance(css_config, dict):
+            return ""
+
+        # Generate CSS properties for .container
+        css_properties = []
+        for property_name, value in css_config.items():
+            # Convert snake_case or camelCase to kebab-case for CSS
+            css_property = property_name.replace('_', '-')
+            css_properties.append(f"    {css_property}: {value};")
+
+        if not css_properties:
+            return ""
+
+        css_rules = "\n".join(css_properties)
+
+        return f"""
+    <!-- Custom CSS from .meta{{css: ...}} -->
+    <style>
+    .container {{
+{css_rules}
+    }}
+    </style>"""
 
     def watermarks_generate(self) -> str:
         """

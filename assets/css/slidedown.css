@@ -945,12 +945,12 @@ mark {
 
 /* Typewriter display rules */
 /* Typewriters inside snippets should be inline (to align with bullets) */
-.snippet pre[id^="typewriter-"] {
+/* Must be more specific than .container pre[id^="typewriter-"] */
+.container .snippet pre[id^="typewriter-"] {
     display: inline;
 }
 
-/* Standalone typewriters should be block (to respect line breaks) */
-/* Must be more specific than .container pre to override inline-block */
-.container pre[id^="typewriter-"] {
+/* Standalone typewriters (direct children of container) should be block */
+.container > pre[id^="typewriter-"] {
     display: block;
 }
