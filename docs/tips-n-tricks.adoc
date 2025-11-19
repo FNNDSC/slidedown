@@ -590,6 +590,223 @@ The `.meta{}` directive should appear once at the top of your file:
 * *Pixel sizing:* Use `"100px"` - `"200px"` for fixed-size watermarks
 * *Multiple watermarks:* Each gets its own list entry with position and size
 
+=== Custom CSS Styling
+
+The `.meta{}` directive supports custom CSS in two formats, allowing you to scale your entire presentation or fine-tune specific elements.
+
+==== Format 1: Flat CSS (Simple Base Sizing)
+
+Apply CSS properties to the `.container` class (base for all slides). All child elements inherit these values:
+
+[source,slidedown]
+----
+.meta{
+  title: "My Presentation"
+  css:
+    font-size: "36px"        # Base font size for entire presentation
+    line-height: "1.6"       # All text inherits this line height
+    color: "#333"
+}
+----
+
+**Use cases:**
+
+* Scale entire presentation for projectors or large screens
+* Set base typography for all slides
+* Simple one-value adjustments
+
+**How inheritance works:**
+
+[source,text]
+----
+.container (36px base)
+  ├── <p> → inherits 36px
+  ├── <code> → inherits 36px
+  ├── .typewriter{} → inherits 36px
+  └── all other elements → inherit 36px
+----
+
+==== Format 2: Selector-Based CSS (Precise Control)
+
+Target specific elements with CSS selectors while maintaining a base size:
+
+[source,slidedown]
+----
+.meta{
+  css:
+    ".container":
+      font-size: "36px"        # Base for entire slide
+      line-height: "1.6"
+    ".container p":
+      font-size: "24px"        # Paragraphs smaller than base
+    "code":
+      font-size: "18px"        # Inline code even smaller
+      background: "#f0f0f0"
+      padding: "2px 4px"
+    "pre[id^='typewriter-']":
+      font-size: "20px"        # Typewriters custom size
+      color: "#0066cc"
+    ".snippet":
+      font-size: "28px"        # Bullets custom size
+}
+----
+
+**Use cases:**
+
+* Set base size and override specific elements
+* Different sizes for different content types
+* Custom styling for specific selectors
+
+**How cascading works:**
+
+1. `.container` gets `font-size: 36px` (base for slide)
+2. All elements inherit 36px by default
+3. `p` elements override to 24px
+4. `code` elements override to 18px
+5. Typewriters override to 20px
+6. Everything else stays at 36px
+
+==== Common Selector Examples
+
+[source,slidedown]
+----
+.meta{
+  css:
+    # Base sizing
+    ".container":
+      font-size: "36px"
+
+    # Target paragraphs
+    ".container p":
+      font-size: "24px"
+      margin: "0.5em 0"
+
+    # Target all headings
+    "h1, h2, h3":
+      color: "#2c3e50"
+      font-weight: "bold"
+
+    # Target code blocks
+    "pre":
+      background: "#f5f5f5"
+      padding: "1em"
+      border-radius: "4px"
+
+    # Target inline code
+    "code":
+      font-size: "0.9em"
+      background: "#e8e8e8"
+      padding: "2px 4px"
+
+    # Target typewriters
+    "pre[id^='typewriter-']":
+      font-family: "monospace"
+      color: "#00aa00"
+
+    # Target snippets (bullets)
+    ".snippet":
+      margin: "0.5em 0"
+      font-size: "32px"
+}
+----
+
+==== Tips and Best Practices
+
+**Scaling for different displays:**
+
+[source,slidedown]
+----
+# For projectors (bigger text)
+.meta{
+  css:
+    font-size: "48px"
+}
+
+# For monitors (standard text)
+.meta{
+  css:
+    font-size: "36px"
+}
+
+# For printed handouts (smaller text)
+.meta{
+  css:
+    font-size: "24px"
+}
+----
+
+**Maintain proportions:**
+
+Use the selector format to keep relative sizing while scaling base:
+
+[source,slidedown]
+----
+.meta{
+  css:
+    ".container":
+      font-size: "36px"     # Base size
+    ".container p":
+      font-size: "0.75em"   # Always 75% of base (27px when base is 36px)
+    "code":
+      font-size: "0.5em"    # Always 50% of base (18px when base is 36px)
+}
+----
+
+**Property name formats:**
+
+All three formats work (converted to kebab-case automatically):
+
+[source,yaml]
+----
+font-size: "36px"     # kebab-case (recommended)
+font_size: "36px"     # snake_case (converted to kebab-case)
+fontSize: "36px"      # camelCase (converted to kebab-case)
+----
+
+**Generated output:**
+
+The CSS is injected as an inline `<style>` tag in the HTML:
+
+[source,html]
+----
+<!-- Custom CSS from .meta{css: ...} -->
+<style>
+.container {
+    font-size: 36px;
+    line-height: 1.6;
+}
+
+.container p {
+    font-size: 24px;
+}
+
+code {
+    font-size: 18px;
+    background: #f0f0f0;
+}
+</style>
+----
+
+==== Backward Compatibility
+
+The flat format is **fully backward compatible**. Existing presentations using flat CSS continue to work without changes:
+
+[source,slidedown]
+----
+# Old format (still works)
+.meta{
+  css:
+    font-size: "36px"
+}
+
+# Generates same output as:
+.meta{
+  css:
+    ".container":
+      font-size: "36px"
+}
+----
+
 == Common Pitfalls
 
 === Empty Directives Break JavaScript

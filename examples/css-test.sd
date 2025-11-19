@@ -1,0 +1,48 @@
+.comment{Test for nested CSS selector support}
+
+.meta{
+  title: "CSS Selector Test"
+  css:
+    ".container":
+      font-size: "36px"
+      line-height: "1.6"
+    ".container p":
+      font-size: "24px"
+      color: "#333"
+    "code":
+      font-size: "18px"
+      background: "#f0f0f0"
+      padding: "2px 4px"
+    "pre[id^='typewriter-']":
+      font-size: "20px"
+      color: "#0066cc"
+}
+
+.slide{
+  .title{CSS Selector Format Test}
+  .body{
+    .h1{Testing Multiple Selectors}
+
+    <p>This paragraph should be 24px (smaller than base 36px)</p>
+
+    <p>Inline code like .code{this()} should be 18px with gray background</p>
+
+    .typewriter{This typewriter should be 20px in blue}
+
+    .o{Bullet one - inherits 36px base}
+    .o{Bullet two - also 36px}
+  }
+}
+
+.slide{
+  .title{Base Font Inheritance}
+  .body{
+    .h1{36px Base Size}
+
+    <p>Regular text without specific selector inherits the 36px base from .container</p>
+
+    <p>But paragraphs are overridden to 24px</p>
+
+    <p>While .code{code elements} are 18px</p>
+  }
+}

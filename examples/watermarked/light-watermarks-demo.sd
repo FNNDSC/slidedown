@@ -1,30 +1,38 @@
 .meta{
   title: "Slidedown Light Demo"
   css:
-    font-size: "24px"
-    line-height: "1.6"
+    ".container":
+      font-size: "36px"
+      line-height: "1.6"
+  footer:
+    left: "© 2025 - Slide {current} of {total}"
+    right: "Slidedown Demo"
   watermarks:
     - image: logos/slidedown-light.svg
-      position: bottom-right
+      position: bottom-left
       size: "7%"
       opacity: 1.0
+      offset: "12px, 20px"
     - image: logos/ChRONOS.png
       position: top-left
       size: "10%"
       opacity: 1.0
+      offset: "-20px, 0px"
 }
 
 .slide{
-  .title{Slidedown, but lighter}
+  .title{Slidedown - a new way for making slide decks!}
   .body{
-    .h1{Welcome to Slidedown}
+    .h1{Welcome to Slidedown!}
 
-    >A text-first presentation framework with behavioral markup
+    Have you ever wanted to make slides... .tf{.bf{in text}}?
+    Well want no more! Slidedown - the premier text-first
+    presentation framework with bahvioral markup is here!
 
-    .typewriter{\> Welcome to the light theme demo}
-    .o{> Text-first authoring with plain .tt{.sd} files}
+    .o{• Text-first authoring with plain .tt{.sd} files}
     .o{• Behavioral markup drives effects (no JS editing needed)}
     .o{• Standalone HTML output with embedded assets}
+    .typewriter{\> Cool effects like typewriter text!}
   }
 }
 

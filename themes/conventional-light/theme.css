@@ -131,7 +131,7 @@ body {
 
 /* Code blocks */
 .slide pre {
-  font-size: 1.2em;
+  font-size: 1em;
   line-height: 1.5;
   max-width: 100%;
   overflow: auto;
@@ -283,7 +283,8 @@ button:active {
 .footer-bar {
   background-color: #ffffff;
   border-top: none;
-  padding: 10px 80px;
+  padding: 10px 0;
+  margin: 0;
   color: #616161;
   font-size: 14px;
   overflow: hidden;
@@ -522,47 +523,47 @@ pre[id^="typewriter-"] {
 
 /* Watermark positioning - 9 positions */
 .watermark.top-left {
-  top: 80px; /* clear navbar */
-  left: 12px;
+  top: 0;
+  left: 0;
 }
 
 .watermark.top-center {
-  top: 80px; /* clear navbar */
+  top: 0;
   left: 50%;
   transform: translateX(-50%);
 }
 
 .watermark.top-right {
-  top: 80px; /* clear navbar */
-  right: 12px;
+  top: 0;
+  right: 0;
 }
 
 .watermark.center-left {
   top: 50%;
-  left: 12px;
+  left: 0;
   transform: translateY(-50%);
 }
 
 .watermark.center-right {
   top: 50%;
-  right: 12px;
+  right: 0;
   transform: translateY(-50%);
 }
 
 .watermark.bottom-left {
-  bottom: 12px;
-  left: 12px;
+  bottom: 0;
+  left: 0;
 }
 
 .watermark.bottom-center {
-  bottom: 12px;
+  bottom: 0;
   left: 50%;
   transform: translateX(-50%);
 }
 
 .watermark.bottom-right {
-  bottom: 60px; /* clear slide index/nav, slightly lower */
-  right: 12px;
+  bottom: 0;
+  right: 0;
 }
 
 /* Center position (both axes) */
@@ -581,7 +582,13 @@ pre[id^="typewriter-"] {
 .boxtext {
   background: transparent;
   border: 0;
-  margin-bottom: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar-container {
+  padding: 0;
+  margin: 0;
 }
 
 #slideProgress {

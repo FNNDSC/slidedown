@@ -501,7 +501,7 @@ Page.prototype = {
         // Parse for snippets per slide
         for(const DOMslideID of this.l_slide) {
             str_slide           = document.getElementById(DOMslideID).outerHTML;
-            snippetsPerSlide    = this.substr_count('snippet', str_slide);
+            snippetsPerSlide    = this.substr_count('class="snippet"', str_slide);
             this.l_snippetsPerSlide.push(snippetsPerSlide);
             this.l_snippetPerSlideON.push(0);
         }
@@ -822,11 +822,48 @@ Page.prototype = {
         } else {
             DOMID_pageTitle.innerHTML = " ";
         }
-        DOMID_slideCounter.innerHTML = "slide "                 +
-                                        this.currentSlide       +
-                                        " / " + this.l_slide.length;
+
+        // Update slide counter (default behavior)
+        if (DOMID_slideCounter) {
+            DOMID_slideCounter.innerHTML = "slide "                 +
+                                            this.currentSlide       +
+                                            " / " + this.l_slide.length;
+        }
+
+        // Update custom footer templates (if present)
+        this.updateFooterTemplates();
+
         progress = this.currentSlide / this.l_slide.length * 100;
         DOMID_slideBar.style.width = progress + "%";
+    },
+
+    updateFooterTemplates:              function() {
+        let str_help = `
+            Update footer elements that have counter templates.
+
+            Looks for elements with data-template attribute and replaces
+            {current} and {total} with actual slide numbers.
+        `;
+
+        // Check for custom footer elements with templates
+        let footerLeft = document.getElementById('footerLeft');
+        let footerRight = document.getElementById('footerRight');
+
+        if (footerLeft && footerLeft.dataset.template) {
+            let template = footerLeft.dataset.template;
+            let text = template
+                .replace('{current}', this.currentSlide)
+                .replace('{total}', this.l_slide.length);
+            footerLeft.innerHTML = text;
+        }
+
+        if (footerRight && footerRight.dataset.template) {
+            let template = footerRight.dataset.template;
+            let text = template
+                .replace('{current}', this.currentSlide)
+                .replace('{total}', this.l_slide.length);
+            footerRight.innerHTML = text;
+        }
     },
 
     // Page

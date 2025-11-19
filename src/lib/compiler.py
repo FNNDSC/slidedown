@@ -299,7 +299,7 @@ class Compiler:
         """
         # Load HTML templates
         head_html = self.template_load('head.html')
-        footer_html = self.template_load('footer.html')
+        footer_html = self.footer_generate()
 
         # Conditionally load navbar based on config
         show_nav_buttons = self.config_getMerged('navigation.show_buttons', True)
@@ -395,13 +395,25 @@ class Compiler:
         """
         Generate custom CSS from .meta{css: {...}} configuration.
 
-        Returns inline <style> tag with custom CSS rules for .container class.
+        Supports two formats:
 
-        Example .meta{} usage:
+        1. Flat format (backward compatible - applies to .container):
             .meta{
               css:
                 font-size: "24px"
                 line-height: "1.6"
+            }
+
+        2. Selector-based format (new - custom selectors):
+            .meta{
+              css:
+                ".container":
+                  font-size: "36px"
+                  line-height: "1.6"
+                ".container p":
+                  font-size: "24px"
+                "code":
+                  font-size: "18px"
             }
 
         Returns:
@@ -412,24 +424,50 @@ class Compiler:
         if not css_config or not isinstance(css_config, dict):
             return ""
 
-        # Generate CSS properties for .container
-        css_properties = []
-        for property_name, value in css_config.items():
-            # Convert snake_case or camelCase to kebab-case for CSS
-            css_property = property_name.replace('_', '-')
-            css_properties.append(f"    {css_property}: {value};")
+        # Detect format: flat (values are strings) vs nested (values are dicts)
+        # Check first value to determine format
+        first_value = next(iter(css_config.values()), None)
+        is_nested_format = isinstance(first_value, dict)
 
-        if not css_properties:
+        css_rules = []
+
+        if is_nested_format:
+            # NESTED FORMAT: keys are selectors, values are property dicts
+            for selector, properties in css_config.items():
+                if not isinstance(properties, dict):
+                    continue
+
+                # Generate properties for this selector
+                property_lines = []
+                for property_name, value in properties.items():
+                    # Convert snake_case or camelCase to kebab-case for CSS
+                    css_property = property_name.replace('_', '-')
+                    property_lines.append(f"    {css_property}: {value};")
+
+                if property_lines:
+                    properties_str = "\n".join(property_lines)
+                    css_rules.append(f"    {selector} {{\n{properties_str}\n    }}")
+        else:
+            # FLAT FORMAT: apply all properties to .container (backward compatible)
+            css_properties = []
+            for property_name, value in css_config.items():
+                # Convert snake_case or camelCase to kebab-case for CSS
+                css_property = property_name.replace('_', '-')
+                css_properties.append(f"    {css_property}: {value};")
+
+            if css_properties:
+                properties_str = "\n".join(css_properties)
+                css_rules.append(f"    .container {{\n{properties_str}\n    }}")
+
+        if not css_rules:
             return ""
 
-        css_rules = "\n".join(css_properties)
+        rules_str = "\n\n".join(css_rules)
 
         return f"""
     <!-- Custom CSS from .meta{{css: ...}} -->
     <style>
-    .container {{
-{css_rules}
-    }}
+{rules_str}
     </style>"""
 
     def watermarks_generate(self) -> str:
@@ -477,11 +515,55 @@ class Compiler:
             if not re.match(r'^[\d.]+(?:px|%|em|rem|vw|vh|vmin|vmax|ch|ex)$', str(size)):
                 LOG(f"Warning: Watermark size '{size}' may be invalid. Use CSS units like px, %, em, rem", level=1)
 
-            # Build inline styles
+            # Optional: offset (X, Y offset from anchor point)
+            # Format: "10px, 20px" or "-10px, 20px" (negative moves off-screen)
+            offset = wm.get('offset', None)
+            offset_x, offset_y = None, None
+
+            if offset:
+                # Parse offset - accept "X, Y" string or [X, Y] list
+                if isinstance(offset, str):
+                    # Split by comma and parse
+                    parts = [p.strip() for p in offset.split(',')]
+                    if len(parts) == 2:
+                        offset_x = parts[0]
+                        offset_y = parts[1]
+                elif isinstance(offset, (list, tuple)) and len(offset) == 2:
+                    offset_x = str(offset[0]) if not isinstance(offset[0], str) else offset[0]
+                    offset_y = str(offset[1]) if not isinstance(offset[1], str) else offset[1]
+                    # Add px if no unit specified (handle negative numbers)
+                    if re.match(r'^-?[\d.]+$', offset_x):
+                        offset_x = f"{offset_x}px"
+                    if re.match(r'^-?[\d.]+$', offset_y):
+                        offset_y = f"{offset_y}px"
+
+            # Apply offset based on position
+            # Position format: "vertical-horizontal" (e.g., "top-left", "bottom-right")
+            # Offset values use their literal sign (negative = move off-screen, positive = inward)
             style_parts = [
                 f"opacity: {opacity}",
                 f"width: {size}"
             ]
+
+            if offset_x or offset_y:
+                # Parse position to determine which CSS properties to use
+                pos_parts = position.split('-')
+                vertical = pos_parts[0] if len(pos_parts) > 0 else 'bottom'
+                horizontal = pos_parts[1] if len(pos_parts) > 1 else 'right'
+
+                # Apply offsets directly (respect user's sign)
+                # Positive: moves away from edge (inward)
+                # Negative: moves toward edge (can go off-screen)
+                if vertical == 'top' and offset_y:
+                    style_parts.append(f"top: {offset_y}")
+                elif vertical == 'bottom' and offset_y:
+                    style_parts.append(f"bottom: {offset_y}")
+
+                if horizontal == 'left' and offset_x:
+                    style_parts.append(f"left: {offset_x}")
+                elif horizontal == 'right' and offset_x:
+                    style_parts.append(f"right: {offset_x}")
+
             style_attr = '; '.join(style_parts)
 
             # Generate img tag
@@ -491,3 +573,62 @@ class Compiler:
             )
 
         return '\n        '.join(html_parts)
+
+    def footer_generate(self) -> str:
+        """
+        Generate footer HTML from .meta{footer: {...}} or default template.
+
+        Supports custom left/right text with counter templates:
+        - Static text: "© 2025 My Company"
+        - Counter template: "Slide {current} / {total}"
+        - Mixed: "Page {current} - My Company"
+
+        Returns:
+            HTML string with footer, or default footer.html if no config
+        """
+        footer_config = self.meta_config.get('footer', None)
+
+        # No footer config → use default template
+        if not footer_config:
+            return self.template_load('footer.html')
+
+        # Footer config exists → generate custom footer
+        left_text = footer_config.get('left', None)
+        right_text = footer_config.get('right', None)
+
+        # Helper: detect if text contains counter template
+        def is_counter_template(text):
+            return '{current}' in text or '{total}' in text if text else False
+
+        html_parts = ['<div class="footer-bar">']
+
+        # Left side
+        if left_text:
+            if is_counter_template(left_text):
+                # Counter template → add id for JavaScript update
+                html_parts.append(
+                    f'    <span class="footer" style="float: left;" '
+                    f'data-template="{left_text}" id="footerLeft"></span>'
+                )
+            else:
+                # Static text
+                html_parts.append(
+                    f'    <span class="footer" style="float: left;">{left_text}</span>'
+                )
+
+        # Right side
+        if right_text:
+            if is_counter_template(right_text):
+                # Counter template → add id for JavaScript update
+                html_parts.append(
+                    f'    <span class="footer" style="float: right;" '
+                    f'data-template="{right_text}" id="footerRight"></span>'
+                )
+            else:
+                # Static text
+                html_parts.append(
+                    f'    <span class="footer" style="float: right;">{right_text}</span>'
+                )
+
+        html_parts.append('</div>')
+        return '\n    '.join(html_parts)

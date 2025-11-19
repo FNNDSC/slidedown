@@ -109,40 +109,121 @@ Increased specificity of snippet rule:
 ### 8. Custom CSS Support via .meta{} (COMPLETED ✓)
 
 **Feature Added:**
-Users can now add arbitrary CSS properties to `.container` via `.meta{css: {...}}`:
+Users can now add arbitrary CSS to presentations via `.meta{css: {...}}`.
 
+**Two Formats Supported:**
+
+1. **Flat Format** (applies all properties to `.container` - good for base sizing):
 ```slidedown
 .meta{
   title: "My Presentation"
   css:
-    font-size: "24px"
-    line-height: "1.6"
-    color: "#333"
+    font-size: "36px"        # Base font size for entire presentation
+    line-height: "1.6"       # All elements inherit this
 }
 ```
 
+2. **Selector Format** (target specific elements - full control):
+```slidedown
+.meta{
+  css:
+    ".container":
+      font-size: "36px"      # Base for entire slide
+      line-height: "1.6"
+    ".container p":
+      font-size: "24px"      # Override paragraphs specifically
+    "code":
+      font-size: "18px"      # Override code elements
+      background: "#f0f0f0"
+    "pre[id^='typewriter-']":
+      font-size: "20px"      # Target typewriters
+      color: "#0066cc"
+}
+```
+
+**CSS Cascading:**
+- Flat format sets base → all children inherit
+- Selector format allows base + specific overrides
+- Standard CSS specificity rules apply
+
 **Implementation:**
-1. Added `customCSS_generate()` method in compiler.py (lines 391-430)
-   - Reads `css` field from meta_config
+1. Extended `customCSS_generate()` method in compiler.py (lines 394-471)
+   - Detects format (flat vs nested)
+   - Flat: generates `.container` rules (backward compatible)
+   - Nested: generates rules for each selector
    - Converts property names (snake_case/camelCase → kebab-case)
-   - Generates inline `<style>` tag
 
-2. Updated `htmlDocument_build()` (line 309)
-   - Calls `customCSS_generate()`
-   - Injects custom CSS after head.html
+2. Backward compatible with existing flat format
+   - Existing presentations continue to work unchanged
 
-**Generated Output:**
+**Generated Output (Selector Format):**
 ```html
 <!-- Custom CSS from .meta{css: ...} -->
 <style>
 .container {
-    font-size: 24px;
+    font-size: 36px;
     line-height: 1.6;
+}
+
+.container p {
+    font-size: 24px;
+}
+
+code {
+    font-size: 18px;
+    background: #f0f0f0;
 }
 </style>
 ```
 
-**Status:** ✓ Working - custom CSS applied to presentations
+**Status:** ✓ Working - both formats tested and functional
+
+### 9. Watermark Offset Support (COMPLETED ✓)
+
+**Feature Added:**
+Users can now specify custom offsets for watermarks via `.meta{watermarks: [...]}`.
+
+**Offset Format:**
+```yaml
+watermarks:
+  - image: logos/logo.svg
+    position: bottom-right
+    size: "7%"
+    offset: "12px, 60px"    # X, Y offset (always positive)
+```
+
+**How it works:**
+- Offset values are always specified as positive (X, Y)
+- Sign is applied automatically based on position:
+  - `top-left`: X→left, Y→top (both positive)
+  - `top-right`: X→right, Y→top
+  - `bottom-left`: X→left, Y→bottom
+  - `bottom-right`: X→right, Y→bottom
+  - etc.
+
+**Example:**
+```yaml
+offset: "12px, 60px"
+position: "bottom-right"
+# Generates: bottom: 60px; right: 12px
+```
+
+**Supported formats:**
+- String: `"10px, 20px"`
+- List: `[10, 20]` (assumes px if no unit)
+- Any CSS units: px, %, em, rem, etc.
+
+**Implementation:**
+- Added offset parsing in `compiler.py:518-538`
+- Position-aware offset application in `compiler.py:547-566`
+- Inline styles added to watermark `<img>` tags
+
+**Use cases:**
+- Clear navbar/footer areas
+- Fine-tune watermark positioning
+- Avoid overlap with slide content
+
+**Status:** ✓ Working - offsets applied correctly based on position
 
 ## Files Modified
 
