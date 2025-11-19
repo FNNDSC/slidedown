@@ -25,9 +25,9 @@
   .body{
     .h1{Welcome to Slidedown!}
 
-    Have you ever wanted to make slides... .tf{.bf{in text}}?
-    Well want no more! Slidedown - the premier text-first
-    presentation framework with bahvioral markup is here!
+    Have you ever wanted to make slides... .tt{.bf{in text}}?\\
+    Well want no more! Slidedown - the premier text-first\\
+    presentation framework with bahvioral markup is here!\\
 
     .o{• Text-first authoring with plain .tt{.sd} files}
     .o{• Behavioral markup drives effects (no JS editing needed)}

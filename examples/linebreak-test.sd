@@ -1,0 +1,16 @@
+.slide{
+  .title{Line Break Test}
+  .body{
+    .h1{Testing \\ Line Breaks}
+
+    Line one\\
+    Line two\\
+    Line three
+
+    Regular text flows normally but you can break\\
+    wherever you want with double backslash.
+
+    .o{Bullet one\\with line break inside}
+    .o{Bullet two\\also has\\multiple breaks}
+  }
+}

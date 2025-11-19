@@ -287,6 +287,9 @@ class Parser:
         # Pre-process: protect backslash-escaped sequences
         self.source = self.escapes_protect(self.source)
 
+        # Pre-process: convert \\ to <br> for line breaks
+        self.source = self.source.replace('\\\\', '<br>')
+
         # Pre-process: protect .code{} blocks from parsing
         self.source = self.codeblocks_protect()
 
