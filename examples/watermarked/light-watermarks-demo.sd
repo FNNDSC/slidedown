@@ -3,27 +3,35 @@
   watermarks:
     - image: logos/slidedown-light.svg
       position: bottom-right
-      size: "180px"
+      size: "7%"
       opacity: 1.0
     - image: logos/ChRONOS.png
       position: top-left
-      size: "140px"
-      opacity: 1.0 
+      size: "10%"
+      opacity: 1.0
 }
 
 .slide{
   .title{Slidedown, but lighter}
   .body{
-    .typewriter{> Welcome to the light theme demo}
-    .o{Text-first authoring with plain `.sd` files}
-    .o{Behavioral markup drives effects (no JS editing needed)}
-    .o{Standalone HTML output with embedded assets}
+    .h1{Welcome to Slidedown}
+
+    >A text-first presentation framework with behavioral markup
+
+    .typewriter{\> Welcome to the light theme demo}
+    .o{> Text-first authoring with plain .tt{.sd} files}
+    .o{• Behavioral markup drives effects (no JS editing needed)}
+    .o{• Standalone HTML output with embedded assets}
   }
 }
 
 .slide{
   .title{Markup at a Glance}
   .body{
+    .h1{The Basics}
+
+    Directives wrap content in curly braces with nesting support
+
     .code{.syntax{language=slidedown}
 .slide{
   .title{Hello}
@@ -33,18 +41,44 @@
     .code{.syntax{language=python}print("hi")}
   }
 }}
-    .o{Directives wrap content: `.directive{...}`}
-    .o{Modifiers add styling: `.style{align=center; width=60%}`}
-    .o{Children become placeholders → compiled with their parent}
+    .o{• Directives wrap content: .tt{\.directive\{...\}}}
+    .o{• Modifiers add styling: .tt{\.style\{align=center; width=60%\}}}
+    .o{• Children become placeholders → compiled with their parent}
   }
 }
 
 .slide{
-  .title{Effects}
+  .title{Effects - Typewriter}
   .body{
-    .o{.typewriter{Typewriter effect reveals characters}}
-    .o{.o{Progressive} .o{snippet} .o{bullets}}
+    .h1{Bring Your Slides to Life}
+
+    Interactive behaviors without touching JavaScript
+
+    .o{• .typewriter{Typewriter effect reveals characters}}
+    .o{• Progressive snippet reveals}
+    .o{• Inline formatting with .bf{bold} and .em{italic}}
+    .o{• Combine effects for dynamic presentations}
+  }
+}
+
+.slide{
+  .title{Effects - ASCII Art}
+  .body{
+    .h1{ASCII Art with FIGLET}
+
+    Add visual flair with ASCII fonts
+
     .o{.font-slant{FIGLET FLAIR}}
+  }
+}
+
+.slide{
+  .title{Effects - Cowsay}
+  .body{
+    .h1{Speech Bubbles with Cowsay}
+
+    Fun character dialogs
+
     .o{.cowpy-tux{Penguin says "Hello from slidedown!"}}
   }
 }
@@ -52,11 +86,15 @@
 .slide{
   .title{Layouts}
   .body{
-    .typewriter{> Columns, widths, and alignment}
+    .h1{Flexible Positioning}
+
+    Multi-column layouts with precise control
+
+    .typewriter{\> Columns, widths, and alignment}
     .column{.style{width=45%}
       .bf{Left}
-      - Aligned via `.style{align=left;}`
-      - Useful for text + code
+      .o{• Aligned via .tt{.style{align=left;}}}
+      .o{• Useful for text + code}
     }
     .column{.style{width=55%}
       .code{.syntax{language=python}
@@ -70,10 +108,14 @@ def inside_out(nodes):
 .slide{
   .title{Assets & Themes}
   .body{
-    .o{Light palette via `--theme conventional-light`}
-    .o{Watermarks: bottom-right slidedown-light, top-left ChRONOS}
-    .o{CSS/JS assets copied alongside `index.html`}
-    .o{Use `.meta{}` to override theme config and add watermarks}
-    .typewriter{> Run: ./slideshow examples/watermarked/light-watermarks-demo.sd --theme conventional-light}
+    .h1{Make It Your Own}
+
+    Themes, watermarks, and standalone HTML output
+
+    .o{• Light palette via .tt{--theme conventional-light}}
+    .o{• Watermarks: bottom-right slidedown-light, top-left ChRONOS}
+    .o{• CSS/JS assets copied alongside .tt{index.html}}
+    .o{• Use .tt{.meta{}} to override theme config and add watermarks}
+    .typewriter{\> Run: ./slideshow examples/watermarked/light-watermarks-demo.sd --theme conventional-light}
   }
 }

@@ -1,0 +1,1044 @@
+= Slidedown Complete Guide
+Rudolph Pienaar <rudolph.pienaar@gmail.com>
+:toc: left
+:toclevels: 3
+:sectnums:
+:source-highlighter: pygments
+:icons: font
+:doctype: book
+
+== Introduction
+
+Slidedown is a LaTeX-inspired markup language for creating interactive HTML presentations from plain text files. It uses a `.directive{content}` syntax that enables text-first authoring with behavioral markup.
+
+=== Philosophy
+
+* *Text-first authoring* - Write presentations like you write code
+* *Behavioral markup* - Directives describe what content does, not just how it looks
+* *Single-file workflow* - One `.sd` source file compiles to standalone HTML
+* *Inside-out compilation* - Child directives compile first, enabling rich composition
+
+=== Quick Example
+
+[source,slidedown]
+----
+.slide{
+  .title{Hello World}
+  .body{
+    .typewriter{> Welcome to slidedown...}
+
+    .o{Text-first authoring}
+    .o{Interactive effects}
+    .o{Progressive reveals}
+  }
+}
+----
+
+== Core Syntax
+
+=== Basic Directive Format
+
+All slidedown content is structured using directives:
+
+[source,slidedown]
+----
+.directive{content}
+----
+
+Where:
+
+* `.directive` - The directive name, always starts with a dot
+* `{content}` - The content wrapped in curly braces
+
+=== Nesting Directives
+
+Directives can be nested arbitrarily deep:
+
+[source,slidedown]
+----
+.slide{
+  .title{Nesting Example}
+  .body{
+    .o{Bullet with .bf{bold text} inside}
+    .o{Bullet with .em{italic} and .code{code()}}
+  }
+}
+----
+
+=== Modifiers
+
+Special directives that modify their parent rather than producing output:
+
+[source,slidedown]
+----
+.directive{.modifier{value} content}
+----
+
+Common modifiers:
+
+* `.style{CSS}` - Inline CSS styling
+* `.class{name}` - CSS class name
+* `.syntax{language=X}` - Programming language for code highlighting
+
+=== Mixing HTML
+
+HTML can be freely mixed with slidedown directives:
+
+[source,slidedown]
+----
+.slide{
+  .body{
+    <p>Raw HTML paragraph</p>
+    .bf{Slidedown bold}
+    <ul>
+      <li>HTML list</li>
+      <li>Mixed with .em{slidedown}</li>
+    </ul>
+  }
+}
+----
+
+== Directive Reference
+
+=== Structural Directives
+
+These directives define the presentation structure.
+
+==== .slide{}
+
+Defines a presentation slide. This is the top-level container for all slide content.
+
+[source,slidedown]
+----
+.slide{
+  .title{My Slide}
+  .body{
+    Content goes here
+  }
+}
+----
+
+*Properties:*
+
+* Required children: Typically contains `.title{}` and `.body{}`
+* Optional modifiers: `.style{}`, `.class{}`
+
+*Example with custom styling:*
+
+[source,slidedown]
+----
+.slide{.style{background: black; color: lightgreen;}
+  .title{Terminal Style}
+  .body{
+    <p>Custom colored slide!</p>
+  }
+}
+----
+
+==== .title{}
+
+Defines the slide title. This is metadata that appears in the slide header and navigation.
+
+[source,slidedown]
+----
+.title{My Slide Title}
+----
+
+*Properties:*
+
+* Returns empty string (metadata only)
+* Content extracted by compiler for slide header
+
+==== .body{}
+
+Container for slide content. All visible slide content should be inside `.body{}`.
+
+[source,slidedown]
+----
+.body{
+  <p>Paragraphs</p>
+  .o{Bullets}
+  .typewriter{Effects}
+}
+----
+
+=== Formatting Directives
+
+These directives format text inline.
+
+==== .bf{}
+
+Bold/strong text.
+
+[source,slidedown]
+----
+.bf{This text is bold}
+----
+
+Compiles to: `<strong>This text is bold</strong>`
+
+==== .em{}
+
+Emphasized/italic text.
+
+[source,slidedown]
+----
+.em{This text is italic}
+----
+
+Compiles to: `<em>This text is italic</em>`
+
+==== .tt{}
+
+Teletype/monospace text.
+
+[source,slidedown]
+----
+.tt{monospace text}
+----
+
+Compiles to: `<tt>monospace text</tt>`
+
+==== .underline{}
+
+Underlined text.
+
+[source,slidedown]
+----
+.underline{This is underlined}
+----
+
+Compiles to: `<u>This is underlined</u>`
+
+==== .code{}
+
+Inline code or syntax-highlighted code blocks.
+
+*Inline usage:*
+
+[source,slidedown]
+----
+Call the .code{function()} method.
+----
+
+Compiles to: `Call the <code>function()</code> method.`
+
+*Syntax-highlighted block:*
+
+[source,slidedown]
+----
+.code{.syntax{language=python}
+def hello():
+    print("Hello, world!")
+}
+----
+
+Compiles to syntax-highlighted HTML using Pygments with the Monokai color scheme.
+
+*Supported languages:*
+
+* `python`, `c`, `cpp`, `java`, `javascript`, `rust`, `go`
+* `slidedown` or `sd` (special slidedown syntax highlighting)
+* Any language supported by Pygments
+* Falls back to plain text if language not found
+
+==== .h1{} through .h6{}
+
+Heading levels 1-6 (largest to smallest).
+
+[source,slidedown]
+----
+.h1{Main Title}
+.h2{Section Title}
+.h3{Subsection Title}
+.h4{Minor Heading}
+.h5{Small Heading}
+.h6{Tiny Heading}
+----
+
+Compiles to: `<h1>`, `<h2>`, etc.
+
+=== Effect Directives
+
+These directives add interactive behaviors and animations.
+
+==== .typewriter{}
+
+Character-by-character typing animation.
+
+[source,slidedown]
+----
+.typewriter{This text will type out slowly...}
+----
+
+*Properties:*
+
+* Each slide can have multiple typewriters
+* Automatically tracked with unique IDs (`typewriter-{slide}-{num}`)
+* Animation triggered when slide enters or snippet reveals
+* Can be nested inside `.o{}` for progressive reveals
+
+*Multi-line typewriter:*
+
+[source,slidedown]
+----
+.typewriter{
+> Initializing system...
+> Loading modules...
+> Ready!
+}
+----
+
+==== .o{}
+
+Progressive reveal bullet point (snippet). Each `.o{}` appears on the next click/keypress.
+
+[source,slidedown]
+----
+.o{First bullet appears immediately}
+.o{Second bullet on next click}
+.o{Third bullet after that}
+----
+
+*Properties:*
+
+* Automatically tracked per slide
+* Display controlled by JavaScript navigation
+* Can nest other directives inside
+
+*Example with nested formatting:*
+
+[source,slidedown]
+----
+.o{.bf{Bold} bullet point}
+.o{Bullet with .code{inline_code()}}
+.o{.typewriter{This bullet types out!}}
+----
+
+==== .column{}
+
+Column layout container for side-by-side content.
+
+[source,slidedown]
+----
+.column{.style{width=50%; align=left}
+  Left column content
+}
+
+.column{.style{width=50%; align=right}
+  Right column content
+}
+----
+
+*Properties:*
+
+* Use `.style{width=X%}` to set column width
+* Use `.style{align=left|center|right}` for text alignment
+* Default: `flex: 1` (equal width columns)
+* Multiple columns automatically arrange side-by-side
+
+*Three-column example:*
+
+[source,slidedown]
+----
+.body{
+  .column{.style{width=33%}
+    .h3{Column 1}
+    .o{Point A}
+  }
+
+  .column{.style{width=33%}
+    .h3{Column 2}
+    .o{Point B}
+  }
+
+  .column{.style{width=34%}
+    .h3{Column 3}
+    .o{Point C}
+  }
+}
+----
+
+=== Transform Directives
+
+These directives transform content into different representations.
+
+==== .font-*{}
+
+ASCII art using Figlet fonts. The `*` is replaced with any Figlet font name.
+
+[source,slidedown]
+----
+.font-standard{HELLO}
+.font-doom{DOOM}
+.font-slant{Slanted}
+.font-banner{BANNER}
+----
+
+*Available fonts:*
+
+Visit http://www.figlet.org/fontdb.cgi for a complete list. Common fonts include:
+
+* `standard` - Default ASCII art
+* `doom` - DOOM game style
+* `slant` - Slanted text
+* `banner` - Large banner text
+* `big` - Big letters
+* `block` - Block letters
+* `bubble` - Bubble letters
+* `digital` - Digital/LED style
+* `isometric1` - 3D isometric
+* `starwars` - Star Wars style
+
+*Error handling:*
+
+If a font doesn't exist, slidedown displays an error message with the original text.
+
+==== .cowpy-*{}
+
+ASCII speech bubbles with characters. The `*` is replaced with any cowsay character name.
+
+[source,slidedown]
+----
+.cowpy-cow{Moo! Hello from slidedown!}
+.cowpy-tux{Hello from Tux the penguin!}
+.cowpy-dragon{Dragons can talk too!}
+----
+
+*Available characters:*
+
+* `cow` - Classic cow
+* `tux` - Linux penguin
+* `dragon` - Dragon
+* `ghostbusters` - Ghostbusters logo
+* `kitty` - Cat
+* `stegosaurus` - Dinosaur
+* `turkey` - Turkey
+* `turtle` - Turtle
+* Many more (depends on cowsay installation)
+
+=== Modifier Directives
+
+These directives modify their parent and are extracted by the parser.
+
+==== .style{}
+
+Inline CSS styling applied to the parent directive.
+
+[source,slidedown]
+----
+.slide{.style{background: #1e1e1e; color: #d4d4d4;}
+  .title{Dark Slide}
+  .body{
+    <p>Custom styled slide!</p>
+  }
+}
+----
+
+*Complex styles:*
+
+[source,slidedown]
+----
+.slide{.style{
+    background: linear-gradient(to right, #2c3e50, #3498db);
+    color: white;
+    font-family: monospace;
+    padding: 60px;
+  }
+  .title{Gradient Background}
+}
+----
+
+*Properties:*
+
+* Extracted by parser, not compiled
+* Applied as inline `style=""` attribute
+* Full CSS syntax supported
+* Can be multi-line
+
+==== .class{}
+
+CSS class name applied to the parent directive.
+
+[source,slidedown]
+----
+.slide{.class{special-slide}
+  .title{Custom Class}
+  .body{
+    Content with custom CSS class
+  }
+}
+----
+
+[NOTE]
+====
+The class name must be defined in your theme's CSS for this to have any effect.
+====
+
+==== .syntax{}
+
+Programming language specification for `.code{}` blocks.
+
+[source,slidedown]
+----
+.code{.syntax{language=python}
+def hello():
+    return "world"
+}
+----
+
+*Format:*
+
+* `language=X` where X is the language name
+* Processed by Pygments for syntax highlighting
+* Falls back to plain text if language not recognized
+
+=== Metadata Directives
+
+These directives provide presentation-level configuration.
+
+==== .meta{}
+
+Presentation metadata and configuration in YAML format. Overrides theme settings.
+
+[source,slidedown]
+----
+.meta{
+  title: "My Presentation"
+  author: "John Doe"
+  watermarks:
+    - image: logos/company.svg
+      position: bottom-right
+      size: "7%"
+      opacity: 0.8
+}
+----
+
+*Properties:*
+
+* YAML format inside braces
+* Merged with theme configuration (meta overrides theme)
+* Does not produce HTML output
+* Can appear anywhere in the file
+
+*Common metadata fields:*
+
+[source,yaml]
+----
+title: "Presentation Title"
+author: "Author Name"
+date: "2025-01-18"
+
+navigation:
+  show_buttons: true
+  show_progress: true
+
+watermarks:
+  - image: path/to/image.svg
+    position: bottom-right  # top-left, top-center, top-right,
+                            # center-left, center, center-right,
+                            # bottom-left, bottom-center, bottom-right
+    size: "180px"  # Supports: px, %, em, rem, vw, vh
+    opacity: 0.3   # 0.0 to 1.0
+----
+
+*Watermark sizing:*
+
+Watermarks support multiple CSS units for flexible, monitor-independent sizing:
+
+* *Pixels (`px`)* - Fixed size (e.g., `"180px"`) - consistent but monitor-dependent
+* *Percentage (`%`)* - Relative to viewport width (e.g., `"7%"`) - scales with display
+* *Viewport units* - `vw`, `vh`, `vmin`, `vmax` for viewport-relative sizing
+* *Font units* - `em`, `rem` for font-relative sizing
+
+[TIP]
+====
+Use percentage-based sizing (e.g., `"7%"`) for responsive watermarks that scale across different monitor sizes and resolutions.
+====
+
+=== Utility Directives
+
+==== .comment{}
+
+Comments that are completely removed from the compiled output.
+
+[source,slidedown]
+----
+.comment{This is a comment}
+.comment{
+  TODO: Fix this slide
+  Add more examples
+  Review content
+}
+----
+
+*Properties:*
+
+* Returns empty string
+* Completely stripped from output
+* Can be multi-line
+* Useful for TODO notes, drafts, and planning
+
+*Alternative:* HTML comments also work:
+
+[source,slidedown]
+----
+<!-- This is an HTML comment -->
+----
+
+== Composition Patterns
+
+=== Progressive Reveals with Formatting
+
+[source,slidedown]
+----
+.slide{
+  .title{Feature List}
+  .body{
+    .o{.bf{Performance} - Lightning fast rendering}
+    .o{.bf{Compatibility} - Works everywhere}
+    .o{.bf{Simplicity} - Easy to learn}
+  }
+}
+----
+
+=== Typewriter in Bullets
+
+[source,slidedown]
+----
+.slide{
+  .title{Step-by-Step}
+  .body{
+    .o{.typewriter{Step 1: Initialize system}}
+    .o{.typewriter{Step 2: Load configuration}}
+    .o{.typewriter{Step 3: Start services}}
+  }
+}
+----
+
+=== Code with Progressive Explanation
+
+[source,slidedown]
+----
+.slide{
+  .title{Python Example}
+  .body{
+    .code{.syntax{language=python}
+def factorial(n):
+    if n <= 1:
+        return 1
+    return n * factorial(n-1)
+    }
+
+    .o{Base case: n <= 1 returns 1}
+    .o{Recursive case: n * factorial(n-1)}
+    .o{Classic recursive implementation}
+  }
+}
+----
+
+=== Side-by-Side Code and Output
+
+[source,slidedown]
+----
+.slide{
+  .title{Code vs Output}
+  .body{
+    .column{.style{width=50%}
+      .h3{Source Code}
+      .code{.syntax{language=python}
+print("Hello")
+print("World")
+      }
+    }
+
+    .column{.style{width=50%}
+      .h3{Output}
+      .typewriter{
+> Hello
+> World
+      }
+    }
+  }
+}
+----
+
+=== ASCII Art Title Slides
+
+[source,slidedown]
+----
+.slide{.style{background: black; color: lightgreen;}
+  .body{.style{align=center}
+    .font-doom{SLIDEDOWN}
+
+    <p>.em{Text-first presentations}</p>
+
+    .typewriter{> Press -> to continue...}
+  }
+}
+----
+
+=== Complex Nested Layouts
+
+[source,slidedown]
+----
+.slide{
+  .title{Complex Layout}
+  .body{
+    .h2{Main Heading}
+
+    .column{.style{width=60%}
+      .o{Left side point 1}
+      .o{Left side point 2}
+
+      .code{.syntax{language=python}
+def example():
+    return "code"
+      }
+    }
+
+    .column{.style{width=40%}
+      .typewriter{> Right side explanation...}
+
+      .cowpy-tux{Hello from the right!}
+    }
+  }
+}
+----
+
+== Best Practices
+
+=== Organization
+
+* One `.meta{}` block at the start of the file
+* One `.slide{}` per slide (obviously!)
+* Group related slides with comments
+* Use `.comment{}` for TODOs and notes
+
+=== Formatting
+
+* Indent nested directives for readability
+* Use blank lines between slides
+* Keep directive content focused and concise
+
+=== Performance
+
+* Avoid excessive nesting (> 5 levels deep)
+* Don't create empty `.typewriter{}` or `.o{}` - they break JavaScript
+* Use `.comment{}` for drafts instead of creating invisible slides
+
+=== Styling
+
+* Use `.meta{}` for global settings
+* Use `.style{}` on `.slide{}` for per-slide customization
+* Prefer theme CSS over inline styles for consistency
+* Use percentage-based watermark sizing for responsiveness
+
+=== Effects
+
+* Don't overuse typewriter effects (one or two per slide max)
+* Progressive reveals (`.o{}`) work best for 3-7 bullets
+* Combine effects thoughtfully (`.o{.typewriter{}}` is powerful but use sparingly)
+
+=== ASCII Art
+
+* Test figlet fonts before using - not all are readable
+* Keep cowsay messages short (< 50 chars) for best formatting
+* ASCII art works best on dark backgrounds with monospace fonts
+
+== Compilation
+
+=== Command Line
+
+Basic compilation:
+
+[source,bash]
+----
+slidedown inputdir/ outputdir/ --inputFile presentation.sd
+----
+
+Using the convenience script:
+
+[source,bash]
+----
+./slideshow examples/watermarked/light-watermarks-demo.sd --theme conventional-light
+----
+
+Options:
+
+* `--theme <name>` - Use a specific theme (default, terminal, retro-terminal, conventional-light)
+* `--outputdir <path>` - Output directory (default: ./output)
+* `--port <number>` - HTTP server port (default: 8000)
+* `--no-serve` - Don't start HTTP server after compilation
+
+=== Viewing
+
+After compilation:
+
+[source,bash]
+----
+cd output/
+python3 -m http.server 8000
+# Open http://localhost:8000
+----
+
+=== Navigation
+
+In the browser:
+
+* *Right Arrow / Click right half* - Next slide or reveal next snippet
+* *Left Arrow / Click left half* - Previous slide or hide last snippet
+* *Up Arrow* - First slide
+* *Down Arrow* - Last slide
+
+== Themes
+
+=== Available Themes
+
+* `default` - Dark terminal-style theme
+* `terminal` - Classic green-on-black terminal
+* `retro-terminal` - Vintage CRT terminal with effects
+* `conventional-light` - Google Slides inspired light theme
+
+=== Theme Configuration
+
+Themes are defined in `themes/<name>/theme.yaml`:
+
+[source,yaml]
+----
+slide_master:
+  background_color: "#ffffff"
+  text_color: "#212121"
+
+  watermarks:
+    - image: default-logo.svg
+      position: bottom-right
+      size: "100px"
+      opacity: 0.3
+
+navigation:
+  show_buttons: true
+  show_progress: true
+----
+
+Theme settings can be overridden per-presentation using `.meta{}`.
+
+== Troubleshooting
+
+=== Empty Output
+
+*Problem:* Slide appears but is blank
+
+*Solutions:*
+
+* Check that content is inside `.body{}`
+* Ensure `.typewriter{}` and `.o{}` are not empty
+* Verify directive syntax (`.directive{content}` not `.directive{content)`)
+
+=== Broken Typewriter Effect
+
+*Problem:* Text appears all at once instead of typing
+
+*Solutions:*
+
+* Check browser console for JavaScript errors
+* Ensure slidedown.js is loaded
+* Verify typewriter has content (not empty)
+* Check for unclosed braces in parent directives
+
+=== Snippets Not Revealing
+
+*Problem:* All bullets appear at once
+
+*Solutions:*
+
+* Ensure using `.o{}` not regular `<li>` or bullets
+* Check JavaScript console for errors
+* Verify slidedown.js is loaded and initialized
+
+=== Figlet Font Not Found
+
+*Problem:* "ERROR: Figlet font 'X' not found"
+
+*Solutions:*
+
+* Check spelling of font name (case-sensitive)
+* Try `.font-standard{}` to verify pyfiglet is working
+* Install additional fonts: `pip install pyfiglet`
+
+=== Watermark Not Appearing
+
+*Problem:* Watermark image doesn't show
+
+*Solutions:*
+
+* Verify image path is relative to input directory
+* Check file extension matches actual file
+* Ensure image file exists at the specified path
+* Check browser console for 404 errors
+
+== Reference Tables
+
+=== All Directives Summary
+
+[cols="2,3,2,3"]
+|===
+| Directive | Category | Output | Purpose
+
+| `.slide{}` | Structural | `<div class="slide">` | Define slide
+| `.title{}` | Structural | (metadata) | Slide title
+| `.body{}` | Structural | `<div class="formLayout">` | Slide content
+
+| `.bf{}` | Formatting | `<strong>` | Bold text
+| `.em{}` | Formatting | `<em>` | Italic text
+| `.tt{}` | Formatting | `<tt>` | Monospace text
+| `.underline{}` | Formatting | `<u>` | Underlined text
+| `.code{}` | Formatting/Transform | `<code>` or highlighted HTML | Inline code or code blocks
+| `.h1{}` - `.h6{}` | Formatting | `<h1>` - `<h6>` | Headings
+
+| `.typewriter{}` | Effect | `<pre id="typewriter-X-Y">` | Typing animation
+| `.o{}` | Effect | `<div class="snippet">` | Progressive reveal
+| `.column{}` | Effect | `<div class="column">` | Column layout
+
+| `.font-*{}` | Transform | `<pre>` | ASCII art (Figlet)
+| `.cowpy-*{}` | Transform | `<pre>` | ASCII speech bubbles
+
+| `.style{}` | Modifier | (attribute) | Inline CSS
+| `.class{}` | Modifier | (attribute) | CSS class name
+| `.syntax{}` | Modifier | (attribute) | Code language
+
+| `.meta{}` | Metadata | (none) | Presentation config
+| `.comment{}` | Utility | (none) | Comments
+|===
+
+=== Watermark Positions
+
+[cols="2,3"]
+|===
+| Position | Description
+
+| `top-left` | Top left corner
+| `top-center` | Top center
+| `top-right` | Top right corner
+| `center-left` | Vertically centered, left side
+| `center` | Dead center
+| `center-right` | Vertically centered, right side
+| `bottom-left` | Bottom left corner
+| `bottom-center` | Bottom center
+| `bottom-right` | Bottom right corner (default)
+|===
+
+=== CSS Unit Support
+
+[cols="2,3,2"]
+|===
+| Unit | Description | Example
+
+| `px` | Pixels (fixed) | `"180px"`
+| `%` | Percentage of viewport width | `"7%"`
+| `em` | Relative to font size | `"2em"`
+| `rem` | Relative to root font size | `"1.5rem"`
+| `vw` | Viewport width percentage | `"5vw"`
+| `vh` | Viewport height percentage | `"3vh"`
+| `vmin` | Smaller of vw or vh | `"4vmin"`
+| `vmax` | Larger of vw or vh | `"6vmax"`
+|===
+
+== Appendix: Complete Example
+
+Here's a complete presentation demonstrating multiple directives:
+
+[source,slidedown]
+----
+.meta{
+  title: "Slidedown Demo"
+  author: "Jane Developer"
+  watermarks:
+    - image: logos/company.svg
+      position: bottom-right
+      size: "7%"
+      opacity: 0.8
+}
+
+.comment{Title slide with ASCII art}
+.slide{.style{background: black; color: lightgreen;}
+  .body{.style{align=center}
+    .font-doom{WELCOME}
+
+    .typewriter{> Initializing presentation...}
+
+    <p>.em{Press -> to continue}</p>
+  }
+}
+
+.comment{Introduction with progressive reveals}
+.slide{
+  .title{What is Slidedown?}
+  .body{
+    .o{.bf{Text-first} presentation authoring}
+    .o{.bf{Behavioral markup} - directives define what content does}
+    .o{.bf{Interactive effects} - typewriter, progressive reveals}
+    .o{.bf{Single-file workflow} - .tt{.sd} -> standalone HTML}
+  }
+}
+
+.comment{Code example with syntax highlighting}
+.slide{
+  .title{Code Example}
+  .body{
+    .h2{Python Function}
+
+    .code{.syntax{language=python}
+def greet(name):
+    """Greet someone by name"""
+    return f"Hello, {name}!"
+
+print(greet("World"))
+    }
+
+    .o{Syntax highlighting via Pygments}
+    .o{Monokai color scheme}
+  }
+}
+
+.comment{Two-column layout}
+.slide{
+  .title{Features Comparison}
+  .body{
+    .column{.style{width=50%; align=left}
+      .h3{Traditional Slides}
+      .o{Point-and-click editing}
+      .o{Binary file formats}
+      .o{Version control headaches}
+    }
+
+    .column{.style{width=50%; align=left}
+      .h3{Slidedown}
+      .o{Text-based authoring}
+      .o{Plain text files}
+      .o{Git-friendly workflow}
+    }
+  }
+}
+
+.comment{Thank you slide with cowsay}
+.slide{
+  .title{Thank You!}
+  .body{.style{align=center}
+    .cowpy-tux{Thanks for using slidedown!}
+
+    <p>Questions?</p>
+  }
+}
+----
+
+== See Also
+
+* https://github.com/FNNDSC/slidedown[Slidedown Repository]
+* http://www.figlet.org/[Figlet Font Database]
+* https://pygments.org/languages/[Pygments Supported Languages]
+* https://asciidoc.org/[AsciiDoc Documentation]
+
+---
+
+Last updated: 2025-01-18

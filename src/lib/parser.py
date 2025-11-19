@@ -69,7 +69,7 @@ class ASTNode:
 
 
 class Parser:
-    """
+    r"""
     Parser for slidedown .directive{content} syntax
 
     Handles:
@@ -77,15 +77,17 @@ class Parser:
     - Modifiers (.style{}, .class{})
     - Mixed HTML and directive syntax
     - Error reporting with line numbers
+    - Backslash escaping (\.directive\{...\} for literal syntax)
     """
 
-    def __init__(self, source: str, debug: bool = False):
+    def __init__(self, source: str, debug: bool = False, registry=None):
         """
         Initialize parser with source text
 
         Args:
             source: Raw slidedown source text (.sd file contents)
             debug: Enable debug output for parser operations
+            registry: Optional DirectiveRegistry for validating directive names
 
         Attributes:
             source: Source text being parsed
@@ -94,6 +96,8 @@ class Parser:
             line_number: Current line number in source (for error reporting)
             ast: Accumulated list of parsed top-level nodes
             protected_code_blocks: Dict mapping placeholder IDs to raw .code{} content
+            registry: DirectiveRegistry for validating directive names
+            escaped_sequences: Dict mapping placeholders to escaped content
         """
         self.source = source
         self.debug = debug
@@ -101,6 +105,104 @@ class Parser:
         self.line_number = 1
         self.ast: List[ASTNode] = []
         self.protected_code_blocks: Dict[int, str] = {}
+        self.escaped_sequences: Dict[int, str] = {}
+
+        # Import and create registry if not provided
+        if registry is None:
+            from .directives import DirectiveRegistry
+            registry = DirectiveRegistry()
+        self.registry = registry
+
+    def escapes_protect(self, source: str) -> str:
+        r"""
+        Pre-process source to protect backslash-escaped sequences
+
+        Finds patterns like \.directive\{...\} and replaces them with placeholders
+        so they won't be parsed as directives. The escaped content is stored for
+        later restoration during compilation.
+
+        Returns:
+            Modified source with escaped sequences replaced by placeholders
+
+        Example:
+            Input: ".tt{Use \.directive\{content\} syntax}"
+            Output: ".tt{Use \x00ESCAPE_0\x00 syntax}"
+            Stores: escaped_sequences[0] = ".directive{content}"
+        """
+        result = []
+        pos = 0
+        escape_id = 0
+
+        while pos < len(source):
+            # Look for backslash before dot
+            if pos < len(source) - 1 and source[pos] == '\\' and source[pos + 1] == '.':
+                # Found \. - scan forward to find the pattern
+                # Match \.word\{ ... \}
+                match = re.match(r'\\\.(\w+(?:-\w+)*)\\?\{', source[pos:])
+                if match:
+                    # Found escaped directive pattern like \.directive\{
+                    directive_name = match.group(1)
+                    brace_start = pos + match.end() - 1  # Position before {
+
+                    # Find if the { is escaped too
+                    if source[brace_start] == '\\':
+                        brace_start += 1  # Skip the backslash
+
+                    # Now find matching \} (escaped closing brace)
+                    depth = 1
+                    brace_pos = brace_start + 1
+                    escaped_content = f".{directive_name}{{"
+
+                    while brace_pos < len(source) and depth > 0:
+                        if brace_pos < len(source) - 1 and source[brace_pos:brace_pos + 2] == '\\}':
+                            depth -= 1
+                            if depth == 0:
+                                escaped_content += '}'
+                                brace_pos += 2
+                                break
+                            else:
+                                escaped_content += '}'
+                                brace_pos += 2
+                        elif brace_pos < len(source) - 1 and source[brace_pos:brace_pos + 2] == '\\{':
+                            depth += 1
+                            escaped_content += '{'
+                            brace_pos += 2
+                        elif source[brace_pos] == '{':
+                            depth += 1
+                            escaped_content += source[brace_pos]
+                            brace_pos += 1
+                        elif source[brace_pos] == '}':
+                            depth -= 1
+                            if depth > 0:
+                                escaped_content += source[brace_pos]
+                            else:
+                                escaped_content += '}'
+                            brace_pos += 1
+                        else:
+                            escaped_content += source[brace_pos]
+                            brace_pos += 1
+
+                    if depth == 0:
+                        # Successfully found escaped directive
+                        self.escaped_sequences[escape_id] = escaped_content
+                        placeholder = f'\x00ESCAPE_{escape_id}\x00'
+                        result.append(placeholder)
+                        escape_id += 1
+                        pos = brace_pos
+                    else:
+                        # Unmatched braces, keep original
+                        result.append(source[pos])
+                        pos += 1
+                else:
+                    # Not an escaped directive, keep the backslash
+                    result.append(source[pos])
+                    pos += 1
+            else:
+                # Regular character
+                result.append(source[pos])
+                pos += 1
+
+        return ''.join(result)
 
     def codeblocks_protect(self) -> str:
         """
@@ -182,6 +284,9 @@ class Parser:
         """
         nodes = []
 
+        # Pre-process: protect backslash-escaped sequences
+        self.source = self.escapes_protect(self.source)
+
         # Pre-process: protect .code{} blocks from parsing
         self.source = self.codeblocks_protect()
 
@@ -251,6 +356,10 @@ class Parser:
         Supports simple names (e.g., "slide") and hyphenated names (e.g.,
         "font-doom", "my-custom-directive").
 
+        Only matches directive names registered in the DirectiveRegistry.
+        Invalid directive names like .directive{} or .style{} (when not modifiers)
+        are skipped.
+
         Returns:
             DirectiveMatch with name and position, or None if no more directives
 
@@ -260,13 +369,28 @@ class Parser:
 
             For source "text .title{hi}" at position 0:
             Returns DirectiveMatch(name="title", position=5)
+
+            For source ".invalid{text}" where "invalid" is not registered:
+            Returns None (skips invalid directives)
         """
         pattern = r'\.(\w+(?:-\w+)*)\{'
-        match = re.search(pattern, self.source[self.position:])
-        if match:
+        search_pos = self.position
+
+        while search_pos < len(self.source):
+            match = re.search(pattern, self.source[search_pos:])
+            if not match:
+                return None
+
             directive = match.group(1)
-            pos = self.position + match.start()
-            return DirectiveMatch(name=directive, position=pos)
+            pos = search_pos + match.start()
+
+            # Check if this directive name is registered
+            if self.registry.get(directive) is not None:
+                return DirectiveMatch(name=directive, position=pos)
+
+            # Not a valid directive, skip past it and continue searching
+            search_pos = pos + match.end()
+
         return None
 
     def brace_findMatching(self, start_pos: int) -> int:
@@ -362,6 +486,12 @@ class Parser:
             directive_name = match.group(1)
             match_start = pos + match.start()
             brace_start = pos + match.end() - 1  # Position of {
+
+            # Check if this is a valid registered directive
+            if self.registry.get(directive_name) is None:
+                # Not a valid directive, skip past it and continue
+                pos = pos + match.end()
+                continue
 
             # Find matching closing brace
             depth = 1

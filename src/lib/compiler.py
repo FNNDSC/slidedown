@@ -35,6 +35,7 @@ class Compiler:
         assets_dir: str,
         verbosity: int = 1,
         protected_code_blocks: Optional[Dict[int, str]] = None,
+        escaped_sequences: Optional[Dict[int, str]] = None,
         theme_name: str = "default",
         input_dir: str = "."
     ) -> None:
@@ -47,6 +48,7 @@ class Compiler:
             assets_dir: Directory containing runtime assets (css/js/html)
             verbosity: Output verbosity level (0-3)
             protected_code_blocks: Dict of protected .code{} block content from parser
+            escaped_sequences: Dict of backslash-escaped content from parser
             theme_name: Name of theme to use (default: "default")
             input_dir: Input directory for resolving relative paths (default: ".")
         """
@@ -56,6 +58,7 @@ class Compiler:
         self.input_dir = Path(input_dir)
         self.verbosity = verbosity
         self.protected_code_blocks = protected_code_blocks or {}
+        self.escaped_sequences = escaped_sequences or {}
         self.directives = DirectiveRegistry()
 
         # Load theme
@@ -192,6 +195,35 @@ class Compiler:
         result = re.sub(r'\x00CODE_(\d+)\x00', expand_code_placeholder, content)
         return result
 
+    def escapes_expand(self, content: str) -> str:
+        """
+        Expand backslash-escaped sequence placeholders to literal text
+
+        Finds \x00ESCAPE_N\x00 placeholders in content and replaces them with
+        the stored escaped content (e.g., ".directive{...}" becomes literal text).
+
+        Args:
+            content: String potentially containing ESCAPE placeholders
+
+        Returns:
+            Content with placeholders replaced by literal escaped text
+        """
+        import re
+        import html
+
+        def expand_escape_placeholder(match: re.Match[str]) -> str:
+            """Expand an ESCAPE_N placeholder with literal escaped content"""
+            escape_id = int(match.group(1))
+            if escape_id not in self.escaped_sequences:
+                return match.group(0)  # Leave placeholder if not found
+
+            # Return the literal content, HTML-escaped for safety
+            escaped_content = self.escaped_sequences[escape_id]
+            return html.escape(escaped_content)
+
+        result = re.sub(r'\x00ESCAPE_(\d+)\x00', expand_escape_placeholder, content)
+        return result
+
     def node_compile(self, node: ASTNode) -> str:
         """
         Compile a single AST node to HTML
@@ -230,6 +262,9 @@ class Compiler:
 
         # Step 2b: Expand protected .code{} placeholders
         content_with_children = self.codeblocks_expand(content_with_children)
+
+        # Step 2c: Expand backslash-escaped sequence placeholders
+        content_with_children = self.escapes_expand(content_with_children)
 
         # Step 3: Create a modified node with substituted content
         # (We don't modify original node, create view with substituted content)
@@ -391,8 +426,12 @@ class Compiler:
             # Optional: opacity (default: 0.3)
             opacity = wm.get('opacity', 0.3)
 
-            # Optional: size (width in pixels, default: 100px)
+            # Optional: size (width with CSS unit: px, %, em, rem, etc., default: 100px)
             size = wm.get('size', '100px')
+
+            # Validate size has a CSS unit
+            if not re.match(r'^[\d.]+(?:px|%|em|rem|vw|vh|vmin|vmax|ch|ex)$', str(size)):
+                LOG(f"Warning: Watermark size '{size}' may be invalid. Use CSS units like px, %, em, rem", level=1)
 
             # Build inline styles
             style_parts = [

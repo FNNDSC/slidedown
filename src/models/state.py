@@ -64,6 +64,7 @@ class ProgramState:
     htmlOutputdir: Path = field(default=Path("/"))
     parsedSource: Optional[List[Any]] = field(default=None)  # List[ASTNode] at runtime
     protectedCodeBlocks: Dict[int, str] = field(default_factory=dict)  # Protected .code{} blocks
+    escapedSequences: Dict[int, str] = field(default_factory=dict)  # Backslash-escaped sequences
     compileResult: Optional[Dict] = field(default=None)
 
     @classmethod

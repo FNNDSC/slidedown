@@ -942,3 +942,15 @@ mark {
   .iframe-container-4x3 {
     padding-top: 75%;
   }
+
+/* Typewriter display rules */
+/* Typewriters inside snippets should be inline (to align with bullets) */
+.snippet pre[id^="typewriter-"] {
+    display: inline;
+}
+
+/* Standalone typewriters should be block (to respect line breaks) */
+/* Must be more specific than .container pre to override inline-block */
+.container pre[id^="typewriter-"] {
+    display: block;
+}

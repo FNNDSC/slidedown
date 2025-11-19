@@ -363,7 +363,8 @@ SMarkDown.prototype = {
 /////////
 
 function setupTypewriter(t) {
-    var HTML = t.innerHTML;
+    // Read from data-text attribute to bypass HTML entity parsing issues
+    var HTML = t.getAttribute('data-text') || t.textContent;
 
     t.innerHTML = "";
 
@@ -643,12 +644,13 @@ Page.prototype = {
         if (typewriterInSnippet) {
             let str_idRef = typewriterInSnippet.id;
 
-            // Store original HTML on FIRST reveal only
+            // Store original data-text attribute on FIRST reveal only
             if (!this.d_typewriterOriginalHTML[str_idRef]) {
-                this.d_typewriterOriginalHTML[str_idRef] = typewriterInSnippet.innerHTML;
+                this.d_typewriterOriginalHTML[str_idRef] = typewriterInSnippet.getAttribute('data-text') || typewriterInSnippet.textContent;
             } else {
-                // On revisit, restore the original HTML before animation
-                typewriterInSnippet.innerHTML = this.d_typewriterOriginalHTML[str_idRef];
+                // On revisit, restore via data attribute
+                typewriterInSnippet.setAttribute('data-text', this.d_typewriterOriginalHTML[str_idRef]);
+                typewriterInSnippet.innerHTML = '';
             }
 
             this.d_typerDOM[str_idRef] = typewriterInSnippet;
@@ -744,9 +746,10 @@ Page.prototype = {
                 this.d_typewriter[str_idRef].cancel();
             }
 
-            // Restore original HTML if we have it
+            // Restore via data attribute if we have it
             if (this.d_typewriterOriginalHTML[str_idRef]) {
-                typer.innerHTML = this.d_typewriterOriginalHTML[str_idRef];
+                typer.setAttribute('data-text', this.d_typewriterOriginalHTML[str_idRef]);
+                typer.innerHTML = '';
             }
         });
     },
@@ -768,9 +771,9 @@ Page.prototype = {
             if (!isInSnippet) {
                 let str_idRef = typer.id;
 
-                // Store original HTML on first visit
+                // Store original data-text attribute on first visit
                 if (!this.d_typewriterOriginalHTML[str_idRef]) {
-                    this.d_typewriterOriginalHTML[str_idRef] = typer.innerHTML;
+                    this.d_typewriterOriginalHTML[str_idRef] = typer.getAttribute('data-text') || typer.textContent;
                 }
 
                 this.d_typerDOM[str_idRef] = typer;
@@ -814,7 +817,7 @@ Page.prototype = {
         // Start any typewriters that are directly on the slide (not in snippets)
         this.startNonSnippetTypewriters(index_followingSlide);
         if(DOMID_slideTitle !== null) {
-            DOMID_pageTitle.innerHTML = DOMID_slideTitle.innerHTML;
+            DOMID_pageTitle.innerHTML = DOMID_slideTitle.innerHTML.trim();
         } else {
             DOMID_pageTitle.innerHTML = " ";
         }

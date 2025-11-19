@@ -1,0 +1,848 @@
+= Slidedown Tips & Tricks
+Rudolph Pienaar <rudolph.pienaar@gmail.com>
+:toc: left
+:toclevels: 2
+:sectnums:
+:source-highlighter: pygments
+:icons: font
+
+== Introduction
+
+This document contains practical tips, best practices, and common patterns for writing effective slidedown presentations. These are lessons learned from real-world usage and edge cases discovered during development.
+
+== Text and Paragraphs
+
+=== When to Use `<p>` Tags
+
+Understanding when to use HTML `<p>` tags versus plain text is crucial for controlling how your content renders.
+
+==== Use `<p>` for Dynamic Text Wrapping
+
+Use `<p>` tags when you want the browser to handle text reflow dynamically. The browser will automatically insert line breaks based on the viewport width.
+
+[source,slidedown]
+----
+.slide{
+  .body{
+    <p>This is a long paragraph that will wrap automatically based on the browser window width. The browser decides where line breaks occur, making it responsive to different screen sizes and resolutions.</p>
+  }
+}
+----
+
+*Result:* Text flows naturally and wraps at the edge of the viewport. On a wide screen, it might be one long line. On a narrow screen, it breaks into multiple lines automatically.
+
+*Best for:*
+
+* Long descriptive text
+* Body paragraphs with multiple sentences
+* Content that needs to be responsive to different screen sizes
+* When you want consistent spacing between paragraphs (browser CSS applies margin)
+
+==== Don't Use `<p>` for Exact Layout
+
+When you write text without `<p>` tags, slidedown preserves your exact formatting including line breaks and spacing.
+
+[source,slidedown]
+----
+.slide{
+  .body{
+    This is line one
+    This is line two
+    This is line three
+  }
+}
+----
+
+*Result:* Text appears exactly as written with preserved line breaks. Each line appears on its own line in the output.
+
+*Best for:*
+
+* Poetry or formatted text where line breaks matter
+* ASCII art (though consider using `.font-*{}` or `.cowpy-*{}`)
+* Code snippets outside of `.code{}` blocks
+* Lists where you want specific spacing
+* When you want full control over layout
+
+=== Comparison Examples
+
+==== Example 1: Product Description (Use `<p>`)
+
+[source,slidedown]
+----
+.slide{
+  .title{Our Product}
+  .body{
+    <p>Slidedown is a revolutionary presentation framework that combines the simplicity of plain text with the power of behavioral markup. Write presentations like you write code, version control them with git, and compile to standalone HTML in seconds.</p>
+  }
+}
+----
+
+The browser wraps this naturally for readability across devices.
+
+==== Example 2: Haiku or Formatted Text (No `<p>`)
+
+[source,slidedown]
+----
+.slide{
+  .title{Seasonal Reflection}
+  .body{
+    Text becomes markup
+    Directives bring slides to life
+    Plain files, rich output
+  }
+}
+----
+
+Each line appears exactly as written, preserving the poetic structure.
+
+==== Example 3: Mixed Approach
+
+You can combine both techniques in the same slide:
+
+[source,slidedown]
+----
+.slide{
+  .title{Installation}
+  .body{
+    <p>Installing slidedown is straightforward. Follow these steps:</p>
+
+    1. Clone the repository
+    2. Install dependencies
+    3. Run the example
+
+    <p>Once installed, you can start creating presentations immediately. See the documentation for more details.</p>
+  }
+}
+----
+
+Here, descriptive paragraphs use `<p>` for natural flow, while the numbered list uses plain text for exact formatting.
+
+== Directives vs HTML
+
+=== When to Use Directives
+
+Prefer slidedown directives over HTML when possible. Directives are more semantic and less verbose.
+
+*Good:*
+[source,slidedown]
+----
+.bf{Bold text} and .em{italic text}
+----
+
+*Avoid:*
+[source,slidedown]
+----
+<strong>Bold text</strong> and <em>italic text</em>
+----
+
+However, HTML is perfectly fine and sometimes necessary:
+
+* When you need attributes that directives don't support
+* For complex layouts requiring specific HTML structure
+* When mixing with existing HTML content
+
+=== Nesting Considerations
+
+Remember that directives can nest, while HTML requires proper closing tags:
+
+[source,slidedown]
+----
+.o{First point with .bf{bold} and .em{italic} text}
+----
+
+This is cleaner than:
+
+[source,slidedown]
+----
+<div class="snippet">First point with <strong>bold</strong> and <em>italic</em> text</div>
+----
+
+== Progressive Reveals
+
+=== Progressive Reveal Best Practices
+
+The `.o{}` directive creates progressive reveals (snippets). Here are tips for using them effectively:
+
+==== Optimal Bullet Count
+
+* *3-7 bullets* - Sweet spot for engagement
+* *1-2 bullets* - Too few, consider combining or removing progressive reveal
+* *8+ bullets* - Too many, consider splitting into multiple slides
+
+==== GOTCHA: Do NOT Nest `.o{}` Directives!
+
+WARNING: Nesting `.o{.o{...}}` is an **anti-pattern** that breaks progressive reveals.
+
+**Bad - DO NOT DO THIS:**
+
+[source,slidedown]
+----
+.o{.o{Progressive} .o{snippet} .o{bullets}}
+----
+
+**What happens:**
+
+* Parser creates a parent snippet containing three child snippets
+* Reveals create invisible container divs
+* Clicks 1-3: Nothing visible (revealing hidden containers)
+* Click 4: All three words suddenly appear in a vertical column
+* Layout breaks: text overlaps previous content
+* Block elements stack vertically instead of inline
+
+**Why it's broken:**
+
+* Snippet reveal system expects a **flat, sequential list**
+* Nesting creates parent-child DOM relationships
+* JavaScript reveals containers before their contents
+* Creates phantom clicks on invisible elements
+* Block-level `<div>` elements cause vertical stacking
+
+**Good - Use flat structure:**
+
+[source,slidedown]
+----
+.o{Progressive}
+.o{snippet}
+.o{bullets}
+----
+
+Or keep content together in one snippet:
+
+[source,slidedown]
+----
+.o{Progressive snippet bullets}
+----
+
+**Rule of thumb:** Never put `.o{}` inside another `.o{}`. Always keep snippets at the same nesting level.
+
+==== Combining with Effects
+
+Progressive reveals work beautifully with typewriter effects:
+
+[source,slidedown]
+----
+.o{.typewriter{Step 1: Initialize system}}
+.o{.typewriter{Step 2: Load configuration}}
+.o{.typewriter{Step 3: Deploy application}}
+----
+
+Each bullet types out when revealed, creating a step-by-step animation.
+
+== Typewriter Effects
+
+=== Typewriter Limitations
+
+TIP: Keep typewriter content concise. Long passages can be tedious to watch typing out.
+
+*Good:*
+[source,slidedown]
+----
+.typewriter{> Initializing...}
+----
+
+*Too much:*
+[source,slidedown]
+----
+.typewriter{
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris...
+}
+----
+
+=== Special Characters in Typewriter
+
+As of the latest version, special HTML characters (`<`, `>`, `&`) are properly escaped and will display correctly:
+
+[source,slidedown]
+----
+.typewriter{> npm install && npm start}
+.typewriter{if (x < 10) { console.log("low"); }}
+.typewriter{Use --help for options}
+----
+
+All render correctly with `>`, `<`, `&`, etc. displaying as expected.
+
+=== Typewriter in Different Contexts
+
+Typewriters work in multiple contexts:
+
+* *Standalone:* Directly in `.body{}`
+* *Inside snippets:* `.o{.typewriter{...}}`
+* *Multiple per slide:* Each gets a unique ID automatically
+
+== Code Blocks
+
+=== Inline Code vs Code Blocks
+
+==== Inline Code
+
+Use `.code{}` without modifiers for inline code:
+
+[source,slidedown]
+----
+Call the .code{function()} method to initialize.
+----
+
+==== Syntax-Highlighted Blocks
+
+Use `.code{.syntax{language=X}}` for full code blocks:
+
+[source,slidedown]
+----
+.code{.syntax{language=python}
+def factorial(n):
+    if n <= 1:
+        return 1
+    return n * factorial(n-1)
+}
+----
+
+=== Code Block Formatting Tips
+
+* *Indentation:* Indent your code naturally within the `.code{}` block
+* *Leading newlines:* The compiler handles them, don't worry about extra whitespace
+* *Long lines:* Code blocks scroll horizontally automatically
+
+== Layout and Spacing
+
+=== Column Layouts
+
+Use `.column{}` with `.style{width=X%}` for side-by-side content:
+
+[source,slidedown]
+----
+.body{
+  .column{.style{width=50%}
+    Left column content
+  }
+  .column{.style{width=50%}
+    Right column content
+  }
+}
+----
+
+TIP: Column widths should add up to ~100% (accounting for padding). Use 33%/33%/34% for three columns, 50%/50% for two columns, etc.
+
+=== Spacing Between Elements
+
+Slidedown generally preserves spacing between elements. Use blank lines for visual separation:
+
+[source,slidedown]
+----
+.body{
+  .h1{Title}
+
+  <p>First paragraph with space above.</p>
+
+  <p>Second paragraph with space above.</p>
+
+  .o{Bullet with space above}
+}
+----
+
+== Escaping and Showing Literal Directive Syntax
+
+=== Understanding Directive Validation
+
+Slidedown uses a two-layer protection system to control which `.directive{...}` patterns are parsed:
+
+1. **Directive Name Validation**: Only registered directive names are parsed
+2. **Backslash Escaping**: Protect valid directives from being parsed when you want to show them literally
+
+==== Layer 1: Directive Name Validation
+
+The parser only recognizes **registered directive names**. Invalid names are ignored and passed through as literal text.
+
+**Valid directives** (automatically parsed):
+
+* Structural: `.slide`, `.body`, `.title`
+* Formatting: `.o`, `.tt`, `.bf`, `.em`, `.h1`-`.h6`
+* Modifiers: `.style`, `.class`, `.syntax`
+* Effects: `.typewriter`, `.font-*`, `.cowpy-*`
+* Layout: `.column`, `.code`
+
+**Invalid directives** (passed through as text):
+
+* `.directive`, `.foo`, `.invalid`, `.anything-random`
+
+[source,slidedown]
+----
+.tt{.directive{content}}     # "directive" not registered -> shows as text
+.tt{.invalid{stuff}}         # "invalid" not registered -> shows as text
+----
+
+Both render literally **without any escaping** because these names aren't registered.
+
+==== Layer 2: Backslash Escaping for Valid Directives
+
+When you want to show **valid directive syntax** literally, use backslash escaping:
+
+[source,slidedown]
+----
+.tt{\.o\{bullet\}}           # Shows: .o{bullet}
+.tt{\.bf\{bold\}}            # Shows: .bf{bold}
+.tt{\.style\{color: red\}}   # Shows: .style{color: red}
+----
+
+**Why escaping is needed for valid directives:**
+
+Without backslash, valid directives get parsed:
+
+[source,slidedown]
+----
+.tt{.bf{text}}               # .bf IS valid -> text appears bold
+.tt{.o{item}}                # .o IS valid -> creates snippet
+----
+
+With backslash, they show literally:
+
+[source,slidedown]
+----
+.tt{\.bf\{text\}}            # Shows: .bf{text} (not bold)
+.tt{\.o\{item\}}             # Shows: .o{item} (not snippet)
+----
+
+=== When Do You Need Backslashes?
+
+==== No Backslash Needed (Invalid Names)
+
+[source,slidedown]
+----
+.tt{.directive{...}}         # OK: "directive" isn't registered
+.tt{.foo{...}}               # OK: "foo" isn't registered
+.tt{.notreal{...}}           # OK: "notreal" isn't registered
+----
+
+These display as literal text automatically.
+
+==== Backslash Required (Valid Names)
+
+[source,slidedown]
+----
+.tt{.o{...}}                 # WRONG: Will parse as snippet!
+.tt{\.o\{...\}}              # CORRECT: Shows literal .o{...}
+
+.tt{.bf{bold}}               # WRONG: Will make "bold" bold!
+.tt{\.bf\{bold\}}            # CORRECT: Shows literal .bf{bold}
+
+.tt{.style{color: red}}      # WRONG: Will be extracted as modifier!
+.tt{\.style\{color: red\}}   # CORRECT: Shows literal .style{...}
+----
+
+==== Special Case: Modifiers
+
+The `.style{}`, `.class{}`, and `.syntax{}` directives are **modifiers** that get special handling:
+
+[source,slidedown]
+----
+.body{.style{color: red} Text}
+# .style{} at START -> extracted as modifier, removed from content
+
+.tt{.style{color: red}}
+# .style{} recognized as directive -> gets processed/removed
+----
+
+**Always use backslashes for modifiers** when showing them as examples:
+
+[source,slidedown]
+----
+.tt{\.style\{color: red\}}   # Shows literal .style{...}
+.tt{\.class\{highlight\}}    # Shows literal .class{...}
+.tt{\.syntax\{language=py\}} # Shows literal .syntax{...}
+----
+
+=== Best Practices
+
+==== Use Backslashes for All Documentation Examples
+
+Even though invalid names don't need escaping, **use backslashes consistently** for clarity:
+
+[source,slidedown]
+----
+.tt{\.directive\{...\}}      # Clear intent: showing syntax
+.tt{\.style\{...\}}          # Always works
+.tt{\.o\{...\}}              # Always works
+----
+
+This approach:
+
+* Works for all directive names (valid or invalid)
+* Makes intent explicit
+* Prevents issues if directive names are added later
+
+==== Showing Multiple Directives in Examples
+
+[source,slidedown]
+----
+.slide{
+  .body{
+    Slidedown uses directives like \.o\{...\} for bullets,
+    \.tt\{...\} for inline code, and \.typewriter\{...\}
+    for typing effects.
+  }
+}
+----
+
+==== Nested Escaping
+
+When showing nested directive syntax:
+
+[source,slidedown]
+----
+.tt{\.slide\{\.body\{\.o\{Nested example\}\}\}}
+----
+
+Renders as: `.slide{.body{.o{Nested example}}}`
+
+=== How the Escaping System Works
+
+==== Processing Order
+
+1. **Escape Protection**: Parser finds `\.directive\{...\}` patterns and replaces them with placeholders
+2. **Code Block Protection**: `.code{}` blocks are protected from parsing
+3. **Directive Parsing**: Remaining `.directive{...}` patterns are validated against registry
+4. **Compilation**: Placeholders are restored as literal HTML-escaped text
+
+==== Implementation Details
+
+The backslash escaping uses LaTeX-style syntax:
+
+* `\.` before directive name
+* `\{` and `\}` for braces (optional but recommended)
+* Escaped content stored with placeholders: `\x00ESCAPE_N\x00`
+* During compilation, placeholders replaced with HTML-escaped literal text
+
+[source,slidedown]
+----
+Source:   .tt{\.o\{bullet\}}
+Parsed:   .tt{ ESCAPE_0 }
+Stored:   escaped_sequences[0] = ".o{bullet}"
+Compiled: <tt>.o{bullet}</tt>
+----
+
+=== Alternative: HTML Entities (Old Method)
+
+Before backslash escaping was added, you could use HTML entities:
+
+[source,slidedown]
+----
+<p>Use <tt>.directive&#123;content&#125;</tt> syntax</p>
+----
+
+This still works but is **less convenient** than backslash escaping:
+
+* More verbose: `&#123;` vs `\{`
+* Can't be used inside `.tt{}` directives easily
+* Less readable in source files
+
+**Recommendation**: Use backslash escaping for directive syntax in documentation
+
+=== Backticks Don't Work
+
+WARNING: Markdown-style backticks (```code```) are not supported. Use `.tt{}` directive or `<tt>` tags instead.
+
+*Wrong:*
+[source,text]
+----
+Use `npm install` to install
+----
+
+*Right:*
+[source,slidedown]
+----
+Use .tt{npm install} to install
+----
+
+Or:
+[source,slidedown]
+----
+Use <tt>npm install</tt> to install
+----
+
+== Metadata and Configuration
+
+=== Using `.meta{}`
+
+The `.meta{}` directive should appear once at the top of your file:
+
+[source,slidedown]
+----
+.meta{
+  title: "My Presentation"
+  author: "Jane Developer"
+  watermarks:
+    - image: logo.svg
+      position: bottom-right
+      size: "7%"
+      opacity: 0.8
+}
+
+.slide{
+  .title{First Slide}
+  ...
+}
+----
+
+=== Watermark Size Guidelines
+
+* *Percentage sizing:* Use `"5%"` - `"10%"` for logos (scales with viewport)
+* *Pixel sizing:* Use `"100px"` - `"200px"` for fixed-size watermarks
+* *Multiple watermarks:* Each gets its own list entry with position and size
+
+== Common Pitfalls
+
+=== Empty Directives Break JavaScript
+
+WARNING: Never create empty `.typewriter{}` or `.o{}` directives. They will break the JavaScript animation system.
+
+*Bad:*
+[source,slidedown]
+----
+.typewriter{}
+.o{}
+----
+
+*Good:*
+[source,slidedown]
+----
+.typewriter{At least some content}
+.o{At least some content}
+----
+
+=== Placeholder Conflicts
+
+Avoid using `\x00` in your content, as it's used internally for placeholder substitution.
+
+=== Deeply Nested Directives
+
+While nesting is supported, avoid going more than 5 levels deep. It becomes hard to read and debug:
+
+[source,slidedown]
+----
+.slide{.body{.column{.o{.typewriter{.bf{...}}}}}}  # Too deep!
+----
+
+Better:
+[source,slidedown]
+----
+.slide{
+  .body{
+    .column{
+      .o{
+        .typewriter{
+          .bf{Content}
+        }
+      }
+    }
+  }
+}
+----
+
+== Performance Tips
+
+=== Slide Count
+
+Slidedown handles hundreds of slides efficiently, but for best performance:
+
+* *20-40 slides:* Ideal for most presentations
+* *50-100 slides:* Perfectly fine, no issues
+* *100+ slides:* Consider splitting into multiple presentations
+
+=== Asset Optimization
+
+* *Images:* Optimize PNGs and SVGs before including
+* *Watermarks:* Use SVG when possible (scales better, smaller file size)
+* *Themes:* Custom themes are loaded once and cached
+
+=== Compilation Speed
+
+* *First compile:* Slower (asset copying)
+* *Subsequent compiles:* Faster (only HTML regenerated)
+* *Use `--no-serve`* when you don't need the HTTP server
+
+== Styling Patterns
+
+=== Consistent Heading Hierarchy
+
+Each slide should have a clear hierarchy:
+
+[source,slidedown]
+----
+.slide{
+  .body{
+    .h1{Main Topic}
+
+    <p>Descriptive lead-in</p>
+
+    .h2{Subsection}
+
+    .o{Point 1}
+    .o{Point 2}
+  }
+}
+----
+
+=== Custom Slide Styling
+
+Apply custom CSS to individual slides:
+
+[source,slidedown]
+----
+.slide{.style{background: #1e1e1e; color: #d4d4d4;}
+  .title{Dark Slide}
+  .body{
+    <p>Custom styled content</p>
+  }
+}
+----
+
+=== Theme Overrides
+
+Use `.meta{}` to override theme settings globally:
+
+[source,slidedown]
+----
+.meta{
+  navigation:
+    show_buttons: false
+    show_progress: true
+}
+----
+
+== Advanced Patterns
+
+=== Code + Output Side-by-Side
+
+Show code and its output in columns:
+
+[source,slidedown]
+----
+.body{
+  .column{.style{width=50%}
+    .h3{Code}
+    .code{.syntax{language=python}
+print("Hello")
+    }
+  }
+
+  .column{.style{width=50%}
+    .h3{Output}
+    .typewriter{> Hello}
+  }
+}
+----
+
+=== Progressive Code Explanation
+
+Reveal code, then explain it step-by-step:
+
+[source,slidedown]
+----
+.body{
+  .code{.syntax{language=python}
+def factorial(n):
+    if n <= 1:
+        return 1
+    return n * factorial(n-1)
+  }
+
+  .o{Base case: returns 1 when n <= 1}
+  .o{Recursive case: n * factorial(n-1)}
+  .o{Classic recursive implementation}
+}
+----
+
+=== Title Slides with ASCII Art
+
+Create impactful title slides:
+
+[source,slidedown]
+----
+.slide{.style{background: black; color: lightgreen;}
+  .body{.style{align=center}
+    .font-doom{SLIDEDOWN}
+
+    <p>.em{Text-first presentations}</p>
+
+    .typewriter{> Press -> to begin...}
+  }
+}
+----
+
+== Troubleshooting
+
+=== Content Not Appearing
+
+*Check:*
+
+1. Content is inside `.body{}`?
+2. No empty `.typewriter{}` or `.o{}`?
+3. Directives properly closed with `}`?
+4. Valid YAML in `.meta{}`?
+
+=== Typewriter Shows HTML Entities
+
+This was a bug in earlier versions. Update to the latest version where special characters are properly escaped.
+
+*Current behavior:* `>` displays as `>`
+*Old buggy behavior:* `>` displayed as `&gt;`
+
+=== Progressive Reveals Not Working
+
+*Check:*
+
+1. Using `.o{}` directive (not `<li>` or `-` bullets)?
+2. JavaScript console for errors?
+3. `slidedown.js` loaded in page?
+4. No empty `.o{}` directives?
+
+=== Watermarks Not Appearing
+
+*Check:*
+
+1. Image path relative to `.sd` file directory?
+2. Image file exists at that path?
+3. Valid size unit (`px`, `%`, `em`, etc.)?
+4. Browser console for 404 errors?
+
+== Quick Reference
+
+=== Text Formatting Decision Tree
+
+[source,text]
+----
+Need text to wrap dynamically?
+  ├─ YES -> Use <p>...</p>
+  └─ NO (preserve exact layout)
+      ├─ Single word/phrase -> Plain text or .tt{}
+      └─ Code -> Use .code{} or <pre>
+----
+
+=== Directive Selection Guide
+
+[cols="2,3,2"]
+|===
+| Need | Use | Example
+
+| Bold text | `.bf{}` | `.bf{important}`
+| Italic text | `.em{}` | `.em{emphasis}`
+| Monospace | `.tt{}` | `.tt{code}`
+| Progressive reveal | `.o{}` | `.o{Point 1}`
+| Typing animation | `.typewriter{}` | `.typewriter{> Text}`
+| ASCII art | `.font-*{}` | `.font-doom{BIG}`
+| Speech bubble | `.cowpy-*{}` | `.cowpy-tux{Hi!}`
+| Code block | `.code{.syntax{}}` | See examples
+| Columns | `.column{.style{}}` | See examples
+| Comments | `.comment{}` | `.comment{TODO}`
+|===
+
+== See Also
+
+* link:sd-guide.adoc[Complete Slidedown Guide] - Full directive reference
+* https://github.com/FNNDSC/slidedown[GitHub Repository]
+* https://github.com/FNNDSC/slidedown/issues[Report Issues]
+
+---
+
+Last updated: 2025-01-18

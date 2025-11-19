@@ -276,6 +276,8 @@ class DirectiveRegistry:
 
         def typewriter_handler(node: Any, compiler: Any) -> str:
             """Handle .typewriter{} - character-by-character typing animation"""
+            import html
+
             slide_num = compiler.slide_count
 
             # node.content already has children compiled and placeholders substituted
@@ -293,12 +295,33 @@ class DirectiveRegistry:
             typewriter_num = compiler.typewriter_counters[slide_num]
 
             style = node.modifiers.get('style', '')
-            style_attr = f' style="{style}"' if style else ''
+            # Let CSS control display context (inline for bullets, block for standalone)
+            if style:
+                style_attr = f' style="{style}"'
+            else:
+                style_attr = ''
 
             # Always use typewriter-{slide}-{num} format for consistency
             typewriter_id = f'typewriter-{slide_num}-{typewriter_num}'
 
-            return f'<pre id="{typewriter_id}"{style_attr}>{content}</pre>'
+            # Process backslash escapes for literal characters
+            # \> → > (literal greater-than)
+            # \< → < (literal less-than)
+            # \& → & (literal ampersand)
+            # \\ → \ (literal backslash)
+            text_content = content.replace('\\\\', '\x00BACKSLASH\x00')
+            text_content = text_content.replace('\\>', '>')
+            text_content = text_content.replace('\\<', '<')
+            text_content = text_content.replace('\\&', '&')
+            text_content = text_content.replace('\x00BACKSLASH\x00', '\\')
+
+            # Store text in data attribute to bypass HTML entity parsing issues
+            # Escape quotes for attribute safety
+            escaped_attr = html.escape(text_content, quote=True)
+
+            # Typewriter content allows HTML for formatting (e.g., <b>bold</b>)
+            # Use backslash escapes for literal characters (e.g., \> for >)
+            return f'<pre id="{typewriter_id}"{style_attr} data-text="{escaped_attr}"></pre>'
 
         def snippet_handler(node: Any, compiler: Any) -> str:
             """Handle .o{} - progressive reveal bullet point"""
