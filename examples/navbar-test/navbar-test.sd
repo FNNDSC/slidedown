@@ -1,0 +1,52 @@
+.meta{
+  title: "Navbar Test"
+  navbar:
+    progress:
+      show: true
+      color: "#00ff00"
+      background: "#333"
+      height: "6px"
+    left:
+      - slide_previous:
+          shape: "square"
+          color: "#ffffff"
+          background: "#4285f4"
+      - slide_counter:
+          format: "{current}/{total}"
+          color: "#666"
+    center:
+      - title
+    right:
+      - slide_next:
+          shape: "round"
+          color: "#ffffff"
+          background: "#4285f4"
+          size: "40px"
+}
+
+.slide{
+  .title{First Slide}
+  .body{
+    .h1{Navbar Test}
+    Testing custom navbar configuration.
+  }
+}
+
+.slide{
+  .title{Second Slide}
+  .body{
+    .h1{Custom Styling}
+    - Square "previous" button on left
+    - Round "next" button on right
+    - Slide counter on left
+    - Green progress bar
+  }
+}
+
+.slide{
+  .title{Third Slide}
+  .body{
+    .h1{Final Slide}
+    Navigate and check the navbar!
+  }
+}

@@ -1,6 +1,30 @@
 .meta{
   title: "Slidedown Light Demo"
   css:
+    # Custom font example (commented out - uses Red Hat defaults from theme)
+    # Uncomment to override with Inter/Merriweather/JetBrains Mono
+    #
+    # "@import":
+    #   - "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap"
+    #   - "https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap"
+    #   - "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap"
+    #
+    # ".container":
+    #   font-family: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    #
+    # "h1, h2, h3, h4, h5, h6, .title":
+    #   font-family: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    #   font-weight: "600"
+    #
+    # "p, .body, .snippet":
+    #   font-family: "'Merriweather', Georgia, 'Times New Roman', serif"
+    #   font-weight: "300"
+    #   line-height: "1.8"
+    #
+    # "code, pre, .tt, tt":
+    #   font-family: "'JetBrains Mono', 'Fira Code', 'Consolas', monospace"
+    #   font-weight: "400"
+
     ".container":
       font-size: "36px"
       line-height: "1.6"
@@ -18,6 +42,89 @@
       size: "10%"
       opacity: 1.0
       offset: "-20px, 0px"
+
+  # Linux-style window control buttons (GNOME default style) - commented out
+  # navbar:
+  #   container:
+  #     background: "#2d2d2d"
+  #     border-bottom: "1px solid #1a1a1a"
+  #     padding: "6px 8px"
+  #   progress:
+  #     show: true
+  #     color: "#fb8500"
+  #     background: "#4a4a4a"
+  #     height: "3px"
+  #   left:
+  #     - title:
+  #         color: "#f0f0f0"
+  #   right:
+  #     - slide_previous:
+  #         shape: "round"
+  #         background: "rgba(255,255,255,0.1)"
+  #         border: "1px solid rgba(0,0,0,0.2)"
+  #         color: "#d3d3d3"
+  #         icon: "&#xf068"
+  #         size: "24px"
+  #         margin-right: "6px"
+  #     - slide_next:
+  #         shape: "round"
+  #         background: "rgba(255,255,255,0.1)"
+  #         border: "1px solid rgba(0,0,0,0.2)"
+  #         color: "#d3d3d3"
+  #         icon: "&#xf0c8"
+  #         size: "24px"
+  #         margin-right: "6px"
+  #     - slide_first:
+  #         shape: "round"
+  #         background: "rgba(255,255,255,0.1)"
+  #         border: "1px solid rgba(0,0,0,0.2)"
+  #         color: "#d3d3d3"
+  #         icon: "&#xf00d"
+  #         size: "24px"
+  #         margin-right: "6px"
+
+  # macOS-style traffic light buttons (commented out)
+  # navbar:
+  #   container:
+  #     background: "linear-gradient(to bottom, #e8e8e8 0%, #d1d1d1 100%)"
+  #     border-bottom: "1px solid #b3b3b3"
+  #     padding: "8px 12px"
+  #     box-shadow: "inset 0 1px 0 rgba(255,255,255,0.5)"
+  #   progress:
+  #     show: true
+  #     color: "#4285f4"
+  #     background: "#e0e0e0"
+  #     height: "3px"
+  #   left:
+  #     - slide_first:
+  #         shape: "round"
+  #         background: "#ff5f56"
+  #         border: "0.5px solid rgba(0,0,0,0.1)"
+  #         box-shadow: "inset 0 1px 0 rgba(255,255,255,0.3), 0 1px 1px rgba(0,0,0,0.2)"
+  #         color: "transparent"
+  #         icon: ""
+  #         size: "24px"
+  #         margin-right: "8px"
+  #     - slide_previous:
+  #         shape: "round"
+  #         background: "#ffbd2e"
+  #         border: "0.5px solid rgba(0,0,0,0.1)"
+  #         box-shadow: "inset 0 1px 0 rgba(255,255,255,0.3), 0 1px 1px rgba(0,0,0,0.2)"
+  #         color: "transparent"
+  #         icon: ""
+  #         size: "24px"
+  #         margin-right: "8px"
+  #     - slide_next:
+  #         shape: "round"
+  #         background: "#27c93f"
+  #         border: "0.5px solid rgba(0,0,0,0.1)"
+  #         box-shadow: "inset 0 1px 0 rgba(255,255,255,0.3), 0 1px 1px rgba(0,0,0,0.2)"
+  #         color: "transparent"
+  #         icon: ""
+  #         size: "24px"
+  #         margin-right: "8px"
+  #   center:
+  #     - title
 }
 
 .slide{

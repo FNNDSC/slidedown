@@ -300,10 +300,7 @@ class Compiler:
         # Load HTML templates
         head_html = self.template_load('head.html')
         footer_html = self.footer_generate()
-
-        # Conditionally load navbar based on config
-        show_nav_buttons = self.config_getMerged('navigation.show_buttons', True)
-        navbar_html = self.template_load('navbar.html') if show_nav_buttons else ""
+        navbar_html = self.navbar_generate()
 
         # Generate custom CSS from .meta{css: ...}
         custom_css = self.customCSS_generate()
@@ -424,16 +421,31 @@ class Compiler:
         if not css_config or not isinstance(css_config, dict):
             return ""
 
-        # Detect format: flat (values are strings) vs nested (values are dicts)
-        # Check first value to determine format
+        # Detect format: flat (values are strings) vs nested (values are dicts/lists)
+        # Check if we have @import or any selector keys (indicates nested format)
+        # or if first value is a dict (also nested format)
+        has_selectors = any(key.startswith('.') or key.startswith('#') or
+                           key.startswith('@') or ',' in key
+                           for key in css_config.keys())
         first_value = next(iter(css_config.values()), None)
-        is_nested_format = isinstance(first_value, dict)
+        is_nested_format = has_selectors or isinstance(first_value, (dict, list))
 
         css_rules = []
+        import_statements = []
 
         if is_nested_format:
             # NESTED FORMAT: keys are selectors, values are property dicts
             for selector, properties in css_config.items():
+                # Special handling for @import
+                if selector == "@import":
+                    # Can be a single string or list of strings
+                    if isinstance(properties, str):
+                        import_statements.append(f"    @import url('{properties}');")
+                    elif isinstance(properties, list):
+                        for url in properties:
+                            import_statements.append(f"    @import url('{url}');")
+                    continue
+
                 if not isinstance(properties, dict):
                     continue
 
@@ -459,15 +471,22 @@ class Compiler:
                 properties_str = "\n".join(css_properties)
                 css_rules.append(f"    .container {{\n{properties_str}\n    }}")
 
-        if not css_rules:
+        if not css_rules and not import_statements:
             return ""
 
-        rules_str = "\n\n".join(css_rules)
+        # Build the style block
+        style_content = []
+        if import_statements:
+            style_content.append("\n".join(import_statements))
+        if css_rules:
+            style_content.append("\n\n".join(css_rules))
+
+        content_str = "\n\n".join(style_content)
 
         return f"""
     <!-- Custom CSS from .meta{{css: ...}} -->
     <style>
-{rules_str}
+{content_str}
     </style>"""
 
     def watermarks_generate(self) -> str:
@@ -632,3 +651,248 @@ class Compiler:
 
         html_parts.append('</div>')
         return '\n    '.join(html_parts)
+
+    def navbar_generate(self) -> str:
+        """
+        Generate navbar HTML from .meta{navbar: {...}} or default template.
+
+        Supports customizable navbar with:
+        - Progress bar (show/hide, styling)
+        - Title positioning (left/center/right)
+        - Button groups (left/right) with custom styling
+        - Slide counter in navbar
+
+        Returns:
+            HTML string with navbar, or default navbar.html if no config
+        """
+        navbar_config = self.meta_config.get('navbar', None)
+
+        # No navbar config → use default template
+        if not navbar_config:
+            return self.template_load('navbar.html')
+
+        # Check if navbar is disabled
+        if navbar_config.get('show', True) is False:
+            return ""
+
+        # Button type definitions with defaults
+        button_defs = {
+            'slide_first': {
+                'id': 'first',
+                'onclick': 'page.advance_toFirst()',
+                'icon': '&#xf078',  # FontAwesome chevron-down
+                'class': 'pure-button pure-button-primary fas fa-chevron-down',
+                'tooltip': 'First slide'
+            },
+            'slide_previous': {
+                'id': 'previous',
+                'onclick': 'page.advance_toPrevious()',
+                'icon': '&#xf053',  # FontAwesome chevron-left
+                'class': 'pure-button pure-button-primary fas fas-chevron-left',
+                'tooltip': 'Previous slide'
+            },
+            'slide_next': {
+                'id': 'next',
+                'onclick': 'page.advance_toNext()',
+                'icon': '&#xf054',  # FontAwesome chevron-right
+                'class': 'pure-button pure-button-primary fas fas-chevron-right',
+                'tooltip': 'Next slide'
+            },
+            'slide_last': {
+                'id': 'last',
+                'onclick': 'page.advance_toLast()',
+                'icon': '&#xf077',  # FontAwesome chevron-up
+                'class': 'pure-button pure-button-primary fas fa-chevron-up',
+                'tooltip': 'Last slide'
+            }
+        }
+
+        html_parts = []
+
+        # Wrapper div
+        html_parts.append('<div class="boxtext pure-control-group" style="margin-bottom: -3px;">')
+
+        # Progress bar
+        progress_config = navbar_config.get('progress', {})
+        if progress_config.get('show', True):
+            progress_style_parts = []
+            if 'background' in progress_config:
+                progress_style_parts.append(f"background-color: {progress_config['background']}")
+            if 'height' in progress_config:
+                progress_style_parts.append(f"height: {progress_config['height']}")
+
+            bar_style_parts = []
+            if 'color' in progress_config:
+                bar_style_parts.append(f"background-color: {progress_config['color']}")
+
+            progress_style = f' style="{"; ".join(progress_style_parts)}"' if progress_style_parts else ''
+            bar_style = f' style="{"; ".join(bar_style_parts)}"' if bar_style_parts else ''
+
+            html_parts.append(f'    <div id="slideProgress"{progress_style}>')
+            html_parts.append(f'        <div id="slideBar"{bar_style}></div>')
+            html_parts.append('    </div>')
+
+        # Navbar container with optional styling
+        container_config = navbar_config.get('container', {})
+        container_style_parts = []
+        if 'background' in container_config:
+            container_style_parts.append(f"background: {container_config['background']}")
+        if 'border' in container_config:
+            container_style_parts.append(f"border: {container_config['border']}")
+        if 'border-bottom' in container_config:
+            container_style_parts.append(f"border-bottom: {container_config['border-bottom']}")
+        if 'padding' in container_config:
+            container_style_parts.append(f"padding: {container_config['padding']}")
+        if 'box-shadow' in container_config:
+            container_style_parts.append(f"box-shadow: {container_config['box-shadow']}")
+
+        container_style = f' style="{"; ".join(container_style_parts)}"' if container_style_parts else ''
+        html_parts.append(f'    <div class="navbar-container"{container_style}>')
+
+        # Helper function to generate button HTML
+        def generate_button(button_type, config=None):
+            if button_type not in button_defs:
+                return ''
+
+            defaults = button_defs[button_type]
+            config = config or {}
+
+            # Build inline styles
+            style_parts = ['float: left']  # Default float (no semicolon - added by join)
+            if 'color' in config:
+                style_parts.append(f"color: {config['color']}")
+            if 'background' in config:
+                style_parts.append(f"background: {config['background']}")
+            if 'border' in config:
+                style_parts.append(f"border: {config['border']}")
+            if 'box-shadow' in config:
+                style_parts.append(f"box-shadow: {config['box-shadow']}")
+            if 'margin' in config:
+                style_parts.append(f"margin: {config['margin']}")
+            if 'margin-right' in config:
+                style_parts.append(f"margin-right: {config['margin-right']}")
+            if 'size' in config:
+                style_parts.append(f"width: {config['size']}")
+                style_parts.append(f"height: {config['size']}")
+            if 'shape' in config:
+                if config['shape'] == 'round':
+                    style_parts.append('border-radius: 50%')
+                    # Remove padding and center icon in circle
+                    style_parts.append('padding: 0')
+                    style_parts.append('display: inline-flex')
+                    style_parts.append('align-items: center')
+                    style_parts.append('justify-content: center')
+                elif config['shape'] == 'square':
+                    style_parts.append('border-radius: 0')
+                else:
+                    style_parts.append(f"border-radius: {config['shape']}")
+
+            style_attr = f' style="{"; ".join(style_parts)}"'
+            icon = config.get('icon', defaults['icon'])
+            tooltip = config.get('tooltip', defaults.get('tooltip', ''))
+            title_attr = f' title="{tooltip}"' if tooltip else ''
+
+            return f'''        <input  type    =  "button"
+                    onclick =  "{defaults['onclick']}"
+                    value   =  "{icon}"{style_attr}
+                    id      =  "{defaults['id']}"
+                    name    =  "{defaults['id']}"
+                    class   =  "{defaults['class']}"{title_attr}>
+            </input>'''
+
+        # Helper function to generate counter HTML
+        def generate_counter(config):
+            format_str = config.get('format', '{current} / {total}')
+            style_parts = []
+            if 'color' in config:
+                style_parts.append(f"color: {config['color']}")
+            if 'font-size' in config:
+                style_parts.append(f"font-size: {config['font-size']}")
+
+            style_attr = f' style="{"; ".join(style_parts)}"' if style_parts else ''
+
+            return f'        <span class="navbar-counter" data-template="{format_str}"{style_attr}></span>'
+
+        # Helper function to generate title HTML
+        def generate_title(config):
+            text = config.get('text', '{title}')
+            style_parts = []
+            if 'color' in config:
+                style_parts.append(f"color: {config['color']}")
+            if 'font-size' in config:
+                style_parts.append(f"font-size: {config['font-size']}")
+
+            style_attr = f' style="{"; ".join(style_parts)}"' if style_parts else ''
+
+            return f'        <div id="pageTitle" class="navbar-title"{style_attr}></div>'
+
+        # Process left zone
+        left_config = navbar_config.get('left', [])
+        for item in left_config:
+            if isinstance(item, str):
+                # Simple form: just button name
+                if item == 'slide_counter':
+                    html_parts.append(generate_counter({}))
+                elif item == 'title':
+                    html_parts.append(generate_title({}))
+                else:
+                    html_parts.append(generate_button(item))
+            elif isinstance(item, dict):
+                # Detailed form: {button_name: {config}}
+                for button_type, config in item.items():
+                    if button_type == 'slide_counter':
+                        html_parts.append(generate_counter(config))
+                    elif button_type == 'title':
+                        html_parts.append(generate_title(config))
+                    else:
+                        html_parts.append(generate_button(button_type, config))
+
+        # Process center zone
+        center_config = navbar_config.get('center', [])
+        for item in center_config:
+            if isinstance(item, str):
+                if item == 'slide_counter':
+                    html_parts.append(generate_counter({}))
+                elif item == 'title':
+                    html_parts.append(generate_title({}))
+                else:
+                    html_parts.append(generate_button(item))
+            elif isinstance(item, dict):
+                for button_type, config in item.items():
+                    if button_type == 'slide_counter':
+                        html_parts.append(generate_counter(config))
+                    elif button_type == 'title':
+                        html_parts.append(generate_title(config))
+                    else:
+                        html_parts.append(generate_button(button_type, config))
+
+        # Process right zone (buttons float right)
+        right_config = navbar_config.get('right', [])
+        for item in right_config:
+            if isinstance(item, str):
+                if item == 'slide_counter':
+                    counter_html = generate_counter({})
+                    html_parts.append(counter_html.replace('float: left', 'float: right'))
+                elif item == 'title':
+                    title_html = generate_title({})
+                    html_parts.append(title_html)  # Title doesn't float
+                else:
+                    button_html = generate_button(item)
+                    html_parts.append(button_html.replace('float: left', 'float: right'))
+            elif isinstance(item, dict):
+                for button_type, config in item.items():
+                    if button_type == 'slide_counter':
+                        counter_html = generate_counter(config)
+                        html_parts.append(counter_html.replace('float: left', 'float: right') if 'float: left' in counter_html else counter_html)
+                    elif button_type == 'title':
+                        html_parts.append(generate_title(config))
+                    else:
+                        button_html = generate_button(button_type, config)
+                        html_parts.append(button_html.replace('float: left', 'float: right'))
+
+        # Close navbar container
+        html_parts.append('    </div>')
+        html_parts.append('    <br style="clear: both;">')
+        html_parts.append('</div>')
+
+        return '\n'.join(html_parts)

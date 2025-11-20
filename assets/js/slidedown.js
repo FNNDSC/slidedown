@@ -839,31 +839,30 @@ Page.prototype = {
 
     updateFooterTemplates:              function() {
         let str_help = `
-            Update footer elements that have counter templates.
+            Update footer and navbar elements that have counter templates.
 
             Looks for elements with data-template attribute and replaces
             {current} and {total} with actual slide numbers.
         `;
 
-        // Check for custom footer elements with templates
-        let footerLeft = document.getElementById('footerLeft');
-        let footerRight = document.getElementById('footerRight');
+        // Helper function to update element with template
+        const updateCounter = (element) => {
+            if (element && element.dataset.template) {
+                let template = element.dataset.template;
+                let text = template
+                    .replace('{current}', this.currentSlide)
+                    .replace('{total}', this.l_slide.length);
+                element.innerHTML = text;
+            }
+        };
 
-        if (footerLeft && footerLeft.dataset.template) {
-            let template = footerLeft.dataset.template;
-            let text = template
-                .replace('{current}', this.currentSlide)
-                .replace('{total}', this.l_slide.length);
-            footerLeft.innerHTML = text;
-        }
+        // Update footer elements
+        updateCounter(document.getElementById('footerLeft'));
+        updateCounter(document.getElementById('footerRight'));
 
-        if (footerRight && footerRight.dataset.template) {
-            let template = footerRight.dataset.template;
-            let text = template
-                .replace('{current}', this.currentSlide)
-                .replace('{total}', this.l_slide.length);
-            footerRight.innerHTML = text;
-        }
+        // Update navbar counter elements (by class)
+        let navbarCounters = document.querySelectorAll('.navbar-counter');
+        navbarCounters.forEach(counter => updateCounter(counter));
     },
 
     // Page
