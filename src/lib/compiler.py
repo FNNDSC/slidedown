@@ -287,6 +287,278 @@ class Compiler:
 
         return result
 
+    def lcarsFrame_generate(self, content: str, navbar_html: str) -> str:
+        """
+        Generate LCARS frame structure wrapping slidedown content
+
+        Args:
+            content: Compiled slide content
+            navbar_html: Navigation HTML (will be adapted for LCARS)
+
+        Returns:
+            Content wrapped in LCARS frame HTML
+        """
+        # Get LCARS config from meta, with defaults
+        lcars_config = self.config_getMerged('lcars', {})
+        data_cascades = lcars_config.get('data_cascades', False)
+
+        # Build data cascade columns (only if enabled) - full 21-column LCARS cascade
+        cascade_html = ""
+        if data_cascades:
+            cascade_html = """
+                    <div class="data-wrapper">
+                        <div class="data-column">
+                            <div class="dc-row-1">03</div>
+                            <div class="dc-row-2">69</div>
+                            <div class="dc-row-3">84</div>
+                            <div class="dc-row-4">54</div>
+                        </div>
+                        <div class="data-column">
+                            <div class="dc-row-1">416</div>
+                            <div class="dc-row-2">508</div>
+                            <div class="dc-row-3">752</div>
+                            <div class="dc-row-4">629</div>
+                        </div>
+                        <div class="data-column">
+                            <div class="dc-row-1">397<span class="hide-data">25514862</span></div>
+                            <div class="dc-row-2">513<span class="hide-data">20259663</span></div>
+                            <div class="dc-row-3">218<span class="hide-data">57221984</span></div>
+                            <div class="dc-row-4">403<span class="hide-data">72566301</span></div>
+                        </div>
+                        <div class="data-column">
+                            <div class="dc-row-1">56</div>
+                            <div class="dc-row-2">04</div>
+                            <div class="dc-row-3">40</div>
+                            <div class="dc-row-4">35</div>
+                        </div>
+                        <div class="data-column">
+                            <div class="dc-row-1">61</div>
+                            <div class="dc-row-2">68</div>
+                            <div class="dc-row-3">47</div>
+                            <div class="dc-row-4">29</div>
+                        </div>
+                        <div class="data-column">
+                            <div class="dc-row-1 darkspace darkfont">0</div>
+                            <div class="dc-row-2 darkspace">21</div>
+                            <div class="dc-row-3 darkspace">79</div>
+                            <div class="dc-row-4 darkspace darkfont">0</div>
+                        </div>
+                        <div class="data-column">
+                            <div class="dc-row-1">81</div>
+                            <div class="dc-row-2">07</div>
+                            <div class="dc-row-3">38</div>
+                            <div class="dc-row-4">62</div>
+                        </div>
+                        <div class="data-column">
+                            <div class="dc-row-1">416</div>
+                            <div class="dc-row-2">001</div>
+                            <div class="dc-row-3">888</div>
+                            <div class="dc-row-4">442</div>
+                        </div>
+                        <div class="data-column">
+                            <div class="dc-row-1">86225514862</div>
+                            <div class="dc-row-2">31042009183</div>
+                            <div class="dc-row-3">74882306985</div>
+                            <div class="dc-row-4">54048523421</div>
+                        </div>
+                        <div class="data-column">
+                            <div class="dc-row-1">10</div>
+                            <div class="dc-row-2">80</div>
+                            <div class="dc-row-3">31</div>
+                            <div class="dc-row-4">85</div>
+                        </div>
+                        <div class="data-column">
+                            <div class="dc-row-1">87</div>
+                            <div class="dc-row-2">71</div>
+                            <div class="dc-row-3">40</div>
+                            <div class="dc-row-4">26</div>
+                        </div>
+                        <div class="data-column">
+                            <div class="dc-row-1 darkspace darkfont">0</div>
+                            <div class="dc-row-2 darkspace">56</div>
+                            <div class="dc-row-3 darkspace">28</div>
+                            <div class="dc-row-4 darkspace darkfont">0</div>
+                        </div>
+                        <div class="data-column">
+                            <div class="dc-row-1">98</div>
+                            <div class="dc-row-2">63</div>
+                            <div class="dc-row-3">52</div>
+                            <div class="dc-row-4">71</div>
+                        </div>
+                        <div class="data-column">
+                            <div class="dc-row-1">118</div>
+                            <div class="dc-row-2">270</div>
+                            <div class="dc-row-3">395</div>
+                            <div class="dc-row-4">260</div>
+                        </div>
+                        <div class="data-column">
+                            <div class="dc-row-1">65821407321</div>
+                            <div class="dc-row-2">54018820533</div>
+                            <div class="dc-row-3">27174523016</div>
+                            <div class="dc-row-4">38954062564</div>
+                        </div>
+                        <div class="data-column">
+                            <div class="dc-row-1 darkspace darkfont">0</div>
+                            <div class="dc-row-2 darkspace">99</div>
+                            <div class="dc-row-3 darkspace">10</div>
+                            <div class="dc-row-4 darkspace darkfont">0</div>
+                        </div>
+                        <div class="data-column">
+                            <div class="dc-row-1">31</div>
+                            <div class="dc-row-2">20</div>
+                            <div class="dc-row-3">57</div>
+                            <div class="dc-row-4">12</div>
+                        </div>
+                        <div class="data-column">
+                            <div class="dc-row-1">119</div>
+                            <div class="dc-row-2">570</div>
+                            <div class="dc-row-3">333</div>
+                            <div class="dc-row-4">402</div>
+                        </div>
+                        <div class="data-column">
+                            <div class="dc-row-1">8675309</div>
+                            <div class="dc-row-2">7952705</div>
+                            <div class="dc-row-3">9282721</div>
+                            <div class="dc-row-4">4981518</div>
+                        </div>
+                        <div class="data-column">
+                            <div class="dc-row-1">38</div>
+                            <div class="dc-row-2">62</div>
+                            <div class="dc-row-3">97</div>
+                            <div class="dc-row-4">42</div>
+                        </div>
+                        <div class="data-column">
+                            <div class="dc-row-1">562</div>
+                            <div class="dc-row-2">139</div>
+                            <div class="dc-row-3">716</div>
+                            <div class="dc-row-4">573</div>
+                        </div>
+                    </div>"""
+
+        # LCARS frame structure
+        lcars_html = f"""
+    <section class="wrap-all">
+        <div class="wrap">
+            <div class="scroll-top"><a id="scroll-top" href="#" onclick="scrollToTop(); return false;"><span class="hop">screen</span> top</a></div>
+            <div class="left-frame-top" id="top-frame">
+                <div class="panel-1"><span id="lcars-date"></span> <span class="hop" id="lcars-time"></span></div>
+                <div class="panel-2">SLIDE <span class="hop navbar-counter" data-template="{{current}} / {{total}}">1 / {self.slide_count}</span></div>
+            </div>
+            <div class="right-frame-top">
+                <div class="banner"><span id="pageTitle">SLIDEDOWN</span></div>
+                <div class="data-cascade-button-group">{cascade_html}
+                    <nav>
+                        <button onclick="page.advance_toPrevious()">01</button>
+                        <button onclick="page.advance_toNext()">02</button>
+                        <button onclick="page.advance_toFirst()">03</button>
+                        <button onclick="page.advance_toLast()">04</button>
+                    </nav>
+                </div>
+                <div class="bar-panel first-bar-panel">
+                    <div class="bar-1"></div>
+                    <div class="bar-2"></div>
+                    <div class="bar-3"></div>
+                    <div class="bar-4"></div>
+                    <div class="bar-5"></div>
+                </div>
+            </div>
+        </div>
+        <div class="wrap" id="gap">
+            <div class="left-frame">
+                <button onclick="toggleTopFrame(event)" id="topBtn" class="panel-button"><span class="hop">show</span> detail</button>
+                <div>
+                    <div class="panel-3">03<span class="hop">-111968</span></div>
+                    <div class="panel-4">04<span class="hop">-41969</span></div>
+                    <div class="panel-5">05<span class="hop">-1701D</span></div>
+                    <div class="panel-6">06<span class="hop">-081966</span></div>
+                </div>
+                <div>
+                    <div class="panel-7">07<span class="hop">-{self.slide_count:02d}</span></div>
+                </div>
+            </div>
+            <div class="right-frame">
+                <div class="bar-panel">
+                    <div class="bar-6"></div>
+                    <div class="bar-7"></div>
+                    <div class="bar-8"></div>
+                    <div class="bar-9"></div>
+                    <div class="bar-10"></div>
+                </div>
+                <main>
+                    {content}
+                </main>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // LCARS real-time clock
+        function updateLCARSClock() {{
+            const now = new Date();
+            const time = now.toLocaleTimeString('en-US', {{ hour12: false }});
+            const date = now.toLocaleDateString('en-US', {{
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }});
+
+            const dateEl = document.getElementById('lcars-date');
+            const timeEl = document.getElementById('lcars-time');
+
+            if (dateEl) {{
+                dateEl.textContent = date;
+            }}
+            if (timeEl) {{
+                timeEl.textContent = time;
+            }}
+        }}
+
+        // Update immediately and then every second
+        updateLCARSClock();
+        setInterval(updateLCARSClock, 1000);
+
+        // Toggle top frame visibility - frames collapse/expand naturally
+        let topFrameHidden = false;
+        function toggleTopFrame(event) {{
+            // Stop event from bubbling to slide navigation click handler
+            if (event) {{
+                event.stopPropagation();
+                event.preventDefault();
+            }}
+
+            const topFrame = document.querySelector('.left-frame-top');
+            const rightFrameTop = document.querySelector('.right-frame-top');
+            const button = document.getElementById('topBtn');
+            const buttonText = button.querySelector('.hop');
+
+            topFrameHidden = !topFrameHidden;
+
+            if (topFrameHidden) {{
+                // Collapse frames - they'll naturally slide up as height goes to 0
+                topFrame.classList.add('hidden');
+                rightFrameTop.classList.add('hidden');
+                buttonText.textContent = 'hide';
+            }} else {{
+                // Expand frames - they'll naturally slide down as height expands
+                topFrame.classList.remove('hidden');
+                rightFrameTop.classList.remove('hidden');
+                buttonText.textContent = 'show';
+            }}
+        }}
+
+        // Scroll to top function
+        function scrollToTop() {{
+            window.scrollTo({{ top: 0, behavior: 'smooth' }});
+
+            // Show top frame if it's hidden
+            if (topFrameHidden) {{
+                toggleTopFrame();
+            }}
+        }}
+    </script>"""
+
+        return lcars_html
+
     def htmlDocument_build(self, content: str) -> str:
         """
         Build complete HTML document with head, nav, footer
@@ -298,19 +570,28 @@ class Compiler:
             Complete HTML document
         """
         # Load HTML templates
-        head_html = self.template_load('head.html')
+        # Use special head template for LCARS themes to avoid CSS conflicts
+        is_lcars = self.theme.name.startswith('lcars')
+        head_template = 'head-lcars.html' if is_lcars else 'head.html'
+        head_html = self.template_load(head_template)
         footer_html = self.footer_generate()
         navbar_html = self.navbar_generate()
 
         # Generate custom CSS from .meta{css: ...}
         custom_css = self.customCSS_generate()
 
-        # Assemble document with presentation viewport wrapper
-        html = f"""<!DOCTYPE html>
-<html>
-{head_html}{custom_css}
-<body>
-    <div class="presentation-viewport">
+        # Build body content based on theme
+        if is_lcars:
+            # LCARS theme: wrap in LCARS frame structure
+            body_content = f"""    <div class="presentation-viewport">
+        <div class="metaData" id="numberOfSlides" style="display: none;">{self.slide_count}</div>
+        <div class="metaData" id="slideIDprefix" style="display: none;">slide-</div>
+
+{self.lcarsFrame_generate(f'<div class="formLayout">{content}</div>', navbar_html)}
+    </div>"""
+        else:
+            # Standard theme: use normal structure
+            body_content = f"""    <div class="presentation-viewport">
         <div class="metaData" id="numberOfSlides" style="display: none;">{self.slide_count}</div>
         <div class="metaData" id="slideIDprefix" style="display: none;">slide-</div>
 
@@ -321,7 +602,14 @@ class Compiler:
         </div>
 
         {footer_html}
-    </div>
+    </div>"""
+
+        # Assemble document
+        html = f"""<!DOCTYPE html>
+<html>
+{head_html}{custom_css}
+<body>
+{body_content}
 
     <script src="js/slidedown.js"></script>
 </body>

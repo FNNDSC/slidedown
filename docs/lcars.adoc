@@ -1,0 +1,424 @@
+= LCARS Theme Integration
+:toc:
+:toclevels: 3
+
+== Overview
+
+The LCARS (Library Computer Access/Retrieval System) theme brings the iconic Star Trek interface design to slidedown presentations. Based on the aesthetic from _Star Trek: Lower Decks_, this theme provides a complete visual transformation of your slides with authentic LCARS styling, data cascades, and interactive controls.
+
+[NOTE]
+====
+LCARS integration is "100% buy-in" - when you use this theme, slidedown's default styling is completely replaced with the LCARS interface. This ensures an authentic Star Trek experience without visual conflicts.
+====
+
+== Quick Start
+
+Compile a presentation with the LCARS theme:
+
+[source,bash]
+----
+slidedown presentation.sd --theme lcars-lower-decks
+----
+
+Or use the Makefile:
+
+[source,bash]
+----
+make presentation SOURCE=examples/lcars-demo/lcars-test.sd THEME=lcars-lower-decks
+----
+
+== LCARS Interface Components
+
+=== Top Frame
+
+The top frame contains the primary LCARS interface elements:
+
+==== Left Panels
+
+**Panel 1: Date/Time Display**
+
+* Shows current date (e.g., "11/20/2025")
+* Shows current time in 24-hour format (e.g., "15:37:11")
+* Updates every second
+* Stacked vertically with date above time
+
+**Panel 2: Slide Counter**
+
+* Format: "SLIDE X / Y" (e.g., "SLIDE 1 / 3")
+* Updates automatically as you navigate
+* Uses slidedown's template system for dynamic updates
+
+==== Right Frame
+
+**Banner**
+
+* Displays page title from slide metadata
+* Shows "SLIDEDOWN" by default
+
+**Data Cascades**
+
+* 21 columns of animated LCARS data
+* Includes special classes:
+  - `hide-data`: Data that appears/disappears
+  - `darkspace`: Dark background cells
+  - `darkfont`: Dark text cells
+* Easter egg: Contains "8675309" reference
+
+**Navigation Buttons**
+
+* 01: Previous slide
+* 02: Next slide
+* 03: First slide
+* 04: Last slide
+
+**Separator Bars**
+
+* 5 horizontal bars (bar-1 through bar-5)
+* Smooth rounded corners using radial gradients
+* Fixed z-index for proper layering
+
+=== Lower Frame
+
+==== Left Panels
+
+**"SHOW DETAIL" / "HIDE DETAIL" Toggle Button**
+
+* Collapses/expands the top frame
+* Text changes based on state:
+  - "SHOW DETAIL": Top frame is hidden
+  - "HIDE DETAIL": Top frame is visible
+* Smooth animation (500ms transition)
+* Click is isolated - won't trigger slide navigation
+
+**LCARS Data Panels**
+
+* Panel 3: `03-111968`
+* Panel 4: `04-41969`
+* Panel 5: `05-1701D`
+* Panel 6: `06-081966`
+* Panel 7: `07-XX` (where XX is the slide count)
+
+==== Right Frame
+
+**Separator Bars**
+
+* 5 horizontal bars (bar-6 through bar-10)
+* Match top frame styling
+
+**Main Content Area**
+
+* Displays your slide content
+* Transparent background
+* LCARS typography (Antonio font)
+* Orange text color (#f91)
+
+=== "SCREEN TOP" Button
+
+* Fixed position (top-left corner)
+* Scrolls smoothly to top of page
+* Restores top frame if hidden
+* Always accessible for quick navigation
+
+== LCARS-Specific Features
+
+=== Frame Toggle Animation
+
+The "SHOW DETAIL" / "HIDE DETAIL" button provides a unique slidedown effect:
+
+**Hiding the top frame:**
+
+1. Top frame collapses (`max-height: 0`)
+2. Lower frame naturally slides up to fill space
+3. Provides maximum screen real estate for slide content
+
+**Showing the top frame:**
+
+1. Top frame expands (`max-height: 100vh`)
+2. Lower frame naturally slides down
+3. Full LCARS interface restored
+
+[TIP]
+====
+This feature is particularly useful for:
+
+* Content-heavy slides that need more space
+* Focusing audience attention on slide content
+* Toggling between "presentation mode" and "content mode"
+====
+
+=== Typography
+
+The LCARS theme uses the **Antonio font family** from Google Fonts, the official LCARS typography:
+
+* Loaded via `<link>` tags (not `@font-face`)
+* Fallbacks: Arial Narrow, Avenir Next Condensed
+* Applied to all text elements
+* Bold weight for interface elements
+
+=== Color Scheme
+
+LCARS uses CSS custom properties for consistent theming:
+
+* `--panel-1-color`: First panel background
+* `--panel-2-color`: Second panel background
+* `--panel-3-color`: Third panel background (toggle button)
+* `--font-color`: Main text color (#f91 orange)
+* `--light-color`: Heading color (#fec)
+* `--left-frame-top-color`: Top frame background
+* `--panel-border`: Panel separator lines
+
+=== Viewport Handling
+
+Unlike standard slidedown themes, LCARS uses full viewport width:
+
+* No 2560x1440 fixed scaling
+* Responsive design that adapts to any screen size
+* `transform: none` on presentation viewport
+* Width: 100% for all wrapping elements
+
+== Configuration
+
+=== Theme Metadata
+
+Add LCARS configuration to your `.meta{}` block:
+
+[source]
+----
+.meta{
+  title: "My LCARS Presentation"
+  lcars: {
+    data_cascades: true
+    audio_beeps: false
+  }
+}
+----
+
+**Options:**
+
+* `data_cascades`: Enable/disable 21-column data cascade (default: true)
+* `audio_beeps`: Reserved for future LCARS sound effects (not yet implemented)
+
+=== Custom Head Template
+
+LCARS uses a special head template (`head-lcars.html`) that:
+
+* Excludes slidedown.css to avoid style conflicts
+* Loads Antonio font from Google Fonts
+* Includes only theme.css for pure LCARS styling
+* Uses minimal JavaScript (jQuery for slidedown.js compatibility)
+
+== Technical Implementation
+
+=== File Structure
+
+----
+slidedown/
+├── assets/
+│   └── html/
+│       └── head-lcars.html          # Custom head template
+├── src/
+│   └── lib/
+│       └── compiler.py              # LCARS frame generation
+├── themes/
+│   └── lcars-lower-decks/
+│       ├── theme.css                # 34KB LCARS CSS + adapter rules
+│       └── theme.yaml               # Theme metadata
+└── examples/
+    └── lcars-demo/
+        └── lcars-test.sd            # Demo presentation
+----
+
+=== Compiler Integration
+
+The `lcarsFrame_generate()` method in `compiler.py` wraps slidedown content in LCARS structure:
+
+[source,python]
+----
+def lcarsFrame_generate(self, content: str, navbar_html: str) -> str:
+    """Generate LCARS frame structure wrapping slidedown content"""
+    # Build data cascades if enabled
+    # Create scroll-top button
+    # Build left-frame-top with panels 1-2
+    # Build right-frame-top with banner, cascades, nav
+    # Build lower frame with toggle button and panels 3-7
+    # Wrap content in LCARS structure
+    # Add JavaScript for clock and toggle
+----
+
+=== CSS Architecture
+
+**Base LCARS CSS (from thelcars.com)**
+
+* Original Lower Decks theme (lines 1-1860)
+* Defines LCARS layout, colors, typography
+* Includes animations for data cascades
+
+**Slidedown Adapter CSS (lines 1861+)**
+
+* Resets conflicting slidedown defaults
+* Fixes viewport scaling
+* Adds panel-1 and panel-2 styling (not in original)
+* Implements frame toggle animations
+* Fixes z-index issues for proper layering
+
+=== JavaScript Features
+
+**Real-time Clock**
+
+* Updates every 1000ms (1 second)
+* Uses `toLocaleTimeString()` for time
+* Uses `toLocaleDateString()` for date
+* Formats in 24-hour time
+
+**Frame Toggle**
+
+* Toggles `.hidden` class on top frames
+* Prevents event propagation to slide navigation
+* CSS transitions handle collapse/expand animation
+* No manual scrolling required
+
+**Scroll to Top**
+
+* Smooth scroll to viewport top
+* Restores top frame if hidden
+* Always available via fixed button
+
+== Best Practices
+
+=== Content Guidelines
+
+**Do:**
+
+* Keep text concise - LCARS UI takes significant space
+* Use headings for structure
+* Leverage the toggle for content-heavy slides
+* Test with different viewport sizes
+
+**Don't:**
+
+* Overload slides with too much text
+* Use images larger than the content area
+* Expect traditional slide deck proportions
+* Rely on default slidedown styling
+
+=== Navigation
+
+**Recommended flow:**
+
+1. Start with top frame visible (full LCARS experience)
+2. Use toggle to hide frame for detailed content
+3. Navigate slides with mouse click or nav buttons
+4. Use "SCREEN TOP" to quickly return to beginning
+
+**Mouse navigation:**
+
+* Left half of screen: Previous slide (or snippet)
+* Right half of screen: Next slide (or snippet)
+* LCARS buttons: Isolated from mouse navigation
+
+=== Accessibility
+
+The LCARS theme maintains slidedown's keyboard navigation:
+
+* Arrow keys: Navigate slides/snippets
+* Mouse wheel: Scroll content (doesn't navigate)
+* Click navigation: Works except on LCARS buttons
+
+== Differences from Standard Slidedown
+
+[cols="1,1,1"]
+|===
+|Feature |Standard Slidedown |LCARS Theme
+
+|Viewport
+|Fixed 2560x1440 with scaling
+|Full responsive width
+
+|Typography
+|System fonts
+|Antonio font (Google Fonts)
+
+|Navigation
+|Footer navbar
+|LCARS nav buttons (01-04)
+
+|Slide Counter
+|Footer display
+|Panel-2 with template
+
+|CSS
+|slidedown.css + theme.css
+|theme.css only
+
+|Layout
+|Centered content
+|Full-width LCARS frame
+
+|Color Scheme
+|Theme-dependent
+|LCARS orange/tan palette
+
+|Toggle Feature
+|Not available
+|Show/Hide Detail button
+|===
+
+== Troubleshooting
+
+=== Clock Not Updating
+
+**Problem:** Date/time displays but doesn't update.
+
+**Solution:** Check JavaScript console for errors. Ensure `lcars-date` and `lcars-time` elements exist.
+
+=== Navigation Conflicts
+
+**Problem:** Clicking LCARS buttons navigates slides.
+
+**Solution:** Ensure event propagation is stopped (`event.stopPropagation()`). Check compiler.py line ~522.
+
+=== Top Frame Won't Toggle
+
+**Problem:** "SHOW DETAIL" button doesn't collapse frame.
+
+**Solution:** Verify `.hidden` class CSS rules. Check for conflicting `max-height` or `overflow` rules.
+
+=== Font Not Loading
+
+**Problem:** Text appears in fallback font (Arial Narrow).
+
+**Solution:**
+
+1. Check network tab for font loading errors
+2. Verify `head-lcars.html` includes Google Fonts `<link>` tags
+3. Ensure no `@font-face` rules conflict
+
+=== Panels Not Separated
+
+**Problem:** Panel-1 and Panel-2 appear as one block.
+
+**Solution:** Check CSS for `.panel-1` and `.panel-2` rules with distinct `background-color` and `border-bottom`.
+
+== Future Enhancements
+
+Potential additions to the LCARS theme:
+
+* **Audio beeps**: LCARS-authentic button sounds
+* **Stardate**: Display stardate instead of Earth date
+* **Animated transitions**: Slide transitions with LCARS effects
+* **Multiple color schemes**: TNG, DS9, Voyager variants
+* **MCP server integration**: Real-time data in cascades
+* **Voice control**: "Computer, next slide"
+
+== Credits
+
+* **LCARS CSS Framework**: https://www.thelcars.com
+* **LCARS Designer**: Michael Okuda (original Star Trek graphics)
+* **Antonio Font**: Google Fonts
+* **Star Trek**: CBS Studios Inc.
+* **Slidedown**: https://github.com/rudolphpienaar/slidedown
+
+[NOTE]
+====
+STAR TREK® and related marks are trademarks of CBS Studios Inc. This integration is a fan project and is not affiliated with CBS Studios Inc.
+====

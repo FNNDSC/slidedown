@@ -1,0 +1,111 @@
+/*
+ * LCARS-Slidedown Adapter CSS
+ *
+ * This file adapts slidedown's HTML structure to work with LCARS theme CSS.
+ * It maps slidedown's classes to LCARS classes and adds necessary wrapper elements via CSS.
+ */
+
+/* Map slidedown viewport to LCARS wrap structure */
+.presentation-viewport {
+    /* LCARS expects a dark background */
+    background: #000;
+    min-height: 100vh;
+}
+
+/* Hide slidedown's default navbar - we'll use LCARS top panels instead */
+.boxtext {
+    display: none !important;
+}
+
+/* Hide slidedown's default footer - LCARS has its own */
+.footer-bar {
+    display: none !important;
+}
+
+/* Create LCARS frame structure around slidedown content */
+.formLayout {
+    /* This becomes the LCARS main content area */
+    background: #000;
+    color: var(--font-color, #f91);
+    padding: 2rem;
+    min-height: 80vh;
+}
+
+/* Style individual slides to fit LCARS aesthetic */
+.formLayout .slide {
+    /* LCARS content styling */
+    background: transparent;
+    border: none;
+    padding: 1rem 0;
+}
+
+/* Apply LCARS typography to slides */
+.formLayout h1 {
+    color: var(--h1-color, #fc9);
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.formLayout h2 {
+    color: var(--h2-color, #fc9);
+    font-size: 2rem;
+    margin-bottom: 0.8rem;
+}
+
+.formLayout h3 {
+    color: var(--h3-color, #fc9);
+    font-size: 1.5rem;
+    margin-bottom: 0.6rem;
+}
+
+.formLayout p {
+    color: var(--font-color, #f91);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.formLayout code {
+    color: var(--code-color, #f40);
+    background: rgba(255, 153, 0, 0.1);
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+}
+
+/* Style slidedown's snippet (progressive reveal) items */
+.formLayout .snippet {
+    color: var(--font-color, #f91);
+    margin-left: 2rem;
+    margin-bottom: 0.5rem;
+    position: relative;
+}
+
+.formLayout .snippet::before {
+    content: "•";
+    position: absolute;
+    left: -1.5rem;
+    color: var(--font-color, #f91);
+    font-size: 1.2rem;
+}
+
+/* Strong and emphasis styling */
+.formLayout strong {
+    color: var(--light-color, #fec);
+    font-weight: bold;
+}
+
+.formLayout em {
+    color: var(--accent-color, #fc9);
+    font-style: italic;
+}
+
+/* LCARS-specific overrides for better integration */
+body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+/* Ensure LCARS CSS variables are available */
+:root {
+    /* These are defined in theme.css but we ensure they're present */
+}

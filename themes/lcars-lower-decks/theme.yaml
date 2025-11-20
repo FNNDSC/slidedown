@@ -1,0 +1,63 @@
+name: "LCARS Lower Decks"
+description: "Star Trek LCARS interface theme - Lower Decks variant with warm orange palette"
+author: "slidedown team (CSS by Jim Robertus @ thelcars.com)"
+version: "1.0"
+
+# Color palette - LCARS Lower Decks orange/autumn theme
+colors:
+  background: "#000000"
+  foreground: "#fc9"  # honey
+  accent: "#f91"  # daybreak
+  code_bg: "#1a1a1a"
+
+# Typography - LCARS uses specific fonts
+fonts:
+  body:
+    family: "sans-serif"  # LCARS uses system sans-serif
+    size: "1.375rem"
+    line_height: "1.5"
+  code:
+    family: "monospace"
+    size: "1rem"
+
+# Layout - LCARS has specific dimensions
+layout:
+  slide_padding: "20px"
+  viewport_width: "2560px"
+  viewport_height: "1440px"
+
+# Header/Footer
+header:
+  enabled: true  # LCARS uses top panels
+
+footer:
+  enabled: true
+  height: "40px"
+  show_navigation: true
+  show_page_numbers: true
+
+# Navigation buttons
+navigation:
+  button_style: "lcars"  # LCARS-specific button style
+  position: "top"  # LCARS navbar is at top
+
+# Slide master
+slide_master:
+  background:
+    color: "#000000"
+  watermarks: []
+
+# Code highlighting
+code:
+  pygments_style: "monokai"
+  show_line_numbers: false
+
+# Effects
+effects:
+  typewriter_speed: 40
+
+# LCARS-specific settings
+lcars:
+  data_cascades: false  # Optional animated data columns
+  audio_beeps: true  # Button click sounds
+  variant: "lower-decks"  # Theme variant

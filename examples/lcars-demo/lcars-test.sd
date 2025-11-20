@@ -1,0 +1,44 @@
+.meta{
+  title: "LCARS Test"
+  author: "Slidedown"
+  lcars: {
+    data_cascades: true
+  }
+}
+
+.slide{
+  .title{First Slide}
+  .body{
+    .h1{LCARS Lower Decks Theme}
+
+    Testing the LCARS integration with slidedown.
+
+    .o{Progressive reveal bullets}
+    .o{Should work normally}
+    .o{With LCARS styling}
+  }
+}
+
+.slide{
+  .title{Second Slide}
+  .body{
+    .h2{Navigation Test}
+
+    Use the navbar to navigate between slides.
+
+    The LCARS theme should wrap around this content.
+  }
+}
+
+.slide{
+  .title{Third Slide}
+  .body{
+    .h2{Typography Test}
+
+    <p>This is a paragraph with normal text flow. It should have LCARS styling applied.</p>
+
+    .bf{Bold text} and .em{italic text} formatting.
+
+    .code{inline code example}
+  }
+}
