@@ -244,11 +244,71 @@ slidedown inputdir/ outputdir/ --inputFile presentation.sd
 pytest
 ```
 
+## Advanced Customization
+
+### Navbar Customization
+
+Customize the navigation bar with `.meta{navbar: ...}`:
+
+```yaml
+.meta{
+  navbar:
+    container:
+      background: "#2d2d2d"
+      border-bottom: "1px solid #1a1a1a"
+      padding: "6px 8px"
+    progress:
+      show: true
+      color: "#fb8500"
+      background: "#4a4a4a"
+      height: "3px"
+    left:
+      - title:
+          color: "#f0f0f0"
+    right:
+      - slide_previous:
+          shape: "round"
+          background: "rgba(255,255,255,0.1)"
+          icon: "&#xf053"
+          size: "28px"
+      - slide_next:
+          shape: "round"
+          background: "rgba(255,255,255,0.1)"
+          icon: "&#xf054"
+          size: "28px"
+}
+```
+
+**Container options:**
+- `background`, `border`, `border-bottom`, `padding`, `box-shadow`
+
+**Button options:**
+- `shape`: "round", "square", or custom border-radius
+- `size`: width/height (e.g., "24px")
+- `color`: text/icon color
+- `background`: button background
+- `border`: border styling
+- `box-shadow`: shadow effects
+- `margin`, `margin-right`: spacing
+- `icon`: FontAwesome HTML entity or empty string
+- `tooltip`: hover text
+
+**Available buttons:**
+- `slide_first`, `slide_previous`, `slide_next`, `slide_last`
+- `slide_counter`: dynamic counter with `format: "{current}/{total}"`
+- `title`: slide title display with `color` option
+
+**Layout zones:**
+- `left`, `center`, `right`: position elements in navbar
+
+See `examples/watermarked/light-watermarks-demo.sd` for macOS and GNOME-style examples.
+
 ## Status
 
 - Parser: Working
 - Compiler: Working
 - CLI: Working
 - Browser effects: Debugging in progress
+- Navbar customization: Working
 
 See issues for current development status.
