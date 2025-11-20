@@ -920,6 +920,275 @@ The flat format is **fully backward compatible**. Existing presentations using f
 }
 ----
 
+=== Navbar Customization
+
+The `.meta{}` directive supports comprehensive navbar customization, allowing you to create custom window-style navigation bars.
+
+==== Basic Navbar Structure
+
+The navbar customization system provides control over three areas:
+
+* **Container**: The navbar wrapper (background, borders, padding)
+* **Progress bar**: Optional slide progress indicator
+* **Layout zones**: Left, center, and right positioning areas
+
+==== Simple Example
+
+[source,slidedown]
+----
+.meta{
+  navbar:
+    progress:
+      show: true
+      color: "#4285f4"
+      background: "#e0e0e0"
+      height: "4px"
+    left:
+      - slide_previous
+      - slide_first
+    center:
+      - title
+    right:
+      - slide_last
+      - slide_next
+}
+----
+
+==== Container Styling
+
+Style the navbar container to create window titlebar effects:
+
+[source,slidedown]
+----
+.meta{
+  navbar:
+    container:
+      background: "#2d2d2d"
+      border-bottom: "1px solid #1a1a1a"
+      padding: "6px 8px"
+      box-shadow: "inset 0 1px 0 rgba(255,255,255,0.5)"
+}
+----
+
+**Available container properties:**
+
+* `background` - Background color or gradient
+* `border` - Full border styling
+* `border-bottom` - Bottom border only
+* `padding` - Internal spacing
+* `box-shadow` - Shadow effects
+
+==== Button Customization
+
+Each button can be fully customized:
+
+[source,slidedown]
+----
+.meta{
+  navbar:
+    right:
+      - slide_next:
+          shape: "round"
+          size: "28px"
+          background: "#5294e2"
+          border: "1px solid #4a85d4"
+          color: "#ffffff"
+          icon: "&#xf054"
+          margin-right: "6px"
+          tooltip: "Next slide"
+}
+----
+
+**Available button properties:**
+
+* `shape` - "round", "square", or custom border-radius value
+* `size` - Width and height (e.g., "24px", "32px")
+* `background` - Background color or gradient
+* `border` - Border styling
+* `box-shadow` - Shadow effects for 3D appearance
+* `color` - Icon/text color
+* `icon` - FontAwesome HTML entity (e.g., "&#xf053") or empty string
+* `margin` - All-sides margin
+* `margin-right` - Right margin for spacing between buttons
+* `tooltip` - Hover text
+
+**Available button types:**
+
+* `slide_first` - Jump to first slide
+* `slide_previous` - Previous slide
+* `slide_next` - Next slide
+* `slide_last` - Jump to last slide
+* `slide_counter` - Dynamic counter display
+* `title` - Slide title display
+
+==== Dynamic Slide Counter
+
+Add a live-updating slide counter to the navbar:
+
+[source,slidedown]
+----
+.meta{
+  navbar:
+    left:
+      - slide_counter:
+          format: "{current}/{total}"
+          color: "#666"
+          font-size: "14px"
+}
+----
+
+The `{current}` and `{total}` placeholders are automatically replaced with actual slide numbers as you navigate.
+
+==== Title Display
+
+Display the current slide title in the navbar:
+
+[source,slidedown]
+----
+.meta{
+  navbar:
+    left:
+      - title:
+          color: "#f0f0f0"
+          font-size: "16px"
+}
+----
+
+TIP: When using dark navbar backgrounds, set the title color to a light value for readability.
+
+==== OS-Style Examples
+
+**macOS Traffic Lights:**
+
+[source,slidedown]
+----
+.meta{
+  navbar:
+    container:
+      background: "linear-gradient(to bottom, #e8e8e8 0%, #d1d1d1 100%)"
+      border-bottom: "1px solid #b3b3b3"
+      padding: "8px 12px"
+      box-shadow: "inset 0 1px 0 rgba(255,255,255,0.5)"
+    left:
+      - slide_first:
+          shape: "round"
+          background: "#ff5f56"
+          border: "0.5px solid rgba(0,0,0,0.1)"
+          box-shadow: "inset 0 1px 0 rgba(255,255,255,0.3), 0 1px 1px rgba(0,0,0,0.2)"
+          color: "transparent"
+          icon: ""
+          size: "24px"
+          margin-right: "8px"
+      - slide_previous:
+          shape: "round"
+          background: "#ffbd2e"
+          # ... yellow button styling
+      - slide_next:
+          shape: "round"
+          background: "#27c93f"
+          # ... green button styling
+    center:
+      - title
+}
+----
+
+**GNOME/Linux Style:**
+
+[source,slidedown]
+----
+.meta{
+  navbar:
+    container:
+      background: "#2d2d2d"
+      border-bottom: "1px solid #1a1a1a"
+      padding: "6px 8px"
+    left:
+      - title:
+          color: "#f0f0f0"
+    right:
+      - slide_previous:
+          shape: "round"
+          background: "rgba(255,255,255,0.1)"
+          border: "1px solid rgba(0,0,0,0.2)"
+          color: "#d3d3d3"
+          icon: "&#xf068"
+          size: "24px"
+      - slide_next:
+          shape: "round"
+          background: "rgba(255,255,255,0.1)"
+          # ... similar styling
+}
+----
+
+==== Layout Zones
+
+Arrange elements in three horizontal zones:
+
+* `left` - Left-aligned elements
+* `center` - Center-aligned elements
+* `right` - Right-aligned elements
+
+Elements are listed in order and rendered sequentially within their zone.
+
+==== Progress Bar Options
+
+[source,slidedown]
+----
+.meta{
+  navbar:
+    progress:
+      show: true              # Show/hide the progress bar
+      color: "#fb8500"        # Progress fill color
+      background: "#4a4a4a"   # Track background color
+      height: "3px"           # Bar height
+}
+----
+
+Set `show: false` to completely hide the progress bar.
+
+==== Disabling the Navbar
+
+To hide the navbar entirely:
+
+[source,slidedown]
+----
+.meta{
+  navbar:
+    show: false
+}
+----
+
+==== Best Practices
+
+**Icon Selection:**
+
+Use FontAwesome HTML entities for icons. Common ones:
+
+* `&#xf053` - Left chevron (previous)
+* `&#xf054` - Right chevron (next)
+* `&#xf078` - Down chevron (first)
+* `&#xf077` - Up chevron (last)
+* `&#xf00d` - X (close)
+* `&#xf068` - Minus (minimize)
+* `&#xf0c8` - Square (maximize)
+
+**Button Sizing:**
+
+* Small controls: 20-24px
+* Standard controls: 28-32px
+* Large controls: 36-40px
+
+**Color Coordination:**
+
+Match navbar container background with title text color for readability:
+
+* Dark backgrounds (#2d2d2d) → Light text (#f0f0f0)
+* Light backgrounds (#e8e8e8) → Dark text (#333333)
+
+**Round Button Centering:**
+
+Round buttons automatically use flexbox centering for icons. No additional styling needed.
+
 == Common Pitfalls
 
 === Empty Directives Break JavaScript
