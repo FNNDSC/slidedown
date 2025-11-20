@@ -304,6 +304,119 @@ def factorial(n):
 * *Leading newlines:* The compiler handles them, don't worry about extra whitespace
 * *Long lines:* Code blocks scroll horizontally automatically
 
+=== Overriding Theme Styles with `.style{}`
+
+Themes apply default CSS styling to code elements, but you can override these styles using the `.style{}` modifier. The compiler automatically adds `!important` to ensure your custom styles take precedence.
+
+==== The Problem: Theme CSS Conflicts
+
+Each theme defines default styling for code elements. For example, the **conventional-light** theme uses:
+
+[source,css]
+----
+.slide pre code {
+  color: #212121;  /* Dark gray text */
+}
+----
+
+The **terminal** theme uses:
+
+[source,css]
+----
+.slide pre code {
+  color: #d4d4d4;  /* Light gray text */
+}
+----
+
+If you try to create a black terminal-style code block with white text in the light theme, the theme's default dark text color would normally override your custom styling.
+
+==== The Solution: `.style{}` with Automatic `!important`
+
+Use `.code{.style{...}}` to apply custom CSS that automatically overrides theme defaults:
+
+[source,slidedown]
+----
+.code{.style{color: white; background: black; padding: 8px;}
+  $> ./slideshow presentation.sd --theme conventional-light
+}
+----
+
+**What happens:**
+
+1. The `.style{color: white; background: black; padding: 8px;}` is parsed
+2. The compiler automatically adds `!important` to each CSS property
+3. Generated HTML: `<code style="color: white !important; background: black !important; padding: 8px !important">...</code>`
+4. The `!important` flag forces your styles to override the theme's CSS rules
+
+==== Typewriter Code Blocks with Custom Styling
+
+This pattern is especially useful for typewriter effects displaying terminal commands:
+
+[source,slidedown]
+----
+.typewriter{.style{background: black; padding: 8px; border-radius: 4px;}
+  .code{.style{color: white;}
+    $> npm install slidedown
+  }
+}
+----
+
+**Breakdown:**
+
+* `.typewriter{.style{...}}` - Styles the `<pre>` container (black background, padding, rounded corners)
+* `.code{.style{color: white;}...}` - Styles the `<code>` element with white text
+* The `!important` ensures white text overrides the theme's default code color
+* Result: Terminal-style command block with white text on black background
+
+**Generated HTML:**
+
+[source,html]
+----
+<pre id="typewriter-1" style="background: black; padding: 8px; border-radius: 4px"
+     data-text="<code style='color: white !important'>$> npm install slidedown</code>">
+</pre>
+----
+
+==== Why `!important` is Automatic
+
+CSS specificity rules mean that class selectors like `.slide pre code` can override inline styles in certain contexts. By automatically adding `!important`, slidedown ensures that:
+
+* User-defined `.style{}` modifiers always take precedence
+* You don't need to remember to add `!important` manually
+* Your styling works consistently across all themes
+* The intent is clear: custom styles override theme defaults
+
+==== Examples Across Different Contexts
+
+**Inline code with custom styling:**
+
+[source,slidedown]
+----
+Use .code{.style{color: #ff0000; font-weight: bold;}ERROR} for errors
+----
+
+**Code block with custom background:**
+
+[source,slidedown]
+----
+.code{.style{background: #2d2d2d; color: #f8f8f2; padding: 1em;}
+  function hello() {
+    console.log("Custom styled code");
+  }
+}
+----
+
+**Terminal-style typewriter:**
+
+[source,slidedown]
+----
+.typewriter{.style{background: #1e1e1e; color: #00ff00; font-family: 'Courier New';}
+  .code{> System initialized successfully}
+}
+----
+
+TIP: The `.style{}` modifier works on **any directive** that generates HTML elements, not just `.code{}`. Use it wherever you need to override theme defaults.
+
 == Layout and Spacing
 
 === Column Layouts

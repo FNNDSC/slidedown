@@ -481,6 +481,13 @@ class DirectiveRegistry:
             else:
                 # INLINE CODE (no syntax highlighting, just <code> tag)
                 style = node.modifiers.get('style', '')
+                # Add !important to each CSS property to override theme styles
+                if style:
+                    # Split by semicolon, add !important to each property
+                    properties = [p.strip() for p in style.split(';') if p.strip()]
+                    important_props = [f'{p} !important' if '!important' not in p else p
+                                       for p in properties]
+                    style = '; '.join(important_props)
                 style_attr = f' style="{style}"' if style else ''
                 return f'<code{style_attr}>{node.content}</code>'
 

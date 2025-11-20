@@ -24,11 +24,12 @@
   .title{Slidedown - a new way for making slide decks!}
   .body{
     .h1{Welcome to Slidedown!}
-
+    \\
     Have you ever wanted to make slides... .tt{.bf{in text}}?\\
     Well want no more! Slidedown - the premier text-first\\
     presentation framework with bahvioral markup is here!\\
-
+    \\
+    \\
     .o{• Text-first authoring with plain .tt{.sd} files}
     .o{• Behavioral markup drives effects (no JS editing needed)}
     .o{• Standalone HTML output with embedded assets}
@@ -104,7 +105,7 @@
     .typewriter{\> Columns, widths, and alignment}
     .column{.style{width=45%}
       .bf{Left}
-      .o{• Aligned via .tt{.style{align=left;}}}
+      .o{• Aligned via .tt{\.style\{align=left;\}}}
       .o{• Useful for text + code}
     }
     .column{.style{width=55%}
@@ -127,6 +128,6 @@ def inside_out(nodes):
     .o{• Watermarks: bottom-right slidedown-light, top-left ChRONOS}
     .o{• CSS/JS assets copied alongside .tt{index.html}}
     .o{• Use .tt{.meta{}} to override theme config and add watermarks}
-    .typewriter{\> Run: ./slideshow examples/watermarked/light-watermarks-demo.sd --theme conventional-light}
+    .typewriter{.style{background: black; padding: 8px; border-radius: 4px;}.code{.style{color: white;}$\> ./slideshow examples/watermarked/light-watermarks-demo.sd --theme conventional-light}}
   }
 }
