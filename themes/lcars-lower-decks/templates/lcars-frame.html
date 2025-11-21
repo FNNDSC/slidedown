@@ -1,0 +1,55 @@
+    <section class="wrap-all">
+        <div class="wrap">
+            <div class="scroll-top"><a id="scroll-top" href="#" onclick="scrollToTop(); return false;"><span class="hop">screen</span> top</a></div>
+            <div class="left-frame-top" id="top-frame">
+                <div class="panel-1"><span id="lcars-date"></span> <span class="hop" id="lcars-time"></span></div>
+                <div class="panel-2">SLIDE <span class="hop navbar-counter" data-template="{{current}} / {{total}}">1 / {slide_count}</span></div>
+            </div>
+            <div class="right-frame-top">
+                <div class="banner"><span id="pageTitle">{title}</span></div>
+                <div class="data-cascade-button-group">{cascade_html}
+                    <nav>
+                        <button onclick="page.advance_toPrevious()">01</button>
+                        <button onclick="page.advance_toNext()">02</button>
+                        <button onclick="page.advance_toFirst()">03</button>
+                        <button onclick="page.advance_toLast()">04</button>
+                    </nav>
+                </div>
+                <div class="bar-panel first-bar-panel">
+                    <div class="bar-1"></div>
+                    <div class="bar-2"></div>
+                    <div class="bar-3"></div>
+                    <div class="bar-4"></div>
+                    <div class="bar-5"></div>
+                </div>
+            </div>
+        </div>
+        <div class="wrap" id="gap">
+            <div class="left-frame">
+                <button onclick="toggleTopFrame(event)" id="topBtn" class="panel-button"><span class="hop">show</span> detail</button>
+                <div>
+                    <div class="panel-3">03<span class="hop">-111968</span></div>
+                    <div class="panel-4">04<span class="hop">-41969</span></div>
+                    <div class="panel-5">05<span class="hop">-1701D</span></div>
+                    <div class="panel-6">06<span class="hop">-081966</span></div>
+                </div>
+                <div>
+                    <div class="panel-7">07<span class="hop">-{slide_count:02d}</span></div>
+                </div>
+            </div>
+            <div class="right-frame">
+                <div class="bar-panel">
+                    <div class="bar-6"></div>
+                    <div class="bar-7"></div>
+                    <div class="bar-8"></div>
+                    <div class="bar-9"></div>
+                    <div class="bar-10"></div>
+                </div>
+                <main>
+                    {content}
+                </main>
+            </div>
+        </div>
+    </section>
+
+    <script src="js/lcars-scripts.js"></script>
