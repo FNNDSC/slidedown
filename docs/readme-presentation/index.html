@@ -26,7 +26,7 @@
 
 <body>
     <div class="presentation-viewport">
-        <div class="metaData" id="numberOfSlides" style="display: none;">12</div>
+        <div class="metaData" id="numberOfSlides" style="display: none;">16</div>
         <div class="metaData" id="slideIDprefix" style="display: none;">slide-</div>
 
         
@@ -88,10 +88,39 @@
 
         <div class="formLayout">
             
+
                 <div id="slide-1-title" style="display: none;">
-                    What is slidedown?
+                    SLIDEDOWN
                 </div>
                 <div class="container slide" id="slide-1" name="slide-1" style="display:none;">
+                    
+                    
+  
+  
+    <pre> ____  _     ___ ____  _____ ____   _____        ___   _ 
+/ ___|| |   |_ _|  _ \| ____|  _ \ / _ \ \      / / \ | |
+\___ \| |    | || | | |  _| | | | | | | \ \ /\ / /|  \| |
+ ___) | |___ | || |_| | |___| |_| | |_| |\ V  V / | |\  |
+|____/|_____|___|____/|_____|____/ \___/  \_/\_/  |_| \_|
+                                                         
+</pre>
+
+    Text-first presentation compiler with behavioral markup
+
+    <strong>📊 View as Interactive Presentation:</strong>
+    https://fnndsc.github.io/slidedown/readme-presentation/
+
+    <div class="snippet" id="order-1-1">Documentation: docs/</div>
+    <div class="snippet" id="order-1-2">Examples: examples/</div>
+  
+
+                </div>
+            
+
+                <div id="slide-2-title" style="display: none;">
+                    What is slidedown?
+                </div>
+                <div class="container slide" id="slide-2" name="slide-2" style="display:none;">
                     
                     
   
@@ -103,24 +132,24 @@
     slidedown is a LaTeX-inspired markup language for creating
     interactive HTML presentations from plain text.
 
-    <div class="snippet" id="order-1-1">Text-first authoring - write presentations like you write code</div>
-    <div class="snippet" id="order-1-2">Behavioral markup - .directive{content} syntax</div>
-    <div class="snippet" id="order-1-3">Interactive effects - typewriter animations, progressive reveals</div>
-    <div class="snippet" id="order-1-4">Single-file workflow - one .sd source → standalone HTML</div>
+    <div class="snippet" id="order-2-1">Text-first authoring - write presentations like you write code</div>
+    <div class="snippet" id="order-2-2">Behavioral markup - .directive{content} syntax</div>
+    <div class="snippet" id="order-2-3">Interactive effects - typewriter animations, progressive reveals</div>
+    <div class="snippet" id="order-2-4">Single-file workflow - one .sd source → standalone HTML</div>
   
 
                 </div>
             
 
-                <div id="slide-2-title" style="display: none;">
+                <div id="slide-3-title" style="display: none;">
                     Quick Start
                 </div>
-                <div class="container slide" id="slide-2" name="slide-2" style="display:none;">
+                <div class="container slide" id="slide-3" name="slide-3" style="display:none;">
                     
                     
   
   
-    <pre id="typewriter-2-1" data-text="&gt; Installing slidedown..."></pre>
+    <pre id="typewriter-3-1" data-text="&gt; Installing slidedown..."></pre>
 
     # Install
     pip install -e .
@@ -139,10 +168,10 @@
                 </div>
             
 
-                <div id="slide-3-title" style="display: none;">
+                <div id="slide-4-title" style="display: none;">
                     Directive Syntax
                 </div>
-                <div class="container slide" id="slide-3" name="slide-3" style="display:none;">
+                <div class="container slide" id="slide-4" name="slide-4" style="display:none;">
                     
                     
   
@@ -150,37 +179,88 @@
     The core syntax is simple:
 
     .directive{content}
-    .directive{.modifier{value} content}
-    .directive{nested .directives{work} too}
+    .directive{\.modifier{value} content}
+    .directive{nested \.directives{work} too}
 
     <strong>Structure:</strong>
-    <div class="snippet" id="order-3-1"> - defines a slide</div>
-    <div class="snippet" id="order-3-2"> - slide title (metadata)</div>
-    <div class="snippet" id="order-3-3"> - slide content</div>
+    <div class="snippet" id="order-4-1">.slide{} - defines a slide</div>
+    <div class="snippet" id="order-4-2">.title{} - slide title (metadata)</div>
+    <div class="snippet" id="order-4-3">.body{} - slide content</div>
 
     <strong>Formatting:</strong>
-    <div class="snippet" id="order-3-4"><strong></strong> - bold</div>
-    <div class="snippet" id="order-3-5"><em></em> - italic</div>
-    <div class="snippet" id="order-3-6"><tt></tt> - monospace</div>
-    <div class="snippet" id="order-3-7"><code></code> - inline code</div>
+    <div class="snippet" id="order-4-4">.bf{} - bold</div>
+    <div class="snippet" id="order-4-5">.em{} - italic</div>
+    <div class="snippet" id="order-4-6">.tt{} - monospace</div>
+    <div class="snippet" id="order-4-7">.code{} - inline code</div>
 
     <strong>Effects:</strong>
-    <div class="snippet" id="order-3-8"> - typing animation</div>
-    <div class="snippet" id="order-3-9"> - progressive reveal bullets</div>
+    <div class="snippet" id="order-4-8">.typewriter{} - typing animation</div>
+    <div class="snippet" id="order-4-9">.o{} - progressive reveal bullets</div>
 
     <strong>Transforms:</strong>
-    <div class="snippet" id="order-3-10"><pre></pre> - ASCII art with Figlet</div>
-    <div class="snippet" id="order-3-11"><pre>ERROR: Cowsay character "cow" not found
-</pre> - ASCII speech bubbles</div>
+    <div class="snippet" id="order-4-10">.font-doom{} - ASCII art with Figlet</div>
+    <div class="snippet" id="order-4-11">.cowpy-cow{} - ASCII speech bubbles</div>
   
 
                 </div>
             
 
                 <div id="slide-5-title" style="display: none;">
-                    Example Presentation
+                    Installation
                 </div>
                 <div class="container slide" id="slide-5" name="slide-5" style="display:none;">
+                    
+                    
+  
+  
+    <strong>Install slidedown:</strong>
+
+    pip install -e .
+
+    <strong>Requirements:</strong>
+    <div class="snippet" id="order-5-1">Python 3.11+</div>
+    <div class="snippet" id="order-5-2">pip or uv</div>
+    <div class="snippet" id="order-5-3">Modern web browser</div>
+
+    <strong>Platform Support:</strong>
+    <div class="snippet" id="order-5-4">Linux, macOS, Windows</div>
+    <div class="snippet" id="order-5-5">Android (via Termux)</div>
+  
+
+                </div>
+            
+
+                <div id="slide-6-title" style="display: none;">
+                    Usage
+                </div>
+                <div class="container slide" id="slide-6" name="slide-6" style="display:none;">
+                    
+                    
+  
+  
+    <strong>Basic compilation:</strong>
+
+    slidedown inputdir/ outputdir/ --inputFile presentation.sd
+
+    <strong>With theme:</strong>
+
+    slidedown input/ output/ --inputFile demo.sd --theme retro-terminal
+
+    <strong>Available themes:</strong>
+    <div class="snippet" id="order-6-1">conventional-light (default)</div>
+    <div class="snippet" id="order-6-2">conventional-dark</div>
+    <div class="snippet" id="order-6-3">retro-terminal</div>
+    <div class="snippet" id="order-6-4">terminal</div>
+    <div class="snippet" id="order-6-5">lcars-lower-decks</div>
+  
+
+                </div>
+            
+
+                <div id="slide-8-title" style="display: none;">
+                    Example Presentation
+                </div>
+                <div class="container slide" id="slide-8" name="slide-8" style="display:none;">
                     
                     
   
@@ -193,20 +273,22 @@
                               
 </pre>
 
+    Here's a minimal example:
+
     
-                <div id="slide-5-title" style="display: none;">
+                <div id="slide-8-title" style="display: none;">
                     My First Slide
                 </div>
-                <div class="container slide" id="slide-5" name="slide-5" style="display:none; background: black; color: lightgreen">
+                <div class="container slide" id="slide-8" name="slide-8" style="display:none; background: black; color: lightgreen">
                     
                     
       
-        <pre id="typewriter-5-1" data-text="&gt; Initializing presentation..."></pre>
+        <pre id="typewriter-8-1" data-text="&gt; Initializing presentation..."></pre>
 
         <strong>Features:</strong>
-        <div class="snippet" id="order-5-1"><em>Text-first</em> authoring</div>
-        <div class="snippet" id="order-5-2"><tt>Behavioral</tt> markup</div>
-        <div class="snippet" id="order-5-3">Interactive <strong>effects</strong></div>
+        <div class="snippet" id="order-8-1"><em>Text-first</em> authoring</div>
+        <div class="snippet" id="order-8-2"><tt>Behavioral</tt> markup</div>
+        <div class="snippet" id="order-8-3">Interactive <strong>effects</strong></div>
 
         <pre>  ____________________
 | Made with slidedown! |
@@ -230,34 +312,34 @@
                 </div>
             
 
-                <div id="slide-6-title" style="display: none;">
+                <div id="slide-9-title" style="display: none;">
                     Development Status
                 </div>
-                <div class="container slide" id="slide-6" name="slide-6" style="display:none;">
+                <div class="container slide" id="slide-9" name="slide-9" style="display:none;">
                     
                     
   
   
     <strong>Working:</strong>
-    <div class="snippet" id="order-6-1">Parser - recursive directive parsing with placeholder substitution</div>
-    <div class="snippet" id="order-6-2">Compiler - AST to HTML with inside-out compilation</div>
-    <div class="snippet" id="order-6-3">CLI - functional command-line interface</div>
-    <div class="snippet" id="order-6-4">Tests - 65 tests passing (parser, modifiers, nesting, e2e)</div>
-    <div class="snippet" id="order-6-5">Assets - CSS/JS/HTML templates from tslide</div>
+    <div class="snippet" id="order-9-1">Parser - recursive directive parsing with placeholder substitution</div>
+    <div class="snippet" id="order-9-2">Compiler - AST to HTML with inside-out compilation</div>
+    <div class="snippet" id="order-9-3">CLI - functional command-line interface</div>
+    <div class="snippet" id="order-9-4">Tests - 65 tests passing (parser, modifiers, nesting, e2e)</div>
+    <div class="snippet" id="order-9-5">Assets - CSS/JS/HTML templates from tslide</div>
 
     <strong>In Progress:</strong>
-    <div class="snippet" id="order-6-6">Browser effects debugging (typewriter, bullets, navigation)</div>
-    <div class="snippet" id="order-6-7">Documentation and examples</div>
-    <div class="snippet" id="order-6-8">Additional directives and features</div>
+    <div class="snippet" id="order-9-6">Browser effects debugging (typewriter, bullets, navigation)</div>
+    <div class="snippet" id="order-9-7">Documentation and examples</div>
+    <div class="snippet" id="order-9-8">Additional directives and features</div>
   
 
                 </div>
             
 
-                <div id="slide-7-title" style="display: none;">
+                <div id="slide-10-title" style="display: none;">
                     Project Structure
                 </div>
-                <div class="container slide" id="slide-7" name="slide-7" style="display:none;">
+                <div class="container slide" id="slide-10" name="slide-10" style="display:none;">
                     
                     
   
@@ -284,38 +366,38 @@
                 </div>
             
 
-                <div id="slide-8-title" style="display: none;">
+                <div id="slide-11-title" style="display: none;">
                     Testing
                 </div>
-                <div class="container slide" id="slide-8" name="slide-8" style="display:none;">
+                <div class="container slide" id="slide-11" name="slide-11" style="display:none;">
                     
                     
   
   
-    # Run all tests
+    <strong>Run all tests:</strong>
     pytest
 
-    # Run specific test files
+    <strong>Run specific test files:</strong>
     pytest tests/test_parser_basic.py -v
     pytest tests/test_e2e_compilation.py -v
 
-    # Coverage report
+    <strong>Coverage report:</strong>
     pytest --cov=slidedown --cov-report=html
 
-    Test categories:
-    <div class="snippet" id="order-8-1">test_parser_basic.py - directive parsing, nesting</div>
-    <div class="snippet" id="order-8-2">test_parser_modifiers.py -  and  extraction</div>
-    <div class="snippet" id="order-8-3">test_parser_nesting.py - recursive structure validation</div>
-    <div class="snippet" id="order-8-4">test_e2e_compilation.py - full pipeline integration</div>
+    <strong>Test categories:</strong>
+    <div class="snippet" id="order-11-1">test_parser_basic.py - directive parsing, nesting</div>
+    <div class="snippet" id="order-11-2">test_parser_modifiers.py -  and  extraction</div>
+    <div class="snippet" id="order-11-3">test_parser_nesting.py - recursive structure validation</div>
+    <div class="snippet" id="order-11-4">test_e2e_compilation.py - full pipeline integration</div>
   
 
                 </div>
             
 
-                <div id="slide-9-title" style="display: none;">
+                <div id="slide-12-title" style="display: none;">
                     Architecture
                 </div>
-                <div class="container slide" id="slide-9" name="slide-9" style="display:none;">
+                <div class="container slide" id="slide-12" name="slide-12" style="display:none;">
                     
                     
   
@@ -327,19 +409,52 @@
               ProgramState → → → → → →
 
     <strong>Key Concepts:</strong>
-    <div class="snippet" id="order-9-1"><em>State Bus</em> - ProgramState dataclass carries state</div>
-    <div class="snippet" id="order-9-2"><em>Inside-Out Compilation</em> - children compiled first</div>
-    <div class="snippet" id="order-9-3"><em>Placeholder Substitution</em> - <br>x00CHILD_N<br>x00 markers</div>
-    <div class="snippet" id="order-9-4"><em>Directive Registry</em> - extensible handler system</div>
+    <div class="snippet" id="order-12-1"><em>State Bus</em> - ProgramState dataclass carries state</div>
+    <div class="snippet" id="order-12-2"><em>Inside-Out Compilation</em> - children compiled first</div>
+    <div class="snippet" id="order-12-3"><em>Placeholder Substitution</em> - <br>x00CHILD_N<br>x00 markers</div>
+    <div class="snippet" id="order-12-4"><em>Directive Registry</em> - extensible handler system</div>
   
 
                 </div>
             
 
-                <div id="slide-10-title" style="display: none;">
+                <div id="slide-13-title" style="display: none;">
+                    Navbar Customization
+                </div>
+                <div class="container slide" id="slide-13" name="slide-13" style="display:none;">
+                    
+                    
+  
+  
+    Customize navigation with .meta{navbar: ...}
+
+    <strong>Container styling:</strong>
+    <div class="snippet" id="order-13-1">background, border, padding, box-shadow</div>
+
+    <strong>Button options:</strong>
+    <div class="snippet" id="order-13-2">shape: "round", "square", or custom</div>
+    <div class="snippet" id="order-13-3">size: width/height (e.g., "24px")</div>
+    <div class="snippet" id="order-13-4">color, background, border, box-shadow</div>
+    <div class="snippet" id="order-13-5">icon: FontAwesome HTML entity</div>
+    <div class="snippet" id="order-13-6">tooltip: hover text</div>
+
+    <strong>Available buttons:</strong>
+    <div class="snippet" id="order-13-7">slide_first, slide_previous, slide_next, slide_last</div>
+    <div class="snippet" id="order-13-8">slide_counter with format: "{current}/{total}"</div>
+    <div class="snippet" id="order-13-9">title with custom color</div>
+
+    <strong>Layout zones:</strong> left, center, right
+
+    See examples/watermarked/light-watermarks-demo.sd for full examples
+  
+
+                </div>
+            
+
+                <div id="slide-14-title" style="display: none;">
                     Contributing
                 </div>
-                <div class="container slide" id="slide-10" name="slide-10" style="display:none;">
+                <div class="container slide" id="slide-14" name="slide-14" style="display:none;">
                     
                     
   
@@ -352,44 +467,44 @@
     4. Document behavior
 
     <strong>Code Style:</strong>
-    <div class="snippet" id="order-10-1">RPN naming: object_verb (e.g., placeHolder_make)</div>
-    <div class="snippet" id="order-10-2">Type hints everywhere</div>
-    <div class="snippet" id="order-10-3">Docstrings with Args/Returns/Examples</div>
-    <div class="snippet" id="order-10-4">Functional over imperative</div>
+    <div class="snippet" id="order-14-1">RPN naming: object_verb (e.g., placeHolder_make)</div>
+    <div class="snippet" id="order-14-2">Type hints everywhere</div>
+    <div class="snippet" id="order-14-3">Docstrings with Args/Returns/Examples</div>
+    <div class="snippet" id="order-14-4">Functional over imperative</div>
 
     <strong>Current Needs:</strong>
-    <div class="snippet" id="order-10-5">Browser effect debugging (see GitHub issues)</div>
-    <div class="snippet" id="order-10-6">Additional directive implementations</div>
-    <div class="snippet" id="order-10-7">Documentation and tutorials</div>
-    <div class="snippet" id="order-10-8">Example presentations</div>
+    <div class="snippet" id="order-14-5">Browser effect debugging (see GitHub issues)</div>
+    <div class="snippet" id="order-14-6">Additional directive implementations</div>
+    <div class="snippet" id="order-14-7">Documentation and tutorials</div>
+    <div class="snippet" id="order-14-8">Example presentations</div>
   
 
                 </div>
             
 
-                <div id="slide-11-title" style="display: none;">
+                <div id="slide-15-title" style="display: none;">
                     Credits
                 </div>
-                <div class="container slide" id="slide-11" name="slide-11" style="display:none;">
+                <div class="container slide" id="slide-15" name="slide-15" style="display:none;">
                     
                     
   
   
     Built on the shoulders of giants:
 
-    <div class="snippet" id="order-11-1"><strong>tslide</strong> - Original presentation framework by rudolphpienaar</div>
-    <div class="snippet" id="order-11-2"><strong>pyfiglet</strong> - ASCII art generation</div>
-    <div class="snippet" id="order-11-3"><strong>cowsay</strong> - ASCII speech bubbles</div>
-    <div class="snippet" id="order-11-4"><strong>ChRIS plugin</strong> - CLI framework pattern</div>
+    <div class="snippet" id="order-15-1"><strong>tslide</strong> - Original presentation framework by rudolphpienaar</div>
+    <div class="snippet" id="order-15-2"><strong>pyfiglet</strong> - ASCII art generation</div>
+    <div class="snippet" id="order-15-3"><strong>cowsay</strong> - ASCII speech bubbles</div>
+    <div class="snippet" id="order-15-4"><strong>ChRIS plugin</strong> - CLI framework pattern</div>
   
 
                 </div>
             
 
-                <div id="slide-12-title" style="display: none;">
+                <div id="slide-16-title" style="display: none;">
                     License & Contact
                 </div>
-                <div class="container slide" id="slide-12" name="slide-12" style="display:none;">
+                <div class="container slide" id="slide-16" name="slide-16" style="display:none;">
                     
                     
   
@@ -409,13 +524,11 @@
     <strong>Repository:</strong> github.com/FNNDSC/slidedown
     <strong>Issues:</strong> github.com/FNNDSC/slidedown/issues
 
-    <pre id="typewriter-12-1" data-text="&gt; Happy presenting!"></pre>
+    <pre id="typewriter-16-1" data-text="&gt; Happy presenting!"></pre>
   
 
                 </div>
             
-
-
         </div>
 
         
