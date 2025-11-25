@@ -1,6 +1,10 @@
 ```slidedown
 .meta{
   title: "Slidedown - Text-first Presentation Compiler"
+  css:
+    ".container":
+        font-size: "36px"
+        line-height: "1.6"
 }
 
 .slide{
@@ -8,7 +12,7 @@
   .body{
     .font-standard{SLIDEDOWN}
 
-    Text-first presentation compiler with behavioral markup\\
+    Text-first presentation compiler with behavioral markup.\\
 
     .bf{📊 View as Interactive Presentation:}\\
     https://fnndsc.github.io/slidedown/readme-presentation/\\
@@ -29,7 +33,7 @@
     interactive HTML presentations from plain text.
 
     .o{Text-first authoring - write presentations like you write code}
-    .o{Behavioral markup - \.directive\{content\} syntax}
+    .o{Behavioral markup - .directive\{content\} syntax\}
     .o{Interactive effects - typewriter animations, progressive reveals}
     .o{Single-file workflow - one .sd source → standalone HTML}
   }
