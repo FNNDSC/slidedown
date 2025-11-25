@@ -1,0 +1,3 @@
+# Slidedown syntax highlighting
+# Use YAML syntax highlighting for .sd files (closest match for directive syntax)
+*.sd linguist-language=YAML

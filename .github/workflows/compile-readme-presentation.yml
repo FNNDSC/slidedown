@@ -30,13 +30,17 @@ jobs:
 
       - name: Compile README to presentation
         run: |
-          echo "Compiling README.md..."
-          ./slideshow README.md --outputdir ./docs-temp --no-serve --theme conventional-light
+          echo "Preparing README.md for compilation..."
+          # Strip first line (```slidedown) and last line (```)
+          sed '1d;$d' README.md > README-temp.sd
+
+          echo "Compiling README-temp.sd..."
+          ./slideshow README-temp.sd --outputdir ./docs-temp --no-serve --theme conventional-light
 
           echo "Updating docs/readme-presentation/..."
           rm -rf docs/readme-presentation/*
-          cp -r docs-temp/README.md/* docs/readme-presentation/
-          rm -rf docs-temp
+          cp -r docs-temp/README-temp.sd/* docs/readme-presentation/
+          rm -rf docs-temp README-temp.sd
 
           echo "✓ Presentation compiled successfully"
 

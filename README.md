@@ -1,15 +1,22 @@
-```
- _____ _     _____ ____  _____ ____   _____        ___   _
-/  ___| |   |_   _|  _ \|  ___||  _ \ / _ \ \      / / \ | |
-\ `--.| |     | | | | | | |__  | | | | | | \ \ /\ / /|  \| |
- `--. \ |     | | | | | |  __| | | | | | | |\ V  V / | . ` |
-/\__/ / |_____| |_| |_| | |___ | |_| | |_| | \_/\_/  | |\  |
-\____/\_____/\___/|____/\____/ |____/ \___/   \/\/   \_| \_/
+```slidedown
+.meta{
+  title: "Slidedown - Text-first Presentation Compiler"
+}
 
-Text-first presentation compiler with behavioral markup
-========================================================
+.slide{
+  .title{SLIDEDOWN}
+  .body{
+    .font-standard{SLIDEDOWN}
 
-**[📊 View as Interactive Presentation](https://fnndsc.github.io/slidedown/readme-presentation/)** | [Documentation](docs/) | [Examples](examples/)
+    Text-first presentation compiler with behavioral markup
+
+    .bf{📊 View as Interactive Presentation:}
+    https://fnndsc.github.io/slidedown/readme-presentation/
+
+    .o{Documentation: docs/}
+    .o{Examples: examples/}
+  }
+}
 
 .slide{
   .title{What is slidedown?}
@@ -22,7 +29,7 @@ Text-first presentation compiler with behavioral markup
     interactive HTML presentations from plain text.
 
     .o{Text-first authoring - write presentations like you write code}
-    .o{Behavioral markup - .directive{content} syntax}
+    .o{Behavioral markup - \.directive\{content\} syntax}
     .o{Interactive effects - typewriter animations, progressive reveals}
     .o{Single-file workflow - one .sd source → standalone HTML}
   }
@@ -53,28 +60,66 @@ Text-first presentation compiler with behavioral markup
   .body{
     The core syntax is simple:
 
-    .directive{content}
-    .directive{.modifier{value} content}
-    .directive{nested .directives{work} too}
+    \.directive\{content\}
+    \.directive\{\.modifier\{value\} content\}
+    \.directive\{nested \.directives\{work\} too\}
 
     .bf{Structure:}
-    .o{.slide{} - defines a slide}
-    .o{.title{} - slide title (metadata)}
-    .o{.body{} - slide content}
+    .o{\.slide\{\} - defines a slide}
+    .o{\.title\{\} - slide title (metadata)}
+    .o{\.body\{\} - slide content}
 
     .bf{Formatting:}
-    .o{.bf{} - bold}
-    .o{.em{} - italic}
-    .o{.tt{} - monospace}
-    .o{.code{} - inline code}
+    .o{\.bf\{\} - bold}
+    .o{\.em\{\} - italic}
+    .o{\.tt\{\} - monospace}
+    .o{\.code\{\} - inline code}
 
     .bf{Effects:}
-    .o{.typewriter{} - typing animation}
-    .o{.o{} - progressive reveal bullets}
+    .o{\.typewriter\{\} - typing animation}
+    .o{\.o\{\} - progressive reveal bullets}
 
     .bf{Transforms:}
-    .o{.font-doom{} - ASCII art with Figlet}
-    .o{.cowpy-cow{} - ASCII speech bubbles}
+    .o{\.font-doom\{\} - ASCII art with Figlet}
+    .o{\.cowpy-cow\{\} - ASCII speech bubbles}
+  }
+}
+
+.slide{
+  .title{Installation}
+  .body{
+    .bf{Install slidedown:}
+
+    pip install -e .
+
+    .bf{Requirements:}
+    .o{Python 3.11+}
+    .o{pip or uv}
+    .o{Modern web browser}
+
+    .bf{Platform Support:}
+    .o{Linux, macOS, Windows}
+    .o{Android (via Termux)}
+  }
+}
+
+.slide{
+  .title{Usage}
+  .body{
+    .bf{Basic compilation:}
+
+    slidedown inputdir/ outputdir/ --inputFile presentation.sd
+
+    .bf{With theme:}
+
+    slidedown input/ output/ --inputFile demo.sd --theme retro-terminal
+
+    .bf{Available themes:}
+    .o{conventional-light (default)}
+    .o{conventional-dark}
+    .o{retro-terminal}
+    .o{terminal}
+    .o{lcars-lower-decks}
   }
 }
 
@@ -82,6 +127,8 @@ Text-first presentation compiler with behavioral markup
   .title{Example Presentation}
   .body{
     .font-standard{HELLO}
+
+    Here's a minimal example:
 
     .slide{.style{background: black; color: lightgreen;}
       .title{My First Slide}
@@ -142,17 +189,17 @@ Text-first presentation compiler with behavioral markup
 .slide{
   .title{Testing}
   .body{
-    # Run all tests
+    .bf{Run all tests:}
     pytest
 
-    # Run specific test files
+    .bf{Run specific test files:}
     pytest tests/test_parser_basic.py -v
     pytest tests/test_e2e_compilation.py -v
 
-    # Coverage report
+    .bf{Coverage report:}
     pytest --cov=slidedown --cov-report=html
 
-    Test categories:
+    .bf{Test categories:}
     .o{test_parser_basic.py - directive parsing, nesting}
     .o{test_parser_modifiers.py - .style{} and .class{} extraction}
     .o{test_parser_nesting.py - recursive structure validation}
@@ -174,6 +221,32 @@ Text-first presentation compiler with behavioral markup
     .o{.em{Inside-Out Compilation} - children compiled first}
     .o{.em{Placeholder Substitution} - \\x00CHILD_N\\x00 markers}
     .o{.em{Directive Registry} - extensible handler system}
+  }
+}
+
+.slide{
+  .title{Navbar Customization}
+  .body{
+    Customize navigation with \.meta\{navbar: ...\}
+
+    .bf{Container styling:}
+    .o{background, border, padding, box-shadow}
+
+    .bf{Button options:}
+    .o{shape: "round", "square", or custom}
+    .o{size: width/height (e.g., "24px")}
+    .o{color, background, border, box-shadow}
+    .o{icon: FontAwesome HTML entity}
+    .o{tooltip: hover text}
+
+    .bf{Available buttons:}
+    .o{slide_first, slide_previous, slide_next, slide_last}
+    .o{slide_counter with format: "{current}/{total}"}
+    .o{title with custom color}
+
+    .bf{Layout zones:} left, center, right
+
+    See examples/watermarked/light-watermarks-demo.sd for full examples
   }
 }
 
@@ -229,92 +302,3 @@ Text-first presentation compiler with behavioral markup
   }
 }
 ```
-
----
-
-## Installation
-
-```bash
-pip install -e .
-```
-
-## Usage
-
-```bash
-slidedown inputdir/ outputdir/ --inputFile presentation.sd
-```
-
-## Testing
-
-```bash
-pytest
-```
-
-## Advanced Customization
-
-### Navbar Customization
-
-Customize the navigation bar with `.meta{navbar: ...}`:
-
-```yaml
-.meta{
-  navbar:
-    container:
-      background: "#2d2d2d"
-      border-bottom: "1px solid #1a1a1a"
-      padding: "6px 8px"
-    progress:
-      show: true
-      color: "#fb8500"
-      background: "#4a4a4a"
-      height: "3px"
-    left:
-      - title:
-          color: "#f0f0f0"
-    right:
-      - slide_previous:
-          shape: "round"
-          background: "rgba(255,255,255,0.1)"
-          icon: "&#xf053"
-          size: "28px"
-      - slide_next:
-          shape: "round"
-          background: "rgba(255,255,255,0.1)"
-          icon: "&#xf054"
-          size: "28px"
-}
-```
-
-**Container options:**
-- `background`, `border`, `border-bottom`, `padding`, `box-shadow`
-
-**Button options:**
-- `shape`: "round", "square", or custom border-radius
-- `size`: width/height (e.g., "24px")
-- `color`: text/icon color
-- `background`: button background
-- `border`: border styling
-- `box-shadow`: shadow effects
-- `margin`, `margin-right`: spacing
-- `icon`: FontAwesome HTML entity or empty string
-- `tooltip`: hover text
-
-**Available buttons:**
-- `slide_first`, `slide_previous`, `slide_next`, `slide_last`
-- `slide_counter`: dynamic counter with `format: "{current}/{total}"`
-- `title`: slide title display with `color` option
-
-**Layout zones:**
-- `left`, `center`, `right`: position elements in navbar
-
-See `examples/watermarked/light-watermarks-demo.sd` for macOS and GNOME-style examples.
-
-## Status
-
-- Parser: Working
-- Compiler: Working
-- CLI: Working
-- Browser effects: Debugging in progress
-- Navbar customization: Working
-
-See issues for current development status.
