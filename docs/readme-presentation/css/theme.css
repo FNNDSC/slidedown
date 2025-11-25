@@ -1,0 +1,603 @@
+
+/* Conventional Light Theme - Google Slides inspired */
+
+/* Red Hat Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@300;400;500;700&family=Red+Hat+Mono:wght@400;500&display=swap');
+
+/* Global */
+html {
+  min-height: 100%;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  color: #212121;
+  background-color: #ffffff;
+  overflow: hidden;
+  font-family: 'Red Hat Display', 'Helvetica Neue', 'Arial', sans-serif !important;
+}
+
+/* Presentation viewport wrapper - fixed 2K dimensions */
+.presentation-viewport {
+  position: absolute;
+  width: 2560px;
+  height: 1440px;
+  transform-origin: top left;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: #ffffff;
+}
+
+/* Form layout container - override default dark styling */
+.formLayout {
+  background-color: #ffffff;
+  border: none;
+  padding: 0;
+  flex: 1;
+  color: #212121;
+  font-size: 32px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Slide container */
+.slide {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  padding: 80px;
+  background-color: #ffffff;
+}
+
+/* Typography */
+.slide h1 {
+  font-size: 2.5em;
+  font-weight: 400;
+  margin: 0 0 0.4em 0;
+  text-align: center;
+  color: #212121;
+  line-height: 1.2;
+}
+
+.slide h2 {
+  font-size: 2em;
+  font-weight: 400;
+  margin: 0 0 0.4em 0;
+  text-align: center;
+  color: #424242;
+  line-height: 1.3;
+}
+
+.slide h3 {
+  font-size: 1.5em;
+  font-weight: 500;
+  margin: 0.6em 0 0.4em 0;
+  color: #616161;
+  line-height: 1.3;
+}
+
+.slide p {
+  font-size: 1.5em;
+  line-height: 1.6;
+  margin: 0.6em 0;
+  color: #424242;
+  font-weight: 300;
+}
+
+/* Lists */
+.slide ul, .slide ol {
+  font-size: 1.4em;
+  line-height: 1.8;
+  margin: 0.8em 0;
+  padding-left: 1.5em;
+}
+
+.slide li {
+  margin: 0.5em 0;
+  color: #424242;
+  font-weight: 300;
+}
+
+.slide ul {
+  list-style-type: disc;
+}
+
+.slide ol {
+  list-style-type: decimal;
+}
+
+/* Nested lists */
+.slide ul ul, .slide ol ol {
+  font-size: 0.9em;
+  margin: 0.3em 0;
+}
+
+/* Strong and emphasis */
+.slide strong {
+  font-weight: 500;
+  color: #212121;
+}
+
+.slide em {
+  font-style: italic;
+  color: #616161;
+}
+
+/* Code blocks */
+.slide pre {
+  font-size: 1em;
+  line-height: 1.5;
+  max-width: 100%;
+  overflow: auto;
+  background-color: transparent; /* no tint */
+  border: none;
+  border-radius: 0;
+  padding: 24px 0;
+  margin: 1em 0;
+}
+
+.slide code {
+  font-family: 'Red Hat Mono', 'Courier New', monospace;
+  font-size: 0.95em;
+  background-color: transparent; /* no tint for inline code */
+  padding: 0 2px;
+  border-radius: 0;
+  color: #c7254e;
+}
+
+.slide pre code {
+  background-color: transparent;
+  padding: 0;
+  color: #212121;
+}
+
+/* Blockquotes */
+.slide blockquote {
+  font-size: 1.3em;
+  font-style: italic;
+  margin: 1em 0;
+  padding: 0.5em 0 0.5em 2em;
+  border-left: 4px solid #4285f4;
+  color: #616161;
+}
+
+/* Links */
+a {
+  color: #4285f4;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: #1a73e8;
+  text-decoration: underline;
+}
+
+/* Images */
+img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+/* Tables */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+  font-size: 1.2em;
+}
+
+td, th {
+  border: 1px solid #e0e0e0;
+  padding: 12px 16px;
+  text-align: left;
+}
+
+th {
+  background-color: #f5f5f5;
+  color: #212121;
+  font-weight: 500;
+}
+
+tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+/* Horizontal rule */
+hr {
+  border: none;
+  border-top: 2px solid #e0e0e0;
+  margin: 2em 0;
+}
+
+/* Alignment modifiers */
+.align-left {
+  text-align: left;
+}
+
+.align-center {
+  text-align: center;
+}
+
+.align-center ul,
+.align-center ol {
+  list-style-position: inside;
+}
+
+.align-right {
+  text-align: right;
+}
+
+.align-right ul,
+.align-right ol {
+  list-style-position: inside;
+}
+
+/* Column layout support */
+.slide .column {
+  flex: 1;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+.slide .column:first-of-type {
+  padding-left: 0;
+}
+
+.slide .column:last-of-type {
+  padding-right: 0;
+}
+
+/* Buttons */
+button {
+  background-color: #4285f4;
+  border: none;
+  color: #ffffff;
+  font-family: 'Red Hat Display', 'Helvetica Neue', 'Arial', sans-serif;
+  font-size: 1em;
+  font-weight: 500;
+  padding: 12px 24px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+button:hover {
+  background-color: #1a73e8;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+button:active {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Footer bar */
+.footer-bar {
+  background-color: #ffffff;
+  border-top: none;
+  padding: 10px 0;
+  margin: 0;
+  color: #616161;
+  font-size: 14px;
+  overflow: hidden;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer {
+  color: #616161;
+  font-size: 14px;
+}
+
+/* Slide progress bar */
+#slideProgress {
+  width: 100%;
+  background-color: #e0e0e0;
+  height: 4px;
+}
+
+#slideBar {
+  width: 1%;
+  height: 4px;
+  background-color: #4285f4;
+  transition: width 0.3s ease;
+}
+
+/* Page numbers */
+.page-number {
+  font-size: 0.9em;
+  color: #9e9e9e;
+}
+
+/* Accent highlights */
+.accent {
+  color: #4285f4;
+  font-weight: 500;
+}
+
+/* Box/callout styling */
+.boxtext {
+  border-left: 4px solid #4285f4;
+  background-color: #f5f5f5;
+  color: #212121;
+  padding: 20px 24px;
+  margin: 1em 0;
+  border-radius: 0 4px 4px 0;
+}
+
+/* Selection */
+::selection {
+  background: #4285f4;
+  color: #ffffff;
+}
+
+/* Dialog/Modal */
+dialog {
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+  background-color: #4285f4;
+  color: #ffffff;
+  padding: 20px 24px;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.modal-body {
+  padding: 24px;
+  color: #424242;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #e0e0e0;
+  text-align: right;
+}
+
+/* Metadata (hidden) */
+.metadata {
+  display: none;
+}
+
+/* Transitions and animations */
+.slide {
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Behavior Effects */
+
+/* Snippet/bullet visibility */
+.snippet {
+  color: #424242;
+}
+
+/* TTY/Terminal style */
+.tty {
+  color: #212121;
+  background-color: #ffffff;
+}
+
+/* Line positioning for effects */
+.line-1 {
+  position: relative;
+  top: 5%;
+  width: 50em;
+  margin: 0 auto;
+  font-size: 180%;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  transform: translateY(-50%);
+}
+
+/* Typewriter animation */
+.anim-typewriter {
+  animation: typewriter 4s steps(44) 1s 1 normal both,
+             blinkTextCursor 500ms steps(44) infinite normal;
+}
+
+@keyframes typewriter {
+  from { width: 0; }
+  to { width: 50em; }
+}
+
+@keyframes blinkTextCursor {
+  from { border-right-color: #4285f4; }
+  to { border-right-color: transparent; }
+}
+
+/* Typing effect with cursor */
+.typing {
+  font-size: 2em;
+  margin: 0;
+  font-family: 'Red Hat Mono', 'Courier New', monospace;
+}
+
+.typing:after {
+  content: "|";
+  animation: blink 500ms linear infinite alternate;
+}
+
+@-webkit-keyframes blink {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@-moz-keyframes blink {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes blink {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* Typewriter effect for pre/code blocks */
+.typewriter pre {
+  overflow: hidden;
+  border-right: .15em solid #4285f4;
+  white-space: nowrap;
+  margin: 0 auto;
+  letter-spacing: .15em;
+  animation:
+    typing 3.5s steps(40, end),
+    blink-caret .75s step-end infinite;
+  color: #212121;
+}
+
+/* Typewriter elements by ID */
+pre[id^="typewriter-"] {
+  color: #212121;
+  font-family: 'Red Hat Mono', 'Courier New', monospace;
+}
+
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes blink-caret {
+  from, to { border-color: transparent; }
+  50% { border-color: #4285f4; }
+}
+
+/* Blinking text */
+.blinking {
+  animation: blinkingText 1.2s infinite;
+}
+
+@keyframes blinkingText {
+  0% { color: #212121; }
+  49% { color: #212121; }
+  60% { color: transparent; }
+  99% { color: transparent; }
+  100% { color: #212121; }
+}
+
+/* Syntax highlighting helpers */
+.var-highlight {
+  color: #7c4dff;
+}
+
+.string-highlight {
+  color: #f4511e;
+}
+
+/* Container for pre alignment */
+.container {
+  text-align: left;
+}
+
+.container pre {
+  display: inline-block;
+  text-align: left;
+}
+
+/* Watermark system */
+.slide .watermark {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0; /* behind nav/buttons */
+  background: transparent;
+  mix-blend-mode: normal; /* avoid tinting from blending modes */
+  filter: none; /* keep source colors */
+}
+
+/* Watermark positioning - 9 positions */
+.watermark.top-left {
+  top: 0;
+  left: 0;
+}
+
+.watermark.top-center {
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.watermark.top-right {
+  top: 0;
+  right: 0;
+}
+
+.watermark.center-left {
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+}
+
+.watermark.center-right {
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+}
+
+.watermark.bottom-left {
+  bottom: 0;
+  left: 0;
+}
+
+.watermark.bottom-center {
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.watermark.bottom-right {
+  bottom: 0;
+  right: 0;
+}
+
+/* Center position (both axes) */
+.watermark.center {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Navbar title override - ensure Red Hat Display */
+.navbar-title {
+  font-family: 'Red Hat Display', 'Helvetica Neue', 'Arial', sans-serif !important;
+}
+
+/* Light theme navbar/background cleanup */
+.boxtext {
+  background: transparent;
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar-container {
+  padding: 0;
+  margin: 0;
+}
+
+#slideProgress {
+  background: transparent;
+  box-shadow: none;
+}
+
+#slideBar {
+  background: #4285f4;
+}
+
+/* Responsive font scaling is handled by JavaScript */

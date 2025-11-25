@@ -1,0 +1,43 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" version="28.2.7">
+  <diagram name="slidedown-logo" id="logo">
+    <mxGraphModel dx="3154" dy="1916" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="600" pageHeight="260" background="#1a1a1a" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="background" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=none;" parent="1" vertex="1">
+          <mxGeometry width="600" height="260" as="geometry" />
+        </mxCell>
+        <mxCell id="dot" value="." style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=64;fontFamily=IBM Plex Mono;fontColor=#22d3ee;fontStyle=0" parent="1" vertex="1">
+          <mxGeometry x="80" y="50" width="30" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="s-line1" value="" style="line;strokeWidth=2;html=1;strokeColor=#1a1a1a;opacity=50;" parent="1" vertex="1">
+          <mxGeometry x="130" y="38" width="30" height="2" as="geometry" />
+        </mxCell>
+        <mxCell id="s-line2" value="" style="line;strokeWidth=2;html=1;strokeColor=#1a1a1a;opacity=50;" parent="1" vertex="1">
+          <mxGeometry x="130" y="58" width="30" height="2" as="geometry" />
+        </mxCell>
+        <mxCell id="lide" value="&lt;font face=&quot;JetBrainsMono&quot; data-font-src=&quot;https://fonts.cdnfonts.com/css/jetbrains-mono&#39;&quot;&gt;lide&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;fontSize=64;fontFamily=IBM Plex Mono;fontColor=#e5e7eb;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="190" y="50" width="150" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="brace-open" value="{" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=64;fontFamily=IBM Plex Mono;fontColor=#22d3ee;fontStyle=0" parent="1" vertex="1">
+          <mxGeometry x="310" y="50" width="40" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="down" value="down" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;fontSize=64;fontFamily=IBM Plex Mono;fontColor=#e5e7eb;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="345" y="50" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="brace-close" value="}" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=64;fontFamily=IBM Plex Mono;fontColor=#22d3ee;fontStyle=0" parent="1" vertex="1">
+          <mxGeometry x="510" y="50" width="40" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow-down" value="" style="endArrow=classic;html=1;strokeColor=#4ade80;strokeWidth=4;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.15;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" target="tagline" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="147.5" y="75" as="sourcePoint" />
+            <mxPoint x="147" y="170" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="tagline" value="text-first presentations" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=18;fontFamily=IBM Plex Mono;fontColor=#9ca3af;fontStyle=0;spacing=2;" parent="1" vertex="1">
+          <mxGeometry x="150" y="180" width="300" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

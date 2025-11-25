@@ -9,6 +9,8 @@
 Text-first presentation compiler with behavioral markup
 ========================================================
 
+**[📊 View as Interactive Presentation](https://fnndsc.github.io/slidedown/readme-presentation/)** | [Documentation](docs/) | [Examples](examples/)
+
 .slide{
   .title{What is slidedown?}
   .body{

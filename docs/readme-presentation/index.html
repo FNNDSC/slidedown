@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="utf-8" http-equiv="encoding">
+    <title id="headTitle">slidedown presentation</title>
+
+    <!-- 3rd Party css -->
+    <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/pure-min.css">
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" href="//use.fontawesome.com/releases/v5.13.0/css/all.css">    
+    <link rel="stylesheet" href="termynal.css">
+
+    <!-- 3rd Party js -->
+    <!-- Do we really need jquery? -->
+    <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+
+    <!-- This page css -->
+    <link rel="stylesheet" href="css/slidedown.css" type="text/css" />
+
+    <!-- Theme css -->
+    <link rel="stylesheet" href="css/theme.css" type="text/css" />
+</head>
+
+
+<body>
+    <div class="presentation-viewport">
+        <div class="metaData" id="numberOfSlides" style="display: none;">12</div>
+        <div class="metaData" id="slideIDprefix" style="display: none;">slide-</div>
+
+        
+    <div class="boxtext pure-control-group" style="margin-bottom: -3px;">
+        <!-- Top "navigation" bar -->
+        <div id="slideProgress">
+            <div id="slideBar"></div>
+        </div>
+
+        <div class="navbar-container">
+            <input  type    =  "button"
+                    onclick =  "page.advance_toPrevious()"
+                    style   =  "float: left;"
+                    value   =  "&#xf053"
+                    id      =  "previous"
+                    name    =  "previous"
+                    class   =  "pure-button
+                                pure-button-primary
+                                fas fas-chevron-left">
+            </input>
+            <input  type    =  "button"
+                    onclick =  "page.advance_toFirst()"
+                    value   =  "&#xf078"
+                    style   =  "float: left;"
+                    id      =  "first"
+                    name    =  "first"
+                    class   =  "pure-button
+                                pure-button-primary
+                                fas fa-chevron-down">
+            </input>
+
+            <div id="pageTitle" class="navbar-title"></div>
+
+            <input  type    =  "button"
+                    onclick =  "page.advance_toLast()"
+                    value   =  "&#xf077"
+                    style   =  "float: right;"
+                    id      =  "last"
+                    name    =  "last"
+                    class   =  "pure-button
+                                pure-button-primary
+                                fas fa-chevron-up">
+            </input>
+            <input  type    =  "button"
+                    onclick =  "page.advance_toNext()"
+                    value   =  "&#xf054"
+                    style   = "float: right;"
+                    id      =  "next"
+                    name    =  "next"
+                    class   =  "pure-button
+                                pure-button-primary
+                                fas fas-chevron-right">
+            </input>
+        </div>
+        <br style="clear: both;">
+    </div>
+
+
+
+        <div class="formLayout">
+            
+                <div id="slide-1-title" style="display: none;">
+                    What is slidedown?
+                </div>
+                <div class="container slide" id="slide-1" name="slide-1" style="display:none;">
+                    
+                    
+  
+  
+    slidedown is a LaTeX-inspired markup language for creating
+    interactive HTML presentations from plain text.
+
+    <div class="snippet" id="order-1-1">Text-first authoring - write presentations like you write code</div>
+    <div class="snippet" id="order-1-2">Behavioral markup - .directive{content} syntax</div>
+    <div class="snippet" id="order-1-3">Interactive effects - typewriter animations, progressive reveals</div>
+    <div class="snippet" id="order-1-4">Single-file workflow - one .sd source → standalone HTML</div>
+  
+
+                </div>
+            
+
+                <div id="slide-2-title" style="display: none;">
+                    Quick Start
+                </div>
+                <div class="container slide" id="slide-2" name="slide-2" style="display:none;">
+                    
+                    
+  
+  
+    <pre id="typewriter-2-1" data-text="&gt; Installing slidedown..."></pre>
+
+    # Install
+    pip install -e .
+
+    # Compile a presentation
+    slidedown examples/minimal/ output/ --inputFile minimal.sd
+
+    # View it
+    cd output/
+    python3 -m http.server 8000
+    # Open http://localhost:8000
+
+    That's it!
+  
+
+                </div>
+            
+
+                <div id="slide-3-title" style="display: none;">
+                    Directive Syntax
+                </div>
+                <div class="container slide" id="slide-3" name="slide-3" style="display:none;">
+                    
+                    
+  
+  
+    The core syntax is simple:
+
+    .directive{content}
+    .directive{.modifier{value} content}
+    .directive{nested .directives{work} too}
+
+    <strong>Structure:</strong>
+    <div class="snippet" id="order-3-1"> - defines a slide</div>
+    <div class="snippet" id="order-3-2"> - slide title (metadata)</div>
+    <div class="snippet" id="order-3-3"> - slide content</div>
+
+    <strong>Formatting:</strong>
+    <div class="snippet" id="order-3-4"><strong></strong> - bold</div>
+    <div class="snippet" id="order-3-5"><em></em> - italic</div>
+    <div class="snippet" id="order-3-6"><tt></tt> - monospace</div>
+    <div class="snippet" id="order-3-7"><code></code> - inline code</div>
+
+    <strong>Effects:</strong>
+    <div class="snippet" id="order-3-8"> - typing animation</div>
+    <div class="snippet" id="order-3-9"> - progressive reveal bullets</div>
+
+    <strong>Transforms:</strong>
+    <div class="snippet" id="order-3-10"><pre></pre> - ASCII art with Figlet</div>
+    <div class="snippet" id="order-3-11"><pre>ERROR: Cowsay character "cow" not found
+</pre> - ASCII speech bubbles</div>
+  
+
+                </div>
+            
+
+                <div id="slide-5-title" style="display: none;">
+                    Example Presentation
+                </div>
+                <div class="container slide" id="slide-5" name="slide-5" style="display:none;">
+                    
+                    
+  
+  
+    <pre> _   _ _____ _     _     ___  
+| | | | ____| |   | |   / _ \ 
+| |_| |  _| | |   | |  | | | |
+|  _  | |___| |___| |__| |_| |
+|_| |_|_____|_____|_____\___/ 
+                              
+</pre>
+
+    
+                <div id="slide-5-title" style="display: none;">
+                    My First Slide
+                </div>
+                <div class="container slide" id="slide-5" name="slide-5" style="display:none; background: black; color: lightgreen">
+                    
+                    
+      
+        <pre id="typewriter-5-1" data-text="&gt; Initializing presentation..."></pre>
+
+        <strong>Features:</strong>
+        <div class="snippet" id="order-5-1"><em>Text-first</em> authoring</div>
+        <div class="snippet" id="order-5-2"><tt>Behavioral</tt> markup</div>
+        <div class="snippet" id="order-5-3">Interactive <strong>effects</strong></div>
+
+        <pre>  ____________________
+| Made with slidedown! |
+  ====================
+                         \
+                          \
+                           \
+                            .--.
+                           |o_o |
+                           |:_/ |
+                          //   \ \
+                         (|     | )
+                        /'\_   _/`\
+                        \___)=(___/</pre>
+      
+    
+                </div>
+            
+  
+
+                </div>
+            
+
+                <div id="slide-6-title" style="display: none;">
+                    Development Status
+                </div>
+                <div class="container slide" id="slide-6" name="slide-6" style="display:none;">
+                    
+                    
+  
+  
+    <strong>Working:</strong>
+    <div class="snippet" id="order-6-1">Parser - recursive directive parsing with placeholder substitution</div>
+    <div class="snippet" id="order-6-2">Compiler - AST to HTML with inside-out compilation</div>
+    <div class="snippet" id="order-6-3">CLI - functional command-line interface</div>
+    <div class="snippet" id="order-6-4">Tests - 65 tests passing (parser, modifiers, nesting, e2e)</div>
+    <div class="snippet" id="order-6-5">Assets - CSS/JS/HTML templates from tslide</div>
+
+    <strong>In Progress:</strong>
+    <div class="snippet" id="order-6-6">Browser effects debugging (typewriter, bullets, navigation)</div>
+    <div class="snippet" id="order-6-7">Documentation and examples</div>
+    <div class="snippet" id="order-6-8">Additional directives and features</div>
+  
+
+                </div>
+            
+
+                <div id="slide-7-title" style="display: none;">
+                    Project Structure
+                </div>
+                <div class="container slide" id="slide-7" name="slide-7" style="display:none;">
+                    
+                    
+  
+  
+    slidedown/
+    ├── src/
+    │   ├── __main__.py          # CLI entry point
+    │   ├── lib/
+    │   │   ├── parser.py        # .sd syntax parser
+    │   │   ├── compiler.py      # AST → HTML compiler
+    │   │   └── directives.py    # Directive implementations
+    │   └── models/
+    │       ├── state.py         # Pipeline state management
+    │       ├── directives.py    # Directive type definitions
+    │       └── parser.py        # Parser return types
+    ├── assets/
+    │   ├── css/                 # Slideshow CSS
+    │   ├── js/                  # Navigation & effects JS
+    │   └── html/                # HTML templates
+    ├── tests/                   # Test suite
+    └── examples/                # Example presentations
+  
+
+                </div>
+            
+
+                <div id="slide-8-title" style="display: none;">
+                    Testing
+                </div>
+                <div class="container slide" id="slide-8" name="slide-8" style="display:none;">
+                    
+                    
+  
+  
+    # Run all tests
+    pytest
+
+    # Run specific test files
+    pytest tests/test_parser_basic.py -v
+    pytest tests/test_e2e_compilation.py -v
+
+    # Coverage report
+    pytest --cov=slidedown --cov-report=html
+
+    Test categories:
+    <div class="snippet" id="order-8-1">test_parser_basic.py - directive parsing, nesting</div>
+    <div class="snippet" id="order-8-2">test_parser_modifiers.py -  and  extraction</div>
+    <div class="snippet" id="order-8-3">test_parser_nesting.py - recursive structure validation</div>
+    <div class="snippet" id="order-8-4">test_e2e_compilation.py - full pipeline integration</div>
+  
+
+                </div>
+            
+
+                <div id="slide-9-title" style="display: none;">
+                    Architecture
+                </div>
+                <div class="container slide" id="slide-9" name="slide-9" style="display:none;">
+                    
+                    
+  
+  
+    <strong>Functional Pipeline Pattern:</strong>
+
+    .sd source → Parser → AST → Compiler → HTML
+                   ↓         ↓        ↓
+              ProgramState → → → → → →
+
+    <strong>Key Concepts:</strong>
+    <div class="snippet" id="order-9-1"><em>State Bus</em> - ProgramState dataclass carries state</div>
+    <div class="snippet" id="order-9-2"><em>Inside-Out Compilation</em> - children compiled first</div>
+    <div class="snippet" id="order-9-3"><em>Placeholder Substitution</em> - <br>x00CHILD_N<br>x00 markers</div>
+    <div class="snippet" id="order-9-4"><em>Directive Registry</em> - extensible handler system</div>
+  
+
+                </div>
+            
+
+                <div id="slide-10-title" style="display: none;">
+                    Contributing
+                </div>
+                <div class="container slide" id="slide-10" name="slide-10" style="display:none;">
+                    
+                    
+  
+  
+    This project was developed with <em>test-driven development</em>:
+
+    1. Write tests first
+    2. Implement to pass
+    3. Refactor for clarity
+    4. Document behavior
+
+    <strong>Code Style:</strong>
+    <div class="snippet" id="order-10-1">RPN naming: object_verb (e.g., placeHolder_make)</div>
+    <div class="snippet" id="order-10-2">Type hints everywhere</div>
+    <div class="snippet" id="order-10-3">Docstrings with Args/Returns/Examples</div>
+    <div class="snippet" id="order-10-4">Functional over imperative</div>
+
+    <strong>Current Needs:</strong>
+    <div class="snippet" id="order-10-5">Browser effect debugging (see GitHub issues)</div>
+    <div class="snippet" id="order-10-6">Additional directive implementations</div>
+    <div class="snippet" id="order-10-7">Documentation and tutorials</div>
+    <div class="snippet" id="order-10-8">Example presentations</div>
+  
+
+                </div>
+            
+
+                <div id="slide-11-title" style="display: none;">
+                    Credits
+                </div>
+                <div class="container slide" id="slide-11" name="slide-11" style="display:none;">
+                    
+                    
+  
+  
+    Built on the shoulders of giants:
+
+    <div class="snippet" id="order-11-1"><strong>tslide</strong> - Original presentation framework by rudolphpienaar</div>
+    <div class="snippet" id="order-11-2"><strong>pyfiglet</strong> - ASCII art generation</div>
+    <div class="snippet" id="order-11-3"><strong>cowsay</strong> - ASCII speech bubbles</div>
+    <div class="snippet" id="order-11-4"><strong>ChRIS plugin</strong> - CLI framework pattern</div>
+  
+
+                </div>
+            
+
+                <div id="slide-12-title" style="display: none;">
+                    License & Contact
+                </div>
+                <div class="container slide" id="slide-12" name="slide-12" style="display:none;">
+                    
+                    
+  
+  
+    <pre>    __  _____________
+   /  |/  /  _/_  __/
+  / /|_/ // /  / /   
+ / /  / // /  / /    
+/_/  /_/___/ /_/     
+                     
+</pre>
+
+    Licensed under the MIT License.
+    See LICENSE file for details.
+
+    <strong>Author:</strong> Rudolph Pienaar
+    <strong>Repository:</strong> github.com/FNNDSC/slidedown
+    <strong>Issues:</strong> github.com/FNNDSC/slidedown/issues
+
+    <pre id="typewriter-12-1" data-text="&gt; Happy presenting!"></pre>
+  
+
+                </div>
+            
+
+
+        </div>
+
+        
+    <div class="footer-bar">
+        <span class="footer" style="float: left;">
+            Created with slidedown
+        </span>
+        <span id="slideCounter" class="footer" style="float: right;">
+            slide
+        </span>
+    </div>
+
+
+    </div>
+
+    <script src="js/slidedown.js"></script>
+</body>
+</html>
