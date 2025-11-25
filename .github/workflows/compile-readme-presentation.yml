@@ -8,6 +8,7 @@ on:
       - 'src/**'
       - 'assets/**'
       - 'themes/**'
+      - '.github/workflows/compile-readme-presentation.yml'
 
 jobs:
   compile-presentation:
