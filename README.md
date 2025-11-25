@@ -8,10 +8,10 @@
   .body{
     .font-standard{SLIDEDOWN}
 
-    Text-first presentation compiler with behavioral markup
+    Text-first presentation compiler with behavioral markup\\
 
-    .bf{📊 View as Interactive Presentation:}
-    https://fnndsc.github.io/slidedown/readme-presentation/
+    .bf{📊 View as Interactive Presentation:}\\
+    https://fnndsc.github.io/slidedown/readme-presentation/\\
 
     .o{Documentation: docs/}
     .o{Examples: examples/}
@@ -21,11 +21,11 @@
 .slide{
   .title{What is slidedown?}
   .body{
-    Do you like text? Have you ever wished that text was the
-    basic substrate for compelling slideshows that are self
-    contained and run in a browser?
+    Do you like text? Have you ever wished that text was the\\
+    basic substrate for compelling slideshows that are self\\
+    contained and run in a browser?\\
 
-    slidedown is a LaTeX-inspired markup language for creating
+    slidedown is a LaTeX-inspired markup language for creating\\
     interactive HTML presentations from plain text.
 
     .o{Text-first authoring - write presentations like you write code}
