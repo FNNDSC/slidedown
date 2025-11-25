@@ -1,4 +1,10 @@
 ```slidedown
+.comment{
+ GO HERE TO SEE THIS README AS A SLIDE SHOW!
+
+    https://fnndsc.github.io/slidedown/readme-presentation/
+}
+
 .meta{
   title: "Slidedown - Text-first Presentation Compiler"
   css:
