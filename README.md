@@ -130,19 +130,19 @@
 
     Here's a minimal example:
 
-    .slide{.style{background: black; color: lightgreen;}
-      .title{My First Slide}
-      .body{
-        .typewriter{> Initializing presentation...}
+    \.slide\{\.style\{background: black; color: lightgreen;\}
+      \.title\{My First Slide\}
+      \.body\{
+        \.typewriter\{> Initializing presentation...\}
 
-        .bf{Features:}
-        .o{.em{Text-first} authoring}
-        .o{.tt{Behavioral} markup}
-        .o{Interactive .bf{effects}}
+        \.bf\{Features:\}
+        \.o\{\.em\{Text-first\} authoring\}
+        \.o\{\.tt\{Behavioral\} markup\}
+        \.o\{Interactive \.bf\{effects\}\}
 
-        .cowpy-tux{Made with slidedown!}
-      }
-    }
+        \.cowpy-tux\{Made with slidedown!\}
+      \}
+    \}
   }
 }
 
