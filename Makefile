@@ -54,10 +54,11 @@ help:
 	@echo "  make install    - Install package (production)"
 	@echo ""
 	@echo "Development:"
-	@echo "  make presentation  - Compile and serve presentation (see variables below)"
-	@echo "  make compile       - Compile presentation only"
-	@echo "  make serve         - Serve compiled presentation only"
-	@echo "  make shell         - Start shell with activated virtual environment"
+	@echo "  make presentation        - Compile and serve presentation (see variables below)"
+	@echo "  make compile             - Compile presentation only"
+	@echo "  make serve               - Serve compiled presentation only"
+	@echo "  make readme-presentation - Compile README.md to docs/readme-presentation/"
+	@echo "  make shell               - Start shell with activated virtual environment"
 	@echo ""
 	@echo "Variables (override with: make compile SOURCE=myfile.sd THEME=dark):"
 	@echo "  SOURCE=$(SOURCE)"
@@ -157,6 +158,17 @@ serve:
 	cd $(OUTPUT_DIR) && python3 -m http.server $(PORT)
 
 presentation: compile serve
+
+readme-presentation:
+	@echo "Compiling README.md to presentation..."
+	./slideshow README.md --outputdir ./docs-temp --no-serve --theme conventional-light
+	@echo "Updating docs/readme-presentation/..."
+	rm -rf docs/readme-presentation/*
+	cp -r docs-temp/README.md/* docs/readme-presentation/
+	rm -rf docs-temp
+	@echo "✓ README presentation updated in docs/readme-presentation/"
+	@echo "  View locally: open docs/readme-presentation/index.html"
+	@echo "  Or commit and push to update GitHub Pages"
 
 clean:
 	rm -rf build/ dist/ *.egg-info .mypy_cache .pytest_cache
