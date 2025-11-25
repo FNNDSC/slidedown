@@ -8,14 +8,16 @@
 
 Text-first presentation compiler with behavioral markup
 ========================================================
-```
 
 **[📊 View as Interactive Presentation](https://fnndsc.github.io/slidedown/readme-presentation/)** | [Documentation](docs/) | [Examples](examples/)
 
-```
 .slide{
   .title{What is slidedown?}
   .body{
+    Do you like text? Have you ever wished that text was the
+    basic substrate for compelling slideshows that are self
+    contained and run in a browser?
+
     slidedown is a LaTeX-inspired markup language for creating
     interactive HTML presentations from plain text.
 
