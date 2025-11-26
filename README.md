@@ -20,7 +20,7 @@
 
     Text-first presentation compiler with behavioral markup.\\
 
-    .bf{📊 View as Interactive Presentation:}\\
+    .bf{View as Interactive Presentation:}\\
     https://fnndsc.github.io/slidedown/readme-presentation/\\
 
     .o{Documentation: docs/}
