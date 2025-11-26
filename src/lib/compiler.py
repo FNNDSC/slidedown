@@ -88,6 +88,9 @@ class Compiler:
         # Build complete HTML document
         full_html = self.htmlDocument_build(html_content)
 
+        # Post-process: insert <br> tags for blank lines within slides
+        full_html = self.blankLines_insertBreaks(full_html)
+
         # Write output file
         output_file = self.output_dir / "index.html"
         output_file.write_text(full_html, encoding='utf-8')
@@ -967,3 +970,46 @@ class Compiler:
         html_parts.append('</div>')
 
         return '\n'.join(html_parts)
+
+    def blankLines_insertBreaks(self, html: str) -> str:
+        """
+        Post-process HTML to insert <br> tags for blank lines within slides.
+
+        Converts consecutive newlines in text content to <br> tags to preserve
+        visual spacing from the source .sd file.
+
+        Args:
+            html: Complete HTML document string
+
+        Returns:
+            HTML with <br> tags inserted for blank lines
+        """
+        # Pattern: Match content within slide divs
+        # Look for: text/tags followed by blank line(s) followed by more content
+        # Strategy: Find sequences of 2+ newlines between content and replace with <br><br>
+
+        def process_slide_content(match):
+            """Process content within a single slide div"""
+            slide_html = match.group(0)
+
+            # Replace sequences of 2+ newlines with <br> tags
+            # This preserves blank line spacing in the rendered output
+            # Pattern: \n\n+ (two or more newlines) -> <br><br>
+            processed = re.sub(
+                r'\n\s*\n+',  # Two or more newlines with optional whitespace
+                '\n<br>\n',    # Single <br> tag (browser adds spacing)
+                slide_html
+            )
+
+            return processed
+
+        # Process all slide containers
+        # Pattern matches: <div class="container slide" ...> ... </div>
+        html = re.sub(
+            r'<div class="container slide"[^>]*>.*?</div>',
+            process_slide_content,
+            html,
+            flags=re.DOTALL  # Allow . to match newlines
+        )
+
+        return html
