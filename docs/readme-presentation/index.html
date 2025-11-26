@@ -101,23 +101,20 @@
                     SLIDEDOWN
                 </div>
                 <div class="container slide" id="slide-1" name="slide-1" style="display:none;">
-                    
-                    
-  
-  
+<br>
     <pre> ____  _     ___ ____  _____ ____   _____        ___   _ 
 / ___|| |   |_ _|  _ \| ____|  _ \ / _ \ \      / / \ | |
 \___ \| |    | || | | |  _| | | | | | | \ \ /\ / /|  \| |
  ___) | |___ | || |_| | |___| |_| | |_| |\ V  V / | |\  |
 |____/|_____|___|____/|_____|____/ \___/  \_/\_/  |_| \_|
-                                                         
+<br>
 </pre>
-
+<br>
     Text-first presentation compiler with behavioral markup.<br>
-
+<br>
     <strong>📊 View as Interactive Presentation:</strong><br>
     https://fnndsc.github.io/slidedown/readme-presentation/<br>
-
+<br>
     <div class="snippet" id="order-1-1">Documentation: docs/</div>
     <div class="snippet" id="order-1-2">Examples: examples/</div>
   
@@ -129,17 +126,14 @@
                     What is slidedown?
                 </div>
                 <div class="container slide" id="slide-2" name="slide-2" style="display:none;">
-                    
-                    
-  
-  
+<br>
     Do you like text? Have you ever wished that text was the<br>
     basic substrate for compelling slideshows that are self<br>
     contained and run in a browser?<br>
-
+<br>
     slidedown is a LaTeX-inspired markup language for creating<br>
     interactive HTML presentations from plain text.
-
+<br>
     <div class="snippet" id="order-2-1">Text-first authoring - write presentations like you write code</div>
     <div class="snippet" id="order-2-2">Behavioral markup - .directive\{content\} syntax\</div>
     <div class="snippet" id="order-2-3">Interactive effects - typewriter animations, progressive reveals</div>
@@ -153,18 +147,15 @@
                     Quick Start
                 </div>
                 <div class="container slide" id="slide-3" name="slide-3" style="display:none;">
-                    
-                    
-  
-  
+<br>
     <pre id="typewriter-3-1" data-text="&gt; Installing slidedown..."></pre>
-
+<br>
     <code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><span style="color: #3D7B7B; font-style: italic"># Install</span>
 pip<span style="color: #BBB"> </span>install<span style="color: #BBB"> </span>-e<span style="color: #BBB"> </span>.
-
+<br>
 <span style="color: #3D7B7B; font-style: italic"># Compile a presentation</span>
 slidedown<span style="color: #BBB"> </span>examples/minimal/<span style="color: #BBB"> </span>output/<span style="color: #BBB"> </span>--inputFile<span style="color: #BBB"> </span>minimal.sd
-
+<br>
 <span style="color: #3D7B7B; font-style: italic"># View it</span>
 <span style="color: #008000">cd</span><span style="color: #BBB"> </span>output/
 python3<span style="color: #BBB"> </span>-m<span style="color: #BBB"> </span>http.server<span style="color: #BBB"> </span><span style="color: #666">8000</span>
@@ -183,16 +174,13 @@ python3<span style="color: #BBB"> </span>-m<span style="color: #BBB"> </span>htt
                     Directive Syntax
                 </div>
                 <div class="container slide" id="slide-4" name="slide-4" style="display:none;">
-                    
-                    
-  
-  
+<br>
     The core syntax is simple:
-
+<br>
     <code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>.directive{content}
 .directive{\.modifier{value} content}
 .directive{nested \.directives{work} too}
-    
+<br>
 </pre></div>
 </code>
 
@@ -219,12 +207,9 @@ python3<span style="color: #BBB"> </span>-m<span style="color: #BBB"> </span>htt
                     Installation
                 </div>
                 <div class="container slide" id="slide-5" name="slide-5" style="display:none;">
-                    
-                    
-  
-  
+<br>
     <strong>Install slidedown:</strong>
-
+<br>
     <code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>pip<span style="color: #BBB"> </span>install<span style="color: #BBB"> </span>-e<span style="color: #BBB"> </span>.
 <span style="color: #BBB">    </span>
 </pre></div>
@@ -247,12 +232,9 @@ python3<span style="color: #BBB"> </span>-m<span style="color: #BBB"> </span>htt
                     Usage
                 </div>
                 <div class="container slide" id="slide-6" name="slide-6" style="display:none;">
-                    
-                    
-  
-  
+<br>
     <strong>Basic compilation:</strong>
-
+<br>
     <code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>slidedown<span style="color: #BBB"> </span>inputdir/<span style="color: #BBB"> </span>outputdir/<span style="color: #BBB"> </span>--inputFile<span style="color: #BBB"> </span>presentation.sd
 <span style="color: #BBB">    </span>
 </pre></div>
@@ -280,34 +262,31 @@ python3<span style="color: #BBB"> </span>-m<span style="color: #BBB"> </span>htt
                     Example Presentation
                 </div>
                 <div class="container slide" id="slide-7" name="slide-7" style="display:none;">
-                    
-                    
-  
-  
+<br>
     <pre> _   _ _____ _     _     ___  
 | | | | ____| |   | |   / _ \ 
 | |_| |  _| | |   | |  | | | |
 |  _  | |___| |___| |__| |_| |
 |_| |_|_____|_____|_____\___/ 
-                              
+<br>
 </pre>
-
+<br>
     Here's a minimal example:
-
+<br>
     <code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>.slide{\.style{background: black; color: lightgreen;}
   \.title{My First Slide}
   \.body{
     \.typewriter{&gt; Initializing presentation...}
-
+<br>
     \.bf{Features:}
     \.o{\.em{Text-first} authoring}
     \.o{\.tt{Behavioral} markup}
     \.o{Interactive \.bf{effects}}
-
+<br>
     \.cowpy-tux{Made with slidedown!}
   }
 }
-    
+<br>
 </pre></div>
 </code>
   
@@ -319,10 +298,7 @@ python3<span style="color: #BBB"> </span>-m<span style="color: #BBB"> </span>htt
                     Project Structure
                 </div>
                 <div class="container slide" id="slide-8" name="slide-8" style="display:none;">
-                    
-                    
-  
-  
+<br>
     <code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>slidedown/
 ├── src/
 │   ├── __main__.py          # CLI entry point
@@ -340,7 +316,7 @@ python3<span style="color: #BBB"> </span>-m<span style="color: #BBB"> </span>htt
 │   └── html/                # HTML templates
 ├── tests/                   # Test suite
 └── examples/                # Example presentations
-    
+<br>
 </pre></div>
 </code>
   
@@ -352,10 +328,7 @@ python3<span style="color: #BBB"> </span>-m<span style="color: #BBB"> </span>htt
                     Testing
                 </div>
                 <div class="container slide" id="slide-9" name="slide-9" style="display:none;">
-                    
-                    
-  
-  
+<br>
     <strong>Run all tests:</strong>
     <code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>pytest
 <span style="color: #BBB">    </span>
@@ -389,16 +362,13 @@ pytest<span style="color: #BBB"> </span>tests/test_e2e_compilation.py<span style
                     Architecture
                 </div>
                 <div class="container slide" id="slide-10" name="slide-10" style="display:none;">
-                    
-                    
-  
-  
+<br>
     <strong>Functional Pipeline Pattern:</strong>
-
+<br>
     <code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>.sd source → Parser → AST → Compiler → HTML
                ↓         ↓        ↓
           ProgramState → → → → → →
-    
+<br>
 </pre></div>
 </code>
 
@@ -416,12 +386,9 @@ pytest<span style="color: #BBB"> </span>tests/test_e2e_compilation.py<span style
                     Navbar Customization
                 </div>
                 <div class="container slide" id="slide-11" name="slide-11" style="display:none;">
-                    
-                    
-  
-  
+<br>
     Customize navigation with .meta{navbar: ...}
-
+<br>
     <strong>Container styling:</strong>
     <div class="snippet" id="order-11-1">background, border, padding, box-shadow</div>
 
@@ -449,10 +416,7 @@ pytest<span style="color: #BBB"> </span>tests/test_e2e_compilation.py<span style
                     Development Status
                 </div>
                 <div class="container slide" id="slide-12" name="slide-12" style="display:none;">
-                    
-                    
-  
-  
+<br>
     <strong>Working:</strong>
     <div class="snippet" id="order-12-1">Parser - recursive directive parsing</div>
     <div class="snippet" id="order-12-2">Compiler - AST to HTML compilation</div>
@@ -475,12 +439,9 @@ pytest<span style="color: #BBB"> </span>tests/test_e2e_compilation.py<span style
                     Contributing
                 </div>
                 <div class="container slide" id="slide-13" name="slide-13" style="display:none;">
-                    
-                    
-  
-  
+<br>
     This project was developed with <em>test-driven development</em>:
-
+<br>
     <div class="snippet" id="order-13-1">Write tests first</div>
     <div class="snippet" id="order-13-2">Implement to pass</div>
     <div class="snippet" id="order-13-3">Refactor for clarity</div>
@@ -506,12 +467,9 @@ pytest<span style="color: #BBB"> </span>tests/test_e2e_compilation.py<span style
                     Credits
                 </div>
                 <div class="container slide" id="slide-14" name="slide-14" style="display:none;">
-                    
-                    
-  
-  
+<br>
     Built on the shoulders of giants:
-
+<br>
     <div class="snippet" id="order-14-1"><strong>tslide</strong> - Original framework by rudolphpienaar</div>
     <div class="snippet" id="order-14-2"><strong>pyfiglet</strong> - ASCII art generation</div>
     <div class="snippet" id="order-14-3"><strong>cowsay</strong> - ASCII speech bubbles</div>
@@ -525,28 +483,24 @@ pytest<span style="color: #BBB"> </span>tests/test_e2e_compilation.py<span style
                     License & Contact
                 </div>
                 <div class="container slide" id="slide-15" name="slide-15" style="display:none;">
-                    
-                    
-  
-  
+<br>
     <pre>    __  _____________
    /  |/  /  _/_  __/
   / /|_/ // /  / /   
  / /  / // /  / /    
 /_/  /_/___/ /_/     
-                     
+<br>
 </pre>
-
+<br>
     Licensed under the MIT License.
     See <tt>LICENSE</tt> file for details.
-
+<br>
     <strong>Author:</strong> Rudolph Pienaar
     <strong>Repository:</strong> github.com/FNNDSC/slidedown
     <strong>Issues:</strong> github.com/FNNDSC/slidedown/issues
-
+<br>
     <pre id="typewriter-15-1" data-text="&gt; Happy presenting!"></pre>
-  
-
+<br>
                 </div>
             
         </div>
