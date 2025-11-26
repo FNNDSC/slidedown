@@ -4,7 +4,7 @@ slidedown - Text-first presentation compiler
 A LaTeX-inspired markup system for creating interactive HTML presentations.
 """
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 __author__ = "Rudolph Pienaar"
 __email__ = "rudolph.pienaar@gmail.com"
 
