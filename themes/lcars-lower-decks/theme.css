@@ -2000,6 +2000,16 @@ body {
     flex: 1 !important;
 }
 
+@keyframes sl-blink-animation {
+  50% {
+    opacity: 0;
+  }
+}
+
+.sl-blink {
+  animation: sl-blink-animation 1s step-end infinite;
+}
+
 .data-column {
     flex-shrink: 0 !important;
 }
