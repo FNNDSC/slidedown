@@ -954,3 +954,13 @@ mark {
 .container > pre[id^="typewriter-"] {
     display: block;
 }
+
+@keyframes sl-blink-animation {
+  50% {
+    opacity: 0;
+  }
+}
+
+.sl-blink {
+  animation: sl-blink-animation 2s step-end infinite;
+}

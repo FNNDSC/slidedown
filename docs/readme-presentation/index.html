@@ -101,23 +101,25 @@
                     SLIDEDOWN
                 </div>
                 <div class="container slide" id="slide-1" name="slide-1" style="display:none;">
-<br>
-    <pre> ____  _     ___ ____  _____ ____   _____        ___   _ 
+                    
+                    
+  
+       <pre> ____  _     ___ ____  _____ ____   _____        ___   _ 
 / ___|| |   |_ _|  _ \| ____|  _ \ / _ \ \      / / \ | |
 \___ \| |    | || | | |  _| | | | | | | \ \ /\ / /|  \| |
  ___) | |___ | || |_| | |___| |_| | |_| |\ V  V / | |\  |
 |____/|_____|___|____/|_____|____/ \___/  \_/\_/  |_| \_|
-<br>
+                                                         
 </pre>
-<br>
-    Text-first presentation compiler with behavioral markup.<br>
-<br>
-    <strong>View as Interactive Presentation:</strong><br>
-    https://fnndsc.github.io/slidedown/readme-presentation/<br>
-<br>
-    <div class="snippet" id="order-1-1">Documentation: docs/</div>
-    <div class="snippet" id="order-1-2">Examples: examples/</div>
-  
+<br />
+<br />
+Text-first presentation compiler with behavioral markup.<br>
+<br />
+<br />
+<strong>View as Interactive Presentation:</strong><br>     https://fnndsc.github.io/slidedown/readme-presentation/<br>
+<br />
+<br />
+<div class="snippet" id="order-1-1">Documentation: docs/</div>     <div class="snippet" id="order-1-2">Examples: examples/</div>   
 
                 </div>
             
@@ -126,19 +128,16 @@
                     What is slidedown?
                 </div>
                 <div class="container slide" id="slide-2" name="slide-2" style="display:none;">
-<br>
-    Do you like text? Have you ever wished that text was the<br>
-    basic substrate for compelling slideshows that are self<br>
-    contained and run in a browser?<br>
-<br>
-    slidedown is a LaTeX-inspired markup language for creating<br>
-    interactive HTML presentations from plain text.
-<br>
-    <div class="snippet" id="order-2-1">Text-first authoring - write presentations like you write code</div>
-    <div class="snippet" id="order-2-2">Behavioral markup - .directive\{content\} syntax\</div>
-    <div class="snippet" id="order-2-3">Interactive effects - typewriter animations, progressive reveals</div>
-    <div class="snippet" id="order-2-4">Single-file workflow - one .sd source → standalone HTML</div>
+                    
+                    
   
+       Do you like text? Have you ever wished that text was the<br>     basic substrate for compelling slideshows that are self<br>     contained and run in a browser?<br>
+<br />
+<br />
+slidedown is a LaTeX-inspired markup language for creating<br>     interactive HTML presentations from plain text.
+<br />
+<br />
+<div class="snippet" id="order-2-1">Text-first authoring - write presentations like you write code</div>     <div class="snippet" id="order-2-2">Behavioral markup - .directive\{content\} syntax\</div>     <div class="snippet" id="order-2-3">Interactive effects - typewriter animations, progressive reveals</div>     <div class="snippet" id="order-2-4">Single-file workflow - one .sd source → standalone HTML</div>   
 
                 </div>
             
@@ -147,15 +146,18 @@
                     Quick Start
                 </div>
                 <div class="container slide" id="slide-3" name="slide-3" style="display:none;">
-<br>
-    <pre id="typewriter-3-1" data-text="&gt; Installing slidedown..."></pre>
-<br>
-    <code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><span style="color: #3D7B7B; font-style: italic"># Install</span>
+                    
+                    
+  
+       <pre id="typewriter-3-1" data-text="&gt; Installing slidedown..."></pre>
+<br />
+<br />
+<code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><span style="color: #3D7B7B; font-style: italic"># Install</span>
 pip<span style="color: #BBB"> </span>install<span style="color: #BBB"> </span>-e<span style="color: #BBB"> </span>.
-<br>
+
 <span style="color: #3D7B7B; font-style: italic"># Compile a presentation</span>
 slidedown<span style="color: #BBB"> </span>examples/minimal/<span style="color: #BBB"> </span>output/<span style="color: #BBB"> </span>--inputFile<span style="color: #BBB"> </span>minimal.sd
-<br>
+
 <span style="color: #3D7B7B; font-style: italic"># View it</span>
 <span style="color: #008000">cd</span><span style="color: #BBB"> </span>output/
 python3<span style="color: #BBB"> </span>-m<span style="color: #BBB"> </span>http.server<span style="color: #BBB"> </span><span style="color: #666">8000</span>
@@ -163,9 +165,9 @@ python3<span style="color: #BBB"> </span>-m<span style="color: #BBB"> </span>htt
 <span style="color: #BBB">    </span>
 </pre></div>
 </code>
-
-    That's it!
-  
+<br />
+<br />
+That's it!   
 
                 </div>
             
@@ -174,31 +176,27 @@ python3<span style="color: #BBB"> </span>-m<span style="color: #BBB"> </span>htt
                     Directive Syntax
                 </div>
                 <div class="container slide" id="slide-4" name="slide-4" style="display:none;">
-<br>
-    The core syntax is simple:
-<br>
-    <code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>.directive{content}
+                    
+                    
+  
+       The core syntax is simple:
+<br />
+<br />
+<code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>.directive{content}
 .directive{\.modifier{value} content}
 .directive{nested \.directives{work} too}
-<br>
+    
 </pre></div>
 </code>
-
-    <strong>Structure:</strong>
-    <div class="snippet" id="order-4-1">.slide{} - defines a slide</div>
-    <div class="snippet" id="order-4-2">.title{} - slide title (metadata)</div>
-    <div class="snippet" id="order-4-3">.body{} - slide content</div>
-
-    <strong>Formatting:</strong>
-    <div class="snippet" id="order-4-4">.bf{} - bold</div>
-    <div class="snippet" id="order-4-5">.em{} - italic</div>
-    <div class="snippet" id="order-4-6">.tt{} - monospace</div>
-    <div class="snippet" id="order-4-7">.code{} - code block</div>
-
-    <strong>Effects:</strong>
-    <div class="snippet" id="order-4-8">.typewriter{} - typing animation</div>
-    <div class="snippet" id="order-4-9">.o{} - progressive reveal bullets</div>
-  
+<br />
+<br />
+<strong>Structure:</strong>     <div class="snippet" id="order-4-1">.slide{} - defines a slide</div>     <div class="snippet" id="order-4-2">.title{} - slide title (metadata)</div>     <div class="snippet" id="order-4-3">.body{} - slide content</div>
+<br />
+<br />
+<strong>Formatting:</strong>     <div class="snippet" id="order-4-4">.bf{} - bold</div>     <div class="snippet" id="order-4-5">.em{} - italic</div>     <div class="snippet" id="order-4-6">.tt{} - monospace</div>     <div class="snippet" id="order-4-7">.code{} - code block</div>
+<br />
+<br />
+<strong>Effects:</strong>     <div class="snippet" id="order-4-8">.typewriter{} - typing animation</div>     <div class="snippet" id="order-4-9">.o{} - progressive reveal bullets</div>   
 
                 </div>
             
@@ -207,23 +205,22 @@ python3<span style="color: #BBB"> </span>-m<span style="color: #BBB"> </span>htt
                     Installation
                 </div>
                 <div class="container slide" id="slide-5" name="slide-5" style="display:none;">
-<br>
-    <strong>Install slidedown:</strong>
-<br>
-    <code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>pip<span style="color: #BBB"> </span>install<span style="color: #BBB"> </span>-e<span style="color: #BBB"> </span>.
+                    
+                    
+  
+       <strong>Install slidedown:</strong>
+<br />
+<br />
+<code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>pip<span style="color: #BBB"> </span>install<span style="color: #BBB"> </span>-e<span style="color: #BBB"> </span>.
 <span style="color: #BBB">    </span>
 </pre></div>
 </code>
-
-    <strong>Requirements:</strong>
-    <div class="snippet" id="order-5-1">Python 3.11+</div>
-    <div class="snippet" id="order-5-2">pip or uv</div>
-    <div class="snippet" id="order-5-3">Modern web browser</div>
-
-    <strong>Platform Support:</strong>
-    <div class="snippet" id="order-5-4">Linux, macOS, Windows</div>
-    <div class="snippet" id="order-5-5">Android (via Termux)</div>
-  
+<br />
+<br />
+<strong>Requirements:</strong>     <div class="snippet" id="order-5-1">Python 3.11+</div>     <div class="snippet" id="order-5-2">pip or uv</div>     <div class="snippet" id="order-5-3">Modern web browser</div>
+<br />
+<br />
+<strong>Platform Support:</strong>     <div class="snippet" id="order-5-4">Linux, macOS, Windows</div>     <div class="snippet" id="order-5-5">Android (via Termux)</div>   
 
                 </div>
             
@@ -232,28 +229,28 @@ python3<span style="color: #BBB"> </span>-m<span style="color: #BBB"> </span>htt
                     Usage
                 </div>
                 <div class="container slide" id="slide-6" name="slide-6" style="display:none;">
-<br>
-    <strong>Basic compilation:</strong>
-<br>
-    <code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>slidedown<span style="color: #BBB"> </span>inputdir/<span style="color: #BBB"> </span>outputdir/<span style="color: #BBB"> </span>--inputFile<span style="color: #BBB"> </span>presentation.sd
-<span style="color: #BBB">    </span>
-</pre></div>
-</code>
-
-    <strong>With theme:</strong>
-
-    <code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>slidedown<span style="color: #BBB"> </span>input/<span style="color: #BBB"> </span>output/<span style="color: #BBB"> </span>--inputFile<span style="color: #BBB"> </span>demo.sd<span style="color: #BBB"> </span>--theme<span style="color: #BBB"> </span>retro-terminal
-<span style="color: #BBB">    </span>
-</pre></div>
-</code>
-
-    <strong>Available themes:</strong>
-    <div class="snippet" id="order-6-1">conventional-light (default)</div>
-    <div class="snippet" id="order-6-2">conventional-dark</div>
-    <div class="snippet" id="order-6-3">retro-terminal</div>
-    <div class="snippet" id="order-6-4">terminal</div>
-    <div class="snippet" id="order-6-5">lcars-lower-decks</div>
+                    
+                    
   
+       <strong>Basic compilation:</strong>
+<br />
+<br />
+<code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>slidedown<span style="color: #BBB"> </span>inputdir/<span style="color: #BBB"> </span>outputdir/<span style="color: #BBB"> </span>--inputFile<span style="color: #BBB"> </span>presentation.sd
+<span style="color: #BBB">    </span>
+</pre></div>
+</code>
+<br />
+<br />
+<strong>With theme:</strong>
+<br />
+<br />
+<code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>slidedown<span style="color: #BBB"> </span>input/<span style="color: #BBB"> </span>output/<span style="color: #BBB"> </span>--inputFile<span style="color: #BBB"> </span>demo.sd<span style="color: #BBB"> </span>--theme<span style="color: #BBB"> </span>retro-terminal
+<span style="color: #BBB">    </span>
+</pre></div>
+</code>
+<br />
+<br />
+<strong>Available themes:</strong>     <div class="snippet" id="order-6-1">conventional-light (default)</div>     <div class="snippet" id="order-6-2">conventional-dark</div>     <div class="snippet" id="order-6-3">retro-terminal</div>     <div class="snippet" id="order-6-4">terminal</div>     <div class="snippet" id="order-6-5">lcars-lower-decks</div>   
 
                 </div>
             
@@ -262,34 +259,37 @@ python3<span style="color: #BBB"> </span>-m<span style="color: #BBB"> </span>htt
                     Example Presentation
                 </div>
                 <div class="container slide" id="slide-7" name="slide-7" style="display:none;">
-<br>
-    <pre> _   _ _____ _     _     ___  
+                    
+                    
+  
+       <pre> _   _ _____ _     _     ___  
 | | | | ____| |   | |   / _ \ 
 | |_| |  _| | |   | |  | | | |
 |  _  | |___| |___| |__| |_| |
 |_| |_|_____|_____|_____\___/ 
-<br>
+                              
 </pre>
-<br>
-    Here's a minimal example:
-<br>
-    <code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>.slide{\.style{background: black; color: lightgreen;}
+<br />
+<br />
+Here's a minimal example:
+<br />
+<br />
+<code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>.slide{\.style{background: black; color: lightgreen;}
   \.title{My First Slide}
   \.body{
     \.typewriter{&gt; Initializing presentation...}
-<br>
+
     \.bf{Features:}
     \.o{\.em{Text-first} authoring}
     \.o{\.tt{Behavioral} markup}
     \.o{Interactive \.bf{effects}}
-<br>
+
     \.cowpy-tux{Made with slidedown!}
   }
 }
-<br>
+    
 </pre></div>
-</code>
-  
+</code>   
 
                 </div>
             
@@ -298,8 +298,10 @@ python3<span style="color: #BBB"> </span>-m<span style="color: #BBB"> </span>htt
                     Project Structure
                 </div>
                 <div class="container slide" id="slide-8" name="slide-8" style="display:none;">
-<br>
-    <code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>slidedown/
+                    
+                    
+  
+       <code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>slidedown/
 ├── src/
 │   ├── __main__.py          # CLI entry point
 │   ├── lib/
@@ -316,10 +318,9 @@ python3<span style="color: #BBB"> </span>-m<span style="color: #BBB"> </span>htt
 │   └── html/                # HTML templates
 ├── tests/                   # Test suite
 └── examples/                # Example presentations
-<br>
+    
 </pre></div>
-</code>
-  
+</code>   
 
                 </div>
             
@@ -328,32 +329,29 @@ python3<span style="color: #BBB"> </span>-m<span style="color: #BBB"> </span>htt
                     Testing
                 </div>
                 <div class="container slide" id="slide-9" name="slide-9" style="display:none;">
-<br>
-    <strong>Run all tests:</strong>
-    <code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>pytest
+                    
+                    
+  
+       <strong>Run all tests:</strong>     <code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>pytest
 <span style="color: #BBB">    </span>
 </pre></div>
 </code>
-
-    <strong>Run specific test files:</strong>
-    <code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>pytest<span style="color: #BBB"> </span>tests/test_parser_basic.py<span style="color: #BBB"> </span>-v
+<br />
+<br />
+<strong>Run specific test files:</strong>     <code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>pytest<span style="color: #BBB"> </span>tests/test_parser_basic.py<span style="color: #BBB"> </span>-v
 pytest<span style="color: #BBB"> </span>tests/test_e2e_compilation.py<span style="color: #BBB"> </span>-v
 <span style="color: #BBB">    </span>
 </pre></div>
 </code>
-
-    <strong>Coverage report:</strong>
-    <code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>pytest<span style="color: #BBB"> </span>--cov<span style="color: #666">=</span>slidedown<span style="color: #BBB"> </span>--cov-report<span style="color: #666">=</span>html
+<br />
+<br />
+<strong>Coverage report:</strong>     <code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>pytest<span style="color: #BBB"> </span>--cov<span style="color: #666">=</span>slidedown<span style="color: #BBB"> </span>--cov-report<span style="color: #666">=</span>html
 <span style="color: #BBB">    </span>
 </pre></div>
 </code>
-
-    <strong>Test categories:</strong>
-    <div class="snippet" id="order-9-1">Parser basics - directive parsing, nesting</div>
-    <div class="snippet" id="order-9-2">Modifiers - .style{} and .class{} extraction</div>
-    <div class="snippet" id="order-9-3">Nesting - recursive structure validation</div>
-    <div class="snippet" id="order-9-4">End-to-end - full pipeline integration</div>
-  
+<br />
+<br />
+<strong>Test categories:</strong>     <div class="snippet" id="order-9-1">Parser basics - directive parsing, nesting</div>     <div class="snippet" id="order-9-2">Modifiers - .style{} and .class{} extraction</div>     <div class="snippet" id="order-9-3">Nesting - recursive structure validation</div>     <div class="snippet" id="order-9-4">End-to-end - full pipeline integration</div>   
 
                 </div>
             
@@ -362,22 +360,21 @@ pytest<span style="color: #BBB"> </span>tests/test_e2e_compilation.py<span style
                     Architecture
                 </div>
                 <div class="container slide" id="slide-10" name="slide-10" style="display:none;">
-<br>
-    <strong>Functional Pipeline Pattern:</strong>
-<br>
-    <code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>.sd source → Parser → AST → Compiler → HTML
+                    
+                    
+  
+       <strong>Functional Pipeline Pattern:</strong>
+<br />
+<br />
+<code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>.sd source → Parser → AST → Compiler → HTML
                ↓         ↓        ↓
           ProgramState → → → → → →
-<br>
+    
 </pre></div>
 </code>
-
-    <strong>Key Concepts:</strong>
-    <div class="snippet" id="order-10-1"><em>State Bus</em> - ProgramState dataclass carries state</div>
-    <div class="snippet" id="order-10-2"><em>Inside-Out Compilation</em> - children compiled first</div>
-    <div class="snippet" id="order-10-3"><em>Placeholder Substitution</em> - markers for child content</div>
-    <div class="snippet" id="order-10-4"><em>Directive Registry</em> - extensible handler system</div>
-  
+<br />
+<br />
+<strong>Key Concepts:</strong>     <div class="snippet" id="order-10-1"><em>State Bus</em> - ProgramState dataclass carries state</div>     <div class="snippet" id="order-10-2"><em>Inside-Out Compilation</em> - children compiled first</div>     <div class="snippet" id="order-10-3"><em>Placeholder Substitution</em> - markers for child content</div>     <div class="snippet" id="order-10-4"><em>Directive Registry</em> - extensible handler system</div>   
 
                 </div>
             
@@ -386,28 +383,25 @@ pytest<span style="color: #BBB"> </span>tests/test_e2e_compilation.py<span style
                     Navbar Customization
                 </div>
                 <div class="container slide" id="slide-11" name="slide-11" style="display:none;">
-<br>
-    Customize navigation with .meta{navbar: ...}
-<br>
-    <strong>Container styling:</strong>
-    <div class="snippet" id="order-11-1">background, border, padding, box-shadow</div>
-
-    <strong>Button options:</strong>
-    <div class="snippet" id="order-11-2">shape: "round", "square", or custom</div>
-    <div class="snippet" id="order-11-3">size: width/height (e.g., "24px")</div>
-    <div class="snippet" id="order-11-4">color, background, border</div>
-    <div class="snippet" id="order-11-5">icon: FontAwesome HTML entity</div>
-    <div class="snippet" id="order-11-6">tooltip: hover text</div>
-
-    <strong>Available buttons:</strong>
-    <div class="snippet" id="order-11-7">slide_first, slide_previous, slide_next, slide_last</div>
-    <div class="snippet" id="order-11-8">slide_counter with format</div>
-    <div class="snippet" id="order-11-9">title with custom color</div>
-
-    <strong>Layout zones:</strong> left, center, right
-
-    See <tt>examples/watermarked/light-watermarks-demo.sd</tt>
+                    
+                    
   
+       Customize navigation with .meta{navbar: ...}
+<br />
+<br />
+<strong>Container styling:</strong>     <div class="snippet" id="order-11-1">background, border, padding, box-shadow</div>
+<br />
+<br />
+<strong>Button options:</strong>     <div class="snippet" id="order-11-2">shape: "round", "square", or custom</div>     <div class="snippet" id="order-11-3">size: width/height (e.g., "24px")</div>     <div class="snippet" id="order-11-4">color, background, border</div>     <div class="snippet" id="order-11-5">icon: FontAwesome HTML entity</div>     <div class="snippet" id="order-11-6">tooltip: hover text</div>
+<br />
+<br />
+<strong>Available buttons:</strong>     <div class="snippet" id="order-11-7">slide_first, slide_previous, slide_next, slide_last</div>     <div class="snippet" id="order-11-8">slide_counter with format</div>     <div class="snippet" id="order-11-9">title with custom color</div>
+<br />
+<br />
+<strong>Layout zones:</strong> left, center, right
+<br />
+<br />
+See <tt>examples/watermarked/light-watermarks-demo.sd</tt>   
 
                 </div>
             
@@ -416,21 +410,13 @@ pytest<span style="color: #BBB"> </span>tests/test_e2e_compilation.py<span style
                     Development Status
                 </div>
                 <div class="container slide" id="slide-12" name="slide-12" style="display:none;">
-<br>
-    <strong>Working:</strong>
-    <div class="snippet" id="order-12-1">Parser - recursive directive parsing</div>
-    <div class="snippet" id="order-12-2">Compiler - AST to HTML compilation</div>
-    <div class="snippet" id="order-12-3">CLI - functional command-line interface</div>
-    <div class="snippet" id="order-12-4">Tests - 65 tests passing</div>
-    <div class="snippet" id="order-12-5">Effects - typewriter, bullets, navigation</div>
-    <div class="snippet" id="order-12-6">Themes - 5 themes available</div>
-
-    <strong>Features:</strong>
-    <div class="snippet" id="order-12-7">Watermarks with percentage sizing</div>
-    <div class="snippet" id="order-12-8">Custom CSS via .meta{css: ...}</div>
-    <div class="snippet" id="order-12-9">Navbar customization</div>
-    <div class="snippet" id="order-12-10">ASCII art (Figlet) and cowsay</div>
+                    
+                    
   
+       <strong>Working:</strong>     <div class="snippet" id="order-12-1">Parser - recursive directive parsing</div>     <div class="snippet" id="order-12-2">Compiler - AST to HTML compilation</div>     <div class="snippet" id="order-12-3">CLI - functional command-line interface</div>     <div class="snippet" id="order-12-4">Tests - 65 tests passing</div>     <div class="snippet" id="order-12-5">Effects - typewriter, bullets, navigation</div>     <div class="snippet" id="order-12-6">Themes - 5 themes available</div>
+<br />
+<br />
+<strong>Features:</strong>     <div class="snippet" id="order-12-7">Watermarks with percentage sizing</div>     <div class="snippet" id="order-12-8">Custom CSS via .meta{css: ...}</div>     <div class="snippet" id="order-12-9">Navbar customization</div>     <div class="snippet" id="order-12-10">ASCII art (Figlet) and cowsay</div>   
 
                 </div>
             
@@ -439,26 +425,19 @@ pytest<span style="color: #BBB"> </span>tests/test_e2e_compilation.py<span style
                     Contributing
                 </div>
                 <div class="container slide" id="slide-13" name="slide-13" style="display:none;">
-<br>
-    This project was developed with <em>test-driven development</em>:
-<br>
-    <div class="snippet" id="order-13-1">Write tests first</div>
-    <div class="snippet" id="order-13-2">Implement to pass</div>
-    <div class="snippet" id="order-13-3">Refactor for clarity</div>
-    <div class="snippet" id="order-13-4">Document behavior</div>
-
-    <strong>Code Style:</strong>
-    <div class="snippet" id="order-13-5">RPN naming: <tt>object_verb</tt></div>
-    <div class="snippet" id="order-13-6">Type hints everywhere</div>
-    <div class="snippet" id="order-13-7">Docstrings with Args/Returns/Examples</div>
-    <div class="snippet" id="order-13-8">Functional over imperative</div>
-
-    <strong>Get Involved:</strong>
-    <div class="snippet" id="order-13-9">Report issues on GitHub</div>
-    <div class="snippet" id="order-13-10">Add new directive implementations</div>
-    <div class="snippet" id="order-13-11">Create example presentations</div>
-    <div class="snippet" id="order-13-12">Improve documentation</div>
+                    
+                    
   
+       This project was developed with <em>test-driven development</em>:
+<br />
+<br />
+<div class="snippet" id="order-13-1">Write tests first</div>     <div class="snippet" id="order-13-2">Implement to pass</div>     <div class="snippet" id="order-13-3">Refactor for clarity</div>     <div class="snippet" id="order-13-4">Document behavior</div>
+<br />
+<br />
+<strong>Code Style:</strong>     <div class="snippet" id="order-13-5">RPN naming: <tt>object_verb</tt></div>     <div class="snippet" id="order-13-6">Type hints everywhere</div>     <div class="snippet" id="order-13-7">Docstrings with Args/Returns/Examples</div>     <div class="snippet" id="order-13-8">Functional over imperative</div>
+<br />
+<br />
+<strong>Get Involved:</strong>     <div class="snippet" id="order-13-9">Report issues on GitHub</div>     <div class="snippet" id="order-13-10">Add new directive implementations</div>     <div class="snippet" id="order-13-11">Create example presentations</div>     <div class="snippet" id="order-13-12">Improve documentation</div>   
 
                 </div>
             
@@ -467,14 +446,13 @@ pytest<span style="color: #BBB"> </span>tests/test_e2e_compilation.py<span style
                     Credits
                 </div>
                 <div class="container slide" id="slide-14" name="slide-14" style="display:none;">
-<br>
-    Built on the shoulders of giants:
-<br>
-    <div class="snippet" id="order-14-1"><strong>tslide</strong> - Original framework by rudolphpienaar</div>
-    <div class="snippet" id="order-14-2"><strong>pyfiglet</strong> - ASCII art generation</div>
-    <div class="snippet" id="order-14-3"><strong>cowsay</strong> - ASCII speech bubbles</div>
-    <div class="snippet" id="order-14-4"><strong>ChRIS plugin</strong> - CLI framework pattern</div>
+                    
+                    
   
+       Built on the shoulders of giants:
+<br />
+<br />
+<div class="snippet" id="order-14-1"><strong>tslide</strong> - Original framework by rudolphpienaar</div>     <div class="snippet" id="order-14-2"><strong>pyfiglet</strong> - ASCII art generation</div>     <div class="snippet" id="order-14-3"><strong>cowsay</strong> - ASCII speech bubbles</div>     <div class="snippet" id="order-14-4"><strong>ChRIS plugin</strong> - CLI framework pattern</div>   
 
                 </div>
             
@@ -483,24 +461,26 @@ pytest<span style="color: #BBB"> </span>tests/test_e2e_compilation.py<span style
                     License & Contact
                 </div>
                 <div class="container slide" id="slide-15" name="slide-15" style="display:none;">
-<br>
-    <pre>    __  _____________
+                    
+                    
+  
+       <pre>    __  _____________
    /  |/  /  _/_  __/
   / /|_/ // /  / /   
  / /  / // /  / /    
 /_/  /_/___/ /_/     
-<br>
+                     
 </pre>
-<br>
-    Licensed under the MIT License.
-    See <tt>LICENSE</tt> file for details.
-<br>
-    <strong>Author:</strong> Rudolph Pienaar
-    <strong>Repository:</strong> github.com/FNNDSC/slidedown
-    <strong>Issues:</strong> github.com/FNNDSC/slidedown/issues
-<br>
-    <pre id="typewriter-15-1" data-text="&gt; Happy presenting!"></pre>
-<br>
+<br />
+<br />
+Licensed under the MIT License.     See <tt>LICENSE</tt> file for details.
+<br />
+<br />
+<strong>Author:</strong> Rudolph Pienaar     <strong>Repository:</strong> github.com/FNNDSC/slidedown     <strong>Issues:</strong> github.com/FNNDSC/slidedown/issues
+<br />
+<br />
+<pre id="typewriter-15-1" data-text="&gt; Happy presenting!"></pre>   
+
                 </div>
             
         </div>
