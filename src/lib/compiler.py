@@ -88,9 +88,6 @@ class Compiler:
         # Build complete HTML document
         full_html = self.htmlDocument_build(html_content)
 
-        # Post-process: insert <br> tags for blank lines within slides
-        full_html = self.blankLines_insertBreaks(full_html)
-
         # Write output file
         output_file = self.output_dir / "index.html"
         output_file.write_text(full_html, encoding='utf-8')
@@ -233,8 +230,9 @@ class Compiler:
 
         Uses inside-out compilation:
         1. Recursively compile all children
-        2. Substitute placeholders in content with compiled children
-        3. Apply directive handler to produce final HTML
+        2. Process line breaks in this node's raw text content
+        3. Substitute placeholders in content with compiled children
+        4. Apply directive handler to produce final HTML
 
         Args:
             node: AST node to compile
@@ -255,18 +253,26 @@ class Compiler:
             compiled_child_html = self.node_compile(child)
             compiled_children.append(compiled_child_html)
 
-        # Step 2: Substitute placeholders in content with compiled children
-        content_with_children = node.content
+        # Step 2: Process raw text for line breaks BEFORE substituting children
+        processed_content = node.content
+        if node.directive == 'body':
+            # Replace two or more newlines (a blank line) with a double <br /> tag for spacing
+            processed_content = re.sub(r'(?:\n\s*){2,}', '<br /><br />', processed_content)
+            # Replace remaining single newlines with a space
+            processed_content = processed_content.replace('\n', ' ')
+
+        # Step 2b: Substitute placeholders in content with compiled children
+        content_with_children = processed_content
         for i, compiled_child in enumerate(compiled_children):
             placeholder = appsettings.placeHolder_make(i)
             content_with_children = content_with_children.replace(
                 placeholder, compiled_child
             )
 
-        # Step 2b: Expand protected .code{} placeholders
+        # Step 2c: Expand protected .code{} placeholders
         content_with_children = self.codeblocks_expand(content_with_children)
 
-        # Step 2c: Expand backslash-escaped sequence placeholders
+        # Step 2d: Expand backslash-escaped sequence placeholders
         content_with_children = self.escapes_expand(content_with_children)
 
         # Step 3: Create a modified node with substituted content
@@ -281,9 +287,10 @@ class Compiler:
         if handler:
             result = handler(node, self)
         else:
-            LOG(f"Warning: Unknown directive '{node.directive}'", level=2)
-            # Fallback: just wrap in div with class
-            result = f'<div class="directive-{node.directive}">{content_with_children}</div>'
+            # This case handles raw text which the parser leaves in the content
+            # of parent directives. After line break processing and child substitution,
+            # this is just the final content.
+            result = content_with_children
 
         # Restore original content (in case node is reused)
         node.content = original_content
@@ -802,9 +809,9 @@ class Compiler:
             progress_style = f' style="{"; ".join(progress_style_parts)}"' if progress_style_parts else ''
             bar_style = f' style="{"; ".join(bar_style_parts)}"' if bar_style_parts else ''
 
-            html_parts.append(f'    <div id="slideProgress"{progress_style}>')
-            html_parts.append(f'        <div id="slideBar"{bar_style}></div>')
-            html_parts.append('    </div>')
+            html_parts.append(f'''    <div id="slideProgress"{progress_style}>
+        <div id="slideBar"{bar_style}></div>
+    </div>''')
 
         # Navbar container with optional styling
         container_config = navbar_config.get('container', {})
