@@ -9,16 +9,13 @@
 .slide{
   .title{First Slide}
   .body{
-    .h1{LCARS Theme}
+    .h1{LCARS Lower Decks Theme}
 
-    Welcome Star Fleet!
+    Testing the LCARS integration with slidedown.
 
-    Have you ever wanted to easily deliver a presentation
-
-    .o{that uses an LCARS look-and-feel?}
-    .o{where the slide contents are simple text}
-    .o{with some .em{light markup?}}
-
+    .o{Progressive reveal bullets}
+    .o{Should work normally}
+    .o{With LCARS styling}
   }
 }
 

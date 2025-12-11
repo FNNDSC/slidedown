@@ -256,15 +256,25 @@ class Compiler:
         # Step 2: Process raw text for line breaks BEFORE substituting children
         processed_content = node.content
         if node.directive == 'body':
-            def br_replacer(match):
-                # Count the number of newlines and add that many <br /> tags, each on a new line.
-                newline_count = match.group(0).count('\n')
-                return '\n' + ('<br />\n' * newline_count)
+            def line_break_replacer(match):
+                blank_lines = match.group(1)
+                single_newline = match.group(2)
 
-            # Replace sequences of 2+ newlines with a dynamic number of <br /> tags
-            processed_content = re.sub(r'(?:\n\s*){2,}', br_replacer, processed_content)
-            # Replace remaining single newlines with a space
-            processed_content = processed_content.replace('\n', ' ')
+                if blank_lines:
+                    # It's a block of 2 or more newlines.
+                    # Count the newlines and produce that many <br /> tags, each on its own line.
+                    newline_count = blank_lines.count('\n')
+                    return '\n' + ('<br />\n' * newline_count)
+                elif single_newline:
+                    # It's a single newline, convert to a space.
+                    return ' '
+                else:
+                    return ''
+
+            # This single regex handles both cases:
+            # 1. A block of 2 or more newlines (and optional whitespace)
+            # 2. A single newline
+            processed_content = re.sub(r'((?:\n\s*){2,})|(\n)', line_break_replacer, processed_content)
 
         # Step 2b: Substitute placeholders in content with compiled children
         content_with_children = processed_content

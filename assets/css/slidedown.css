@@ -962,5 +962,5 @@ mark {
 }
 
 .sl-blink {
-  animation: sl-blink-animation 1s step-end infinite;
+  animation: sl-blink-animation 2s step-end infinite;
 }
