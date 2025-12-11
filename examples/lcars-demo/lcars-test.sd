@@ -7,17 +7,40 @@
 }
 
 .slide{
-  .title{First Slide}
+  .title{Stardate 79467.9}
   .body{
-    .h1{LCARS Lower Decks Theme}
+    .h1{LCARS Theme}
 
-    Testing the LCARS integration with slidedown.
+    Welcome Star Fleet!
 
-    .o{Progressive reveal bullets}
-    .o{Should work normally}
-    .o{With LCARS styling}
+
+    Have you ever wanted to easily deliver a presentation
+    .em{(hit .bf{right} arrow...)}
+
+
+    .o{that uses an LCARS look-and-feel?}
+    .o{where the slide contents are simple text}
+    .o{with some .em{light markup?}}
+
   }
 }
+
+
+.slide{
+  .title{Memory Alpha}
+  .body{
+    .h1{Engage}
+
+    Now you can! Using slidedown and the amazing template\\
+    from <a href="https://thelcars.com">theLCARS.com</a> you too can now dazzle with\\
+    presentations straight out of the Alpha Quadrant circa the 2340s.
+
+    .typewriter{.blink{Note - still a slight work in progress!}}
+
+
+  }
+}
+
 
 .slide{
   .title{Second Slide}
