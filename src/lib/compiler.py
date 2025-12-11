@@ -256,8 +256,14 @@ class Compiler:
         # Step 2: Process raw text for line breaks BEFORE substituting children
         processed_content = node.content
         if node.directive == 'body':
-            # Replace two or more newlines (a blank line) with a double <br /> tag for spacing
-            processed_content = re.sub(r'(?:\n\s*){2,}', '<br /><br />', processed_content)
+            def br_replacer(match):
+                # Count the number of newlines and add that many <br /> tags.
+                # This equates to "N blank lines + 1 <br />".
+                newline_count = match.group(0).count('\n')
+                return '<br />' * newline_count
+
+            # Replace sequences of 2+ newlines with a dynamic number of <br /> tags
+            processed_content = re.sub(r'(?:\n\s*){2,}', br_replacer, processed_content)
             # Replace remaining single newlines with a space
             processed_content = processed_content.replace('\n', ' ')
 
