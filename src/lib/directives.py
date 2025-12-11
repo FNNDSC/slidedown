@@ -225,21 +225,20 @@ class DirectiveRegistry:
     def formattingDirectives_register(self) -> None:
         """Register HTML formatting directives"""
 
-        def make_html_wrapper(tag: str) -> Callable[[Any, Any], str]:
+        def make_html_wrapper(tag: str, css_class: Optional[str] = None) -> Callable[[Any, Any], str]:
             """Factory for simple HTML tag wrappers"""
             def handler(node: Any, compiler: Any) -> str:
-                """Wrap content in HTML tag with optional style modifier"""
+                """Wrap content in HTML tag with optional style and class"""
                 style = node.modifiers.get('style', '')
                 style_attr = f' style="{style}"' if style else ''
-                return f'<{tag}{style_attr}>{node.content}</{tag}>'
+                class_attr = f' class="{css_class}"' if css_class else ''
+                return f'<{tag}{class_attr}{style_attr}>{node.content}</{tag}>'
             return handler
 
         formatting_specs = [
             ('bf', 'strong', 'Bold/strong text', ['.bf{bold text}']),
             ('em', 'em', 'Emphasized/italic text', ['.em{italic text}']),
             ('tt', 'tt', 'Teletype/monospace text', ['.tt{monospace}']),
-            # NOTE: .code{} is registered in transformDirectives_register() for syntax highlighting
-            # ('code', 'code', 'Inline code', ['.code{function()}']),
             ('underline', 'u', 'Underlined text', ['.underline{underlined}']),
         ]
 
@@ -251,6 +250,15 @@ class DirectiveRegistry:
                 handler=make_html_wrapper(tag),
                 examples=examples
             ))
+
+        self.register(DirectiveSpec(
+            name='flash',
+            aliases=['blink'],
+            category=DirectiveCategory.FORMATTING,
+            description='Blinking text effect',
+            handler=make_html_wrapper('span', 'sl-blink'),
+            examples=['.flash{blinking text}', '.blink{also blinking}']
+        ))
 
         # Heading aliases - cleaner syntax than <h1></h1>
         heading_specs = [
