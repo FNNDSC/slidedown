@@ -500,8 +500,11 @@ Page.prototype = {
 
         // Parse for snippets per slide
         for(const DOMslideID of this.l_slide) {
-            str_slide           = document.getElementById(DOMslideID).outerHTML;
-            snippetsPerSlide    = this.substr_count('class="snippet"', str_slide);
+            let el = document.getElementById(DOMslideID);
+            let snippetsPerSlide = 0;
+            if (el) {
+                snippetsPerSlide = el.getElementsByClassName('snippet').length;
+            }
             this.l_snippetsPerSlide.push(snippetsPerSlide);
             this.l_snippetPerSlideON.push(0);
         }
@@ -587,95 +590,59 @@ Page.prototype = {
     },
 
     retreat_overSnippets:               function() {
-        let str_help = `
-            For a given slide, this retreats over the snippets, turning
-            each current snippet OFF.
-
-            Return:
-            true:       All snippets have been toggled to display: none
-            false:      Some snippets still ON
-        `;
-        let thisSlide   = this.currentSlide-1
-        // Check if all snippets are OFF, and if so, return with a true
+        let thisSlide   = this.currentSlide-1;
         if(this.l_snippetPerSlideON[thisSlide] == 0)
             return true;
 
-        let snippetToDisplayOFF         = this.l_snippetPerSlideON[thisSlide];
-        let DOMsnippet                  = document.getElementById(
-                                            'order-' + this.currentSlide +
-                                            '-' + snippetToDisplayOFF
-                                            );
+        let snippetToDisplayOFF = this.l_snippetPerSlideON[thisSlide];
+        let DOMsnippet = document.getElementById('order-' + this.currentSlide + '-' + snippetToDisplayOFF);
 
-        DOMsnippet.style.display        = 'none';
+        if (DOMsnippet) {
+            DOMsnippet.classList.add('sl-hidden');
+        }
         this.l_snippetPerSlideON[thisSlide] -= 1;
         return false;
-
     },
 
     advance_overSnippets:               function() {
-        let str_help = `
-            For a given slide, this advances over the snippets, turning
-            each current snippet ON.
-
-            Return:
-            true:       All snippets have been toggled to display: block
-            false:      Some snippets still OFF
-        `;
-        let thisSlide   = this.currentSlide-1
-        // Check if all snippets are ON, and if so, return with a true
-        if(this.l_snippetPerSlideON[thisSlide] ==
-            this.l_snippetsPerSlide[thisSlide])
+        let thisSlide   = this.currentSlide-1;
+        if(this.l_snippetPerSlideON[thisSlide] == this.l_snippetsPerSlide[thisSlide])
             return true;
 
-        let snippetToDisplay            = this.l_snippetPerSlideON[thisSlide] + 1;
-        let DOMsnippet                  = document.getElementById(
-                                                'order-' + this.currentSlide +
-                                                '-' + snippetToDisplay
-                                            );
+        let snippetToDisplay = this.l_snippetPerSlideON[thisSlide] + 1;
+        let DOMsnippet = document.getElementById('order-' + this.currentSlide + '-' + snippetToDisplay);
 
-        // Safety check: if snippet doesn't exist, return true (no more snippets)
-        if (!DOMsnippet) {
-            return true;
-        }
-
-        DOMsnippet.style.display        = 'block';
-
-        // Check if this snippet contains a typewriter and trigger it
-        let typewriterInSnippet = DOMsnippet.querySelector('[id^="typewriter-"]');
-        if (typewriterInSnippet) {
-            let str_idRef = typewriterInSnippet.id;
-
-            // Store original data-text attribute on FIRST reveal only
-            if (!this.d_typewriterOriginalHTML[str_idRef]) {
-                this.d_typewriterOriginalHTML[str_idRef] = typewriterInSnippet.getAttribute('data-text') || typewriterInSnippet.textContent;
-            } else {
-                // On revisit, restore via data attribute
-                typewriterInSnippet.setAttribute('data-text', this.d_typewriterOriginalHTML[str_idRef]);
-                typewriterInSnippet.innerHTML = '';
+        if (DOMsnippet) {
+            DOMsnippet.classList.remove('sl-hidden');
+            
+            // Trigger typewriter if present
+            let typewriterInSnippet = DOMsnippet.querySelector('[id^="typewriter-"]');
+            if (typewriterInSnippet) {
+                let str_idRef = typewriterInSnippet.id;
+                if (!this.d_typewriterOriginalHTML[str_idRef]) {
+                    this.d_typewriterOriginalHTML[str_idRef] = typewriterInSnippet.getAttribute('data-text') || typewriterInSnippet.textContent;
+                }
+                this.d_typerDOM[str_idRef] = typewriterInSnippet;
+                this.d_typewriter[str_idRef] = this.setupTypewriter(this.d_typerDOM[str_idRef]);
+                this.d_typewriter[str_idRef].type();
             }
-
-            this.d_typerDOM[str_idRef] = typewriterInSnippet;
-            this.d_typewriter[str_idRef] = this.setupTypewriter(this.d_typerDOM[str_idRef]);
-            this.d_typewriter[str_idRef].type();
         }
 
-        this.l_snippetPerSlideON[thisSlide]    += 1;
+        this.l_snippetPerSlideON[thisSlide] += 1;
         return false;
     },
 
     allSnippets_displaySet:             function(astr_state, a_slideIndex) {
-        let str_help = `
-            For a given slide <a_slideIndex> set the display state of (any)
-            snippet elements to <astr_state>. Note that the <a_slideIndex>
-            counts starting from 1 not 0.
-        `;
-        snippets    = this.l_snippetsPerSlide[a_slideIndex-1];
+        let snippets = this.l_snippetsPerSlide[a_slideIndex-1];
         for(let snippet=1; snippet <= snippets; snippet++) {
-            DOMsnippet = document.getElementById(
-                            'order-' + a_slideIndex +
-                            '-' + snippet
-            );
-            DOMsnippet.style.display =  astr_state;
+            let DOMsnippet = document.getElementById('order-' + a_slideIndex + '-' + snippet);
+            if (DOMsnippet) {
+                if (astr_state === 'none') {
+                    DOMsnippet.classList.add('sl-hidden');
+                } else {
+                    DOMsnippet.classList.remove('sl-hidden');
+                }
+            }
         }
         this.l_snippetPerSlideON[a_slideIndex-1] = 0;
     },
@@ -1047,7 +1014,7 @@ Page.prototype = {
 // ---------------------------------------------------------------------------------------------------------------
 
 // Page object
-let page            = new Page();
+var page            = new Page();
 
 
 // The whole document

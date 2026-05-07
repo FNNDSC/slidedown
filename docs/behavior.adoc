@@ -1,0 +1,47 @@
+= Slidedown Behavior: Layout Stability and Progressive Reveal
+v1.1, May 2026
+
+== Overview
+
+Slidedown employs a 'Space-Preserving Progressive Reveal' strategy for snippets (bullets defined via the .o{} directive). This ensures that as elements are revealed during a presentation, the rest of the slide content remains stationary, preventing 'Layout Shift.'
+
+== Implementation Details
+
+=== CSS Strategy: Visibility over Display
+
+Traditional progressive reveals often toggle display: none and display: block. In a character-grid or terminal-style presentation (like the retro-terminal theme), this causes jarring vertical jumps as content is injected into the DOM flow.
+
+Slidedown resolves this by using the visibility property:
+
+[source,css]
+----
+.snippet {
+    display: block !important;
+    min-height: 1.5em;
+    visibility: visible !important;
+}
+
+.snippet.sl-hidden {
+    visibility: hidden !important;
+}
+----
+
+* *Base State*: Every snippet occupies its full vertical space from the moment the slide is rendered.
+* *Hidden State*: The sl-hidden class makes the element invisible but preserves its dimensions in the document flow.
+* *Reveal*: Removing sl-hidden makes the content visible without recalculating the layout of surrounding elements.
+
+=== JavaScript Integration
+
+The Page object manages snippet state via the sl-hidden class.
+
+* *Initialization*: Upon entering a slide, allSnippets_displaySet('none') adds the sl-hidden class to all .snippet elements.
+* *Advance*: advance_overSnippets() removes the sl-hidden class from the next element in the sequence.
+* *Retreat*: retreat_overSnippets() re-applies the sl-hidden class.
+
+== Best Practices for Authors
+
+To maximize layout stability:
+
+1. **Avoid overlapping content**: Ensure that high-reveal slides have enough vertical padding to accommodate all snippets.
+2. **Fixed-height containers**: If using complex layouts with .column{}, ensure the columns have stable heights if they contain internal .o{} reveals.
+3. **Typewriter alignment**: Typewriters inside snippets inherit the snippet's block-level stability, ensuring the 'cursor' starts at a predictable vertical coordinate.

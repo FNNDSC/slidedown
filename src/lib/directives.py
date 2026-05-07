@@ -349,7 +349,7 @@ class DirectiveRegistry:
             style = node.modifiers.get('style', '')
             style_attr = f' style="{style}"' if style else ''
 
-            return f'''<div class="snippet" id="order-{slide_num}-{snippet_num}"{style_attr}>{node.content}</div>'''
+            return f'''<div class="snippet sl-hidden" id="order-{slide_num}-{snippet_num}"{style_attr}>{node.content}</div>'''
 
         self.register(DirectiveSpec(
             name='typewriter',
