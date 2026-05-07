@@ -492,8 +492,10 @@ Page.prototype = {
             in the DOM.
         `;
 
-        this.str_slideIDprefix  = document.getElementById('slideIDprefix').innerHTML;
-        let numberOfSlides      = document.getElementById('numberOfSlides').innerHTML;
+        let prefixEl = document.getElementById('slideIDprefix');
+        this.str_slideIDprefix = prefixEl ? prefixEl.innerHTML.trim() : 'slide-';
+        let countEl = document.getElementById('numberOfSlides');
+        let numberOfSlides = countEl ? parseInt(countEl.innerHTML) : 0;
         for(let i=1; i<=numberOfSlides; i++) {
             this.l_slide.push(this.str_slideIDprefix + i);
         }

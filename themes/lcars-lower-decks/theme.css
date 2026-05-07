@@ -2134,3 +2134,17 @@ body {
     text-transform: uppercase !important;
     cursor: pointer !important;
 }
+
+/* --- Slidedown Layout Stability Fix --- */
+.snippet {
+    display: block !important;
+    min-height: 1.5em;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.snippet.sl-hidden {
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+/* -------------------------------------- */
