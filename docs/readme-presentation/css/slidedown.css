@@ -343,11 +343,9 @@ h2:hover .overlay {
     display: none;
 }
 
-.snippet {
-    /* all snippets start off being not displayed */
-    display: none;
-    height: 1.5em;
-}
+
+
+
 
 br {
     display: block;
@@ -963,4 +961,16 @@ mark {
 
 .sl-blink {
   animation: sl-blink-animation 2s step-end infinite;
+}
+
+.snippet {
+    display: block !important;
+    min-height: 1.5em;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.snippet.sl-hidden {
+    visibility: hidden !important;
+    opacity: 0 !important;
 }
