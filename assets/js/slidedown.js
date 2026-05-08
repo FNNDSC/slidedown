@@ -461,6 +461,7 @@ function Page() {
     this.l_snippetPerSlideON    = [];   // Running count of ON snippets
     this.str_slideIDprefix      = "";
     this.init();
+    if (typeof initializeBridgeSystems === "function") initializeBridgeSystems();
 
     // DOM obj elements --  Each object has a specific list of page key
     //                      elements that it process to provide page
@@ -777,6 +778,7 @@ Page.prototype = {
 
         DOMID_currentSlide.style.display    = "none";
         DOMID_followingSlide.style.display  = "block";
+        if (typeof updateBridgeGraphic === "function") updateBridgeGraphic(index_followingSlide);
 
         // Reset ALL typewriters on the slide we're entering
         this.resetAllTypewritersOnSlide(index_followingSlide);

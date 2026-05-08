@@ -121,9 +121,15 @@ class DirectiveRegistry:
             # Generate watermarks from theme config
             watermarks_html = compiler.watermarks_generate()
 
+            # Extract effect from slide modifiers (e.g., .slide{.effect{histogram}})
+            slide_effect = node.modifiers.get('effect', 'starmap')
+
             return f"""
                 <div id="slide-{slide_num}-title" style="display: none;">
                     {title_content}
+                </div>
+                <div id="slide-{slide_num}-effect" style="display: none;">
+                    {slide_effect}
                 </div>
                 <div class="{css_classes}" id="slide-{slide_num}" name="slide-{slide_num}" {style_attr}>
                     {watermarks_html}
@@ -562,6 +568,14 @@ class DirectiveRegistry:
         def syntax_handler(node: Any, compiler: Any) -> str:
             """Should never be called - .syntax{} extracted by parser"""
             return ""
+
+        self.register(DirectiveSpec(
+            name='effect',
+            category=DirectiveCategory.MODIFIER,
+            description='Bridge animation for LCARS theme',
+            handler=style_handler,
+            examples=['.slide{.effect{histogram}}']
+        ))
 
         self.register(DirectiveSpec(
             name='syntax',
