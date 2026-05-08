@@ -461,6 +461,7 @@ function Page() {
     this.l_snippetPerSlideON    = [];   // Running count of ON snippets
     this.str_slideIDprefix      = "";
     this.init();
+    if (typeof initializeBridgeSystems === "function") initializeBridgeSystems();
 
     // DOM obj elements --  Each object has a specific list of page key
     //                      elements that it process to provide page
@@ -492,8 +493,10 @@ Page.prototype = {
             in the DOM.
         `;
 
-        this.str_slideIDprefix  = document.getElementById('slideIDprefix').innerHTML;
-        let numberOfSlides      = document.getElementById('numberOfSlides').innerHTML;
+        let prefixEl = document.getElementById('slideIDprefix');
+        this.str_slideIDprefix = prefixEl ? prefixEl.innerHTML.trim() : 'slide-';
+        let countEl = document.getElementById('numberOfSlides');
+        let numberOfSlides = countEl ? parseInt(countEl.innerHTML) : 0;
         for(let i=1; i<=numberOfSlides; i++) {
             this.l_slide.push(this.str_slideIDprefix + i);
         }
@@ -775,6 +778,7 @@ Page.prototype = {
 
         DOMID_currentSlide.style.display    = "none";
         DOMID_followingSlide.style.display  = "block";
+        if (typeof updateBridgeGraphic === "function") updateBridgeGraphic(index_followingSlide);
 
         // Reset ALL typewriters on the slide we're entering
         this.resetAllTypewritersOnSlide(index_followingSlide);
