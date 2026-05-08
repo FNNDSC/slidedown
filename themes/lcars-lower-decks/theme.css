@@ -2282,3 +2282,165 @@ body {
 }
 
 /* ----------------------------------------------------- */
+
+/* ============================================================ */
+/* HIGH-FIDELITY BRIDGE SYSTEMS (PORTED FROM ARGUS)             */
+/* ============================================================ */
+
+/* --- Telemetry Bank --- */
+.telemetry-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.5fr;
+    gap: 0.5rem;
+    width: 100%;
+    height: 100%;
+    padding: 4px;
+}
+
+.tele-col {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--accent-color, #f91);
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.tele-header {
+    background: var(--accent-color, #f91);
+    color: black;
+    font-size: 0.65rem;
+    font-weight: bold;
+    padding: 1px 6px;
+    text-align: right;
+    text-transform: uppercase;
+}
+
+.tele-content {
+    padding: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    color: var(--light-color, #fc9);
+    flex: 1;
+    overflow: hidden;
+    white-space: pre;
+}
+
+.tele-content span.highlight { color: #fff; font-weight: bold; }
+.tele-content span.dim { opacity: 0.5; }
+.tele-content span.warn { color: #f33; }
+
+/* --- Top Bar Data Bank --- */
+.lcars-data-bank {
+    display: inline-flex;
+    gap: 15px;
+    margin-left: auto;
+    padding-right: 20px;
+    font-family: 'Antonio', sans-serif;
+    font-size: 1.2rem;
+    color: var(--accent-color, #f91);
+    opacity: 0.8;
+}
+
+.lcars-nav-flicker {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.75rem;
+    color: var(--accent-color, #f91);
+    margin-right: 15px;
+    justify-content: center;
+    opacity: 0.7;
+}
+
+.banner {
+    display: flex !important;
+    align-items: center;
+}
+
+/* --- High-Fidelity Starfleet Graphics --- */
+
+/* 1. Starmap (Radial Drift) */
+.effect-starmap {
+    width: 100px;
+    height: 50px;
+    background: radial-gradient(circle, #fff 1px, transparent 1px),
+                radial-gradient(circle, #fc9 1px, transparent 1px);
+    background-size: 25px 25px, 40px 40px;
+    background-position: 0 0, 15px 15px;
+    animation: starmap-drift 20s linear infinite;
+    opacity: 0.6;
+}
+
+@keyframes starmap-drift {
+    from { background-position: 0 0, 15px 15px; }
+    to { background-position: 100px 100px, 115px 115px; }
+}
+
+/* 2. Histogram (Bar Bank) */
+.effect-histogram {
+    display: flex;
+    gap: 4px;
+    align-items: flex-end;
+    height: 45px;
+    width: 100px;
+}
+
+.effect-histogram div {
+    flex: 1;
+    background: var(--accent-color, #f91);
+    animation: hist-pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes hist-pulse {
+    0%, 100% { height: 25%; opacity: 0.4; }
+    50% { height: 100%; opacity: 1; }
+}
+
+.effect-histogram div:nth-child(2) { animation-delay: 0.3s; }
+.effect-histogram div:nth-child(3) { animation-delay: 0.5s; }
+.effect-histogram div:nth-child(4) { animation-delay: 0.15s; }
+.effect-histogram div:nth-child(5) { animation-delay: 0.6s; }
+
+/* 3. Waveform (Subspace Pulse) */
+.effect-waveform {
+    width: 100px;
+    height: 35px;
+    background: repeating-linear-gradient(90deg, transparent, transparent 20px, var(--accent-color, #f91) 20px, var(--accent-color, #f91) 22px);
+    mask-image: linear-gradient(to right, transparent, black, transparent);
+    animation: waveform-slide 2.5s linear infinite;
+}
+
+@keyframes waveform-slide {
+    from { background-position: 0 0; }
+    to { background-position: 50px 0; }
+}
+
+/* 4. Orbital (Molecular Spin) */
+.effect-orbital {
+    width: 45px;
+    height: 45px;
+    border: 2px solid var(--light-color, #fc9);
+    border-radius: 50%;
+    position: relative;
+    animation: orbital-rotate 5s linear infinite;
+}
+
+.effect-orbital::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: var(--accent-color, #f91);
+    border-radius: 50%;
+    top: -6px;
+    left: 18px;
+    box-shadow: 0 0 12px var(--accent-color, #f91);
+}
+
+@keyframes orbital-rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* --------------------------------------------------------- */
