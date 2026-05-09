@@ -22,13 +22,16 @@ Usage:
     LOG("Verbose trace appears if verbosity >= 3", level=3)
 """
 
-from loguru import logger
-from typing import Any, Optional
-from contextvars import ContextVar
 import sys
+from contextvars import ContextVar
+from typing import Any
+
+from loguru import logger
 
 # Context variable to hold current ProgramState
-_program_state: ContextVar[Optional[Any]] = ContextVar('program_state', default=None)
+_program_state: ContextVar[Any | None] = ContextVar(
+    "program_state", default=None
+)
 
 # Configure loguru with slidedown-specific format
 logger_format = (
@@ -70,7 +73,7 @@ def LOG(message: str, level: int = 1, **kwargs: Any) -> None:
     Args:
         message: Log message to display
         level: Minimum verbosity level required (1=normal, 2=verbose, 3=debug)
-        **kwargs: Additional loguru metadata (e.g., exc_info=True for exceptions)
+        **kwargs: Additional loguru metadata.
 
     Verbosity levels:
         1 = Normal output (default)
@@ -82,8 +85,8 @@ def LOG(message: str, level: int = 1, **kwargs: Any) -> None:
         LOG("Parsing 42 AST nodes", level=2)
         LOG("Token at position 1337: .slide{", level=3)
     """
-    state: Optional[Any] = _program_state.get()
+    state: Any | None = _program_state.get()
 
-    if state and hasattr(state, 'verbosity') and state.verbosity >= level:
-        # depth=1 attributes the log record to the caller of LOG() instead of LOG itself
+    if state and hasattr(state, "verbosity") and state.verbosity >= level:
+        # depth=1 attributes records to LOG() callers.
         logger.opt(depth=1).debug(message, **kwargs)

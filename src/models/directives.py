@@ -5,9 +5,10 @@ Defines the structure and categories of slidedown directives for
 validation, documentation generation, and registry management.
 """
 
-from enum import Enum
 from dataclasses import dataclass, field
-from typing import Callable, List, Optional, Set, Any
+from enum import Enum
+
+from .handlers import DirectiveHandler
 
 
 class DirectiveCategory(Enum):
@@ -16,13 +17,14 @@ class DirectiveCategory(Enum):
 
     Used for organization, documentation generation, and validation.
     """
-    STRUCTURAL = "structural"    # .slide{}, .body{}, .title{}
-    FORMATTING = "formatting"    # .bf{}, .em{}, .code{}
-    LAYOUT = "layout"           # .column{} (future)
-    EFFECT = "effect"           # .typewriter{}, .o{}
-    TRANSFORM = "transform"     # .font-*, .cowpy-*
-    MODIFIER = "modifier"       # .style{}, .class{} (reserved)
-    METADATA = "metadata"       # .meta{}, .comment{}
+
+    STRUCTURAL = "structural"  # .slide{}, .body{}, .title{}
+    FORMATTING = "formatting"  # .bf{}, .em{}, .code{}
+    LAYOUT = "layout"  # .column{} (future)
+    EFFECT = "effect"  # .typewriter{}, .o{}
+    TRANSFORM = "transform"  # .font-*, .cowpy-*
+    MODIFIER = "modifier"  # .style{}, .class{} (reserved)
+    METADATA = "metadata"  # .meta{}, .comment{}
 
 
 @dataclass
@@ -44,15 +46,16 @@ class DirectiveSpec:
         examples: Example usage strings
         aliases: Alternative names for the directive
     """
+
     name: str
     category: DirectiveCategory
     description: str
-    handler: Callable[[Any, Any], str]
+    handler: DirectiveHandler
     requires_children: bool = False
     allows_nesting: bool = True
     is_wildcard: bool = False
-    examples: List[str] = field(default_factory=list)
-    aliases: List[str] = field(default_factory=list)
+    examples: list[str] = field(default_factory=list)
+    aliases: list[str] = field(default_factory=list)
 
     def matches(self, directive_name: str) -> bool:
         """
@@ -77,8 +80,8 @@ class DirectiveSpec:
         # Wildcard match
         if self.is_wildcard:
             # Extract prefix (e.g., 'font-*' -> 'font-')
-            if '-' in self.name:
-                prefix = self.name.rsplit('-', 1)[0] + '-'
+            if "-" in self.name:
+                prefix = self.name.rsplit("-", 1)[0] + "-"
                 if directive_name.startswith(prefix):
                     return True
 
@@ -86,10 +89,10 @@ class DirectiveSpec:
 
 
 # Reserved directives that are handled specially by the parser
-RESERVED_DIRECTIVES: Set[str] = {
-    'style',   # .style{css} - extracted as modifier
-    'class',   # .class{classname} - extracted as modifier
-    'syntax',  # .syntax{language=X} - extracted as modifier for .code{}
+RESERVED_DIRECTIVES: set[str] = {
+    "style",  # .style{css} - extracted as modifier
+    "class",  # .class{classname} - extracted as modifier
+    "syntax",  # .syntax{language=X} - extracted as modifier for .code{}
 }
 
 

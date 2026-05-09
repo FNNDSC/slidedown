@@ -1,334 +1,206 @@
-```slidedown
-.comment{
- GO HERE TO SEE THIS README AS A SLIDE SHOW!
+# Slidedown
 
-    https://fnndsc.github.io/slidedown/readme-presentation/
-}
+Slidedown is a text-first presentation compiler. You write a plain text
+`.sd` file with simple `.directive{content}` markup, and slidedown compiles it
+to a browser-based HTML presentation.
 
-.meta{
-  title: "Slidedown - Text-first Presentation Compiler"
-  css:
-    ".container":
-        font-size: "36px"
-        line-height: "1.6"
-}
+It is meant for people who want slide decks that behave more like source code:
+diffable, scriptable, easy to version, and still capable of presentation
+effects such as progressive reveals, typewriter text, code highlighting,
+themes, and custom CSS.
 
-.slide{
-  .title{SLIDEDOWN}
-  .body{
-    .font-standard{SLIDEDOWN}
+View the original self-hosted README presentation:
 
-    Text-first presentation compiler with behavioral markup.\\
+https://fnndsc.github.io/slidedown/readme-presentation/
 
-    .bf{View as Interactive Presentation:}\\
-    https://fnndsc.github.io/slidedown/readme-presentation/\\
+## Quick Start
 
-    .o{Documentation: docs/}
-    .o{Examples: examples/}
-  }
-}
+Slidedown is primarily managed through its `Makefile`. That path assumes your
+system has `make` available.
 
-.slide{
-  .title{What is slidedown?}
-  .body{
-    Do you like text? Have you ever wished that text was the\\
-    basic substrate for compelling slideshows that are self\\
-    contained and run in a browser?\\
+On Linux and macOS, `make` is usually available through the system package
+manager or developer tools. On Windows, use WSL, MSYS2, Git Bash, or another
+environment that provides GNU Make. The Makefile also detects Android/Termux
+and uses `pip` there instead of `uv pip`.
 
-    slidedown is a LaTeX-inspired markup language for creating\\
-    interactive HTML presentations from plain text.
+From a fresh checkout:
 
-    .o{Text-first authoring - write presentations like you write code}
-    .o{Behavioral markup - .directive\{content\} syntax\}
-    .o{Interactive effects - typewriter animations, progressive reveals}
-    .o{Single-file workflow - one .sd source → standalone HTML}
-  }
-}
+```bash
+make dev
+```
 
-.slide{
-  .title{Quick Start}
-  .body{
-    .typewriter{> Installing slidedown...}
+Compile and serve an example deck:
 
-    .code{.syntax{language=bash}
-# Install
-pip install -e .
+```bash
+make presentation SOURCE=examples/minimal/minimal.sd
+```
 
-# Compile a presentation
-slidedown examples/minimal/ output/ --inputFile minimal.sd
+The first command creates `.venv` and installs slidedown in editable mode. The
+second command compiles the deck and serves it at:
 
-# View it
+```text
+http://localhost:8000
+```
+
+Compile without serving:
+
+```bash
+make compile SOURCE=examples/minimal/minimal.sd
+```
+
+Serve an already compiled deck:
+
+```bash
+make serve SOURCE=examples/minimal/minimal.sd
+```
+
+Change the theme or port:
+
+```bash
+make presentation \
+  SOURCE=examples/watermarked/light-watermarks-demo.sd \
+  THEME=conventional-light \
+  PORT=9000
+```
+
+See all Makefile targets:
+
+```bash
+make help
+```
+
+If you are on a system without `make`, the equivalent manual path is:
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -e ".[dev]"
+.venv/bin/slidedown examples/minimal/ output/ \
+  --inputFile minimal.sd \
+  --theme conventional-light
 cd output/
 python3 -m http.server 8000
-# Open http://localhost:8000
-    }
+```
 
-    That's it!
-  }
-}
+## Minimal Example
 
+```slidedown
 .slide{
-  .title{Directive Syntax}
+  .title{Hello Slidedown}
   .body{
-    The core syntax is simple:
+    .typewriter{> Welcome...}
 
-    .code{.syntax{language=text}
-\.directive\{content\}
-\.directive\{\.modifier\{value\} content\}
-\.directive\{nested \.directives\{work\} too\}
-    }
-
-    .bf{Structure:}
-    .o{\.slide\{\} - defines a slide}
-    .o{\.title\{\} - slide title (metadata)}
-    .o{\.body\{\} - slide content}
-
-    .bf{Formatting:}
-    .o{\.bf\{\} - bold}
-    .o{\.em\{\} - italic}
-    .o{\.tt\{\} - monospace}
-    .o{\.code\{\} - code block}
-
-    .bf{Effects:}
-    .o{\.typewriter\{\} - typing animation}
-    .o{\.o\{\} - progressive reveal bullets}
-  }
-}
-
-.slide{
-  .title{Installation}
-  .body{
-    .bf{Install slidedown:}
-
-    .code{.syntax{language=bash}
-pip install -e .
-    }
-
-    .bf{Requirements:}
-    .o{Python 3.11+}
-    .o{pip or uv}
-    .o{Modern web browser}
-
-    .bf{Platform Support:}
-    .o{Linux, macOS, Windows}
-    .o{Android (via Termux)}
-  }
-}
-
-.slide{
-  .title{Usage}
-  .body{
-    .bf{Basic compilation:}
-
-    .code{.syntax{language=bash}
-slidedown inputdir/ outputdir/ --inputFile presentation.sd
-    }
-
-    .bf{With theme:}
-
-    .code{.syntax{language=bash}
-slidedown input/ output/ --inputFile demo.sd --theme retro-terminal
-    }
-
-    .bf{Available themes:}
-    .o{conventional-light (default)}
-    .o{conventional-dark}
-    .o{retro-terminal}
-    .o{terminal}
-    .o{lcars-lower-decks}
-  }
-}
-
-.slide{
-  .title{Example Presentation}
-  .body{
-    .font-standard{HELLO}
-
-    Here's a minimal example:
-
-    .code{.syntax{language=text}
-\.slide\{\.style\{background: black; color: lightgreen;\}
-  \.title\{My First Slide\}
-  \.body\{
-    \.typewriter\{> Initializing presentation...\}
-
-    \.bf\{Features:\}
-    \.o\{\.em\{Text-first\} authoring\}
-    \.o\{\.tt\{Behavioral\} markup\}
-    \.o\{Interactive \.bf\{effects\}\}
-
-    \.cowpy-tux\{Made with slidedown!\}
-  \}
-\}
-    }
-  }
-}
-
-.slide{
-  .title{Project Structure}
-  .body{
-    .code{.syntax{language=text}
-slidedown/
-├── src/
-│   ├── __main__.py          # CLI entry point
-│   ├── lib/
-│   │   ├── parser.py        # .sd syntax parser
-│   │   ├── compiler.py      # AST → HTML compiler
-│   │   └── directives.py    # Directive implementations
-│   └── models/
-│       ├── state.py         # Pipeline state management
-│       ├── directives.py    # Directive type definitions
-│       └── parser.py        # Parser return types
-├── assets/
-│   ├── css/                 # Slideshow CSS
-│   ├── js/                  # Navigation & effects JS
-│   └── html/                # HTML templates
-├── tests/                   # Test suite
-└── examples/                # Example presentations
-    }
-  }
-}
-
-.slide{
-  .title{Testing}
-  .body{
-    .bf{Run all tests:}
-    .code{.syntax{language=bash}
-pytest
-    }
-
-    .bf{Run specific test files:}
-    .code{.syntax{language=bash}
-pytest tests/test_parser_basic.py -v
-pytest tests/test_e2e_compilation.py -v
-    }
-
-    .bf{Coverage report:}
-    .code{.syntax{language=bash}
-pytest --cov=slidedown --cov-report=html
-    }
-
-    .bf{Test categories:}
-    .o{Parser basics - directive parsing, nesting}
-    .o{Modifiers - \.style\{\} and \.class\{\} extraction}
-    .o{Nesting - recursive structure validation}
-    .o{End-to-end - full pipeline integration}
-  }
-}
-
-.slide{
-  .title{Architecture}
-  .body{
-    .bf{Functional Pipeline Pattern:}
-
-    .code{.syntax{language=text}
-.sd source → Parser → AST → Compiler → HTML
-               ↓         ↓        ↓
-          ProgramState → → → → → →
-    }
-
-    .bf{Key Concepts:}
-    .o{.em{State Bus} - ProgramState dataclass carries state}
-    .o{.em{Inside-Out Compilation} - children compiled first}
-    .o{.em{Placeholder Substitution} - markers for child content}
-    .o{.em{Directive Registry} - extensible handler system}
-  }
-}
-
-.slide{
-  .title{Navbar Customization}
-  .body{
-    Customize navigation with \.meta\{navbar: ...\}
-
-    .bf{Container styling:}
-    .o{background, border, padding, box-shadow}
-
-    .bf{Button options:}
-    .o{shape: "round", "square", or custom}
-    .o{size: width/height (e.g., "24px")}
-    .o{color, background, border}
-    .o{icon: FontAwesome HTML entity}
-    .o{tooltip: hover text}
-
-    .bf{Available buttons:}
-    .o{slide_first, slide_previous, slide_next, slide_last}
-    .o{slide_counter with format}
-    .o{title with custom color}
-
-    .bf{Layout zones:} left, center, right
-
-    See .tt{examples/watermarked/light-watermarks-demo.sd}
-  }
-}
-
-.slide{
-  .title{Development Status}
-  .body{
-    .bf{Working:}
-    .o{Parser - recursive directive parsing}
-    .o{Compiler - AST to HTML compilation}
-    .o{CLI - functional command-line interface}
-    .o{Tests - 65 tests passing}
-    .o{Effects - typewriter, bullets, navigation}
-    .o{Themes - 5 themes available}
-
-    .bf{Features:}
-    .o{Watermarks with percentage sizing}
-    .o{Custom CSS via \.meta\{css: ...\}}
-    .o{Navbar customization}
-    .o{ASCII art (Figlet) and cowsay}
-  }
-}
-
-.slide{
-  .title{Contributing}
-  .body{
-    This project was developed with .em{test-driven development}:
-
-    .o{Write tests first}
-    .o{Implement to pass}
-    .o{Refactor for clarity}
-    .o{Document behavior}
-
-    .bf{Code Style:}
-    .o{RPN naming: .tt{object_verb}}
-    .o{Type hints everywhere}
-    .o{Docstrings with Args/Returns/Examples}
-    .o{Functional over imperative}
-
-    .bf{Get Involved:}
-    .o{Report issues on GitHub}
-    .o{Add new directive implementations}
-    .o{Create example presentations}
-    .o{Improve documentation}
-  }
-}
-
-.slide{
-  .title{Credits}
-  .body{
-    Built on the shoulders of giants:
-
-    .o{.bf{tslide} - Original framework by rudolphpienaar}
-    .o{.bf{pyfiglet} - ASCII art generation}
-    .o{.bf{cowsay} - ASCII speech bubbles}
-    .o{.bf{ChRIS plugin} - CLI framework pattern}
-  }
-}
-
-.slide{
-  .title{License & Contact}
-  .body{
-    .font-slant{MIT}
-
-    Licensed under the MIT License.
-    See .tt{LICENSE} file for details.
-
-    .bf{Author:} Rudolph Pienaar
-    .bf{Repository:} github.com/FNNDSC/slidedown
-    .bf{Issues:} github.com/FNNDSC/slidedown/issues
-
-    .typewriter{> Happy presenting!}
+    .bf{Why use it?}
+    .o{Text-first authoring}
+    .o{Progressive reveal bullets}
+    .o{Browser-native presentation output}
   }
 }
 ```
+
+## Core Syntax
+
+Slidedown content is built from directives:
+
+```slidedown
+.directive{content}
+.directive{.modifier{value} content}
+.directive{nested .directives{work} too}
+```
+
+Common structural directives:
+
+- `.slide{}` defines one slide
+- `.title{}` defines the slide title
+- `.body{}` defines the visible slide content
+
+Common formatting and behavior directives:
+
+- `.bf{}` bold text
+- `.em{}` italic text
+- `.tt{}` monospace text
+- `.code{}` highlighted code block
+- `.typewriter{}` typing animation
+- `.o{}` progressive reveal bullet/snippet
+
+## Themes
+
+Use `--theme` to select a theme:
+
+```bash
+slidedown input/ output/ --inputFile deck.sd --theme retro-terminal
+```
+
+Included themes:
+
+- `conventional-light`
+- `default`
+- `terminal`
+- `retro-terminal`
+- `lcars-lower-decks`
+
+## Deck Metadata
+
+Use `.meta{}` for deck-wide settings:
+
+```slidedown
+.meta{
+  title: "Demo Deck"
+  typography:
+    baseline: presentation
+  snippets:
+    marker: "-> "
+}
+```
+
+Typography baselines include `compact`, `normal`, `large`, `xlarge`, and
+`presentation`. For per-slide tuning, add a density class:
+
+```slidedown
+.slide{.class{dense}
+  .title{Detailed Slide}
+  .body{
+    Dense slides fit more content while preserving presentation scale.
+  }
+}
+```
+
+Supported density classes are `hero`, `roomy`, `dense`, and `compact`.
+
+## Documentation
+
+- Complete guide: [`docs/sd-guide.adoc`](docs/sd-guide.adoc)
+- Tips and patterns: [`docs/tips-n-tricks.adoc`](docs/tips-n-tricks.adoc)
+- LCARS theme guide: [`docs/lcars.adoc`](docs/lcars.adoc)
+- Examples: [`examples/`](examples/)
+- README presentation source:
+  [`docs/readme-presentation.sd`](docs/readme-presentation.sd)
+
+## Development
+
+Run the checks:
+
+```bash
+make lint
+make typecheck
+make test
+```
+
+Useful development targets:
+
+```bash
+make format
+make clean
+make purge
+make readme-presentation
+```
+
+Project conventions:
+
+- Python code uses explicit type hints
+- Python lines stay under 80 columns
+- Public docstrings use Google-style `Args` and `Returns` sections
+- Internal names prefer RPN-style `object_verb` naming where practical
+
+## License
+
+Slidedown is released under the MIT License. See [`LICENSE`](LICENSE).

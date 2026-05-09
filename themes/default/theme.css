@@ -136,6 +136,27 @@ body {
     justify-content: center;
     flex: 1;
     padding: 0;
+    --slide-density-scale: 1.18;
+    font-size: calc(
+        2rem * var(--deck-typography-scale, 1) *
+        var(--slide-density-scale)
+    );
+}
+
+.slide.hero {
+    --slide-density-scale: 1.42;
+}
+
+.slide.roomy {
+    --slide-density-scale: 1.28;
+}
+
+.slide.dense {
+    --slide-density-scale: 1;
+}
+
+.slide.compact {
+    --slide-density-scale: 0.86;
 }
 
 .slide h1 {

@@ -93,7 +93,28 @@ body {
   justify-content: center;
   flex: 1;
   padding: 40px;
+  --slide-density-scale: 1.08;
+  font-size: calc(
+    32px * var(--deck-typography-scale, 1) *
+    var(--slide-density-scale)
+  );
   text-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+}
+
+.slide.hero {
+  --slide-density-scale: 1.28;
+}
+
+.slide.roomy {
+  --slide-density-scale: 1.16;
+}
+
+.slide.dense {
+  --slide-density-scale: 0.94;
+}
+
+.slide.compact {
+  --slide-density-scale: 0.82;
 }
 
 .slide h1 {

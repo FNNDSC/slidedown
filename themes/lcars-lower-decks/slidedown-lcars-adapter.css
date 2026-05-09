@@ -80,7 +80,7 @@
 }
 
 .formLayout .snippet::before {
-    content: "•";
+    content: var(--snippet-marker, "•");
     position: absolute;
     left: -1.5rem;
     color: var(--font-color, #f91);

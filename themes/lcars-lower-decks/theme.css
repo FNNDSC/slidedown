@@ -1925,37 +1925,74 @@ body {
 
 /* Style individual slides to fit LCARS aesthetic */
 .formLayout .slide {
-    /* LCARS content styling - DO NOT override display, let JS control visibility */
+    /*
+     * LCARS content styling. Do not override display;
+     * JavaScript controls slide visibility.
+     */
     background: transparent !important;
     border: none !important;
     padding: 1rem 0 !important;
     color: var(--font-color, #f91) !important;
+    --slide-density-scale: 1.18;
+    font-size: calc(
+        1.375rem * var(--deck-typography-scale, 1) *
+        var(--slide-density-scale)
+    ) !important;
+}
+
+.formLayout .slide.hero {
+    --slide-density-scale: 1.42;
+}
+
+.formLayout .slide.roomy {
+    --slide-density-scale: 1.28;
+}
+
+.formLayout .slide.dense {
+    --slide-density-scale: 1;
+}
+
+.formLayout .slide.compact {
+    --slide-density-scale: 0.86;
 }
 
 /* Apply LCARS typography to slides */
 .formLayout h1 {
     color: var(--h1-color, #fc9) !important;
-    font-size: 2.5rem !important;
+    font-size: calc(
+        2.9rem * var(--deck-typography-scale, 1) *
+        var(--slide-density-scale)
+    ) !important;
     margin-bottom: 1rem !important;
     font-family: sans-serif !important;
 }
 
 .formLayout h2 {
     color: var(--h2-color, #fc9) !important;
-    font-size: 2rem !important;
+    font-size: calc(
+        2.25rem * var(--deck-typography-scale, 1) *
+        var(--slide-density-scale)
+    ) !important;
     margin-bottom: 0.8rem !important;
     font-family: sans-serif !important;
 }
 
 .formLayout h3 {
     color: var(--h3-color, #fc9) !important;
-    font-size: 1.5rem !important;
+    font-size: calc(
+        1.75rem * var(--deck-typography-scale, 1) *
+        var(--slide-density-scale)
+    ) !important;
     margin-bottom: 0.6rem !important;
     font-family: sans-serif !important;
 }
 
 .formLayout p {
     color: var(--font-color, #f91) !important;
+    font-size: calc(
+        1.25rem * var(--deck-typography-scale, 1) *
+        var(--slide-density-scale)
+    ) !important;
     line-height: 1.6 !important;
     margin-bottom: 1rem !important;
     font-family: sans-serif !important;
@@ -1963,21 +2000,41 @@ body {
 
 .formLayout code {
     color: var(--code-color, #f40) !important;
+    font-size: calc(
+        1.05rem * var(--deck-typography-scale, 1) *
+        var(--slide-density-scale)
+    ) !important;
     background: rgba(255, 153, 0, 0.1) !important;
     padding: 0.2rem 0.4rem !important;
     border-radius: 3px !important;
 }
 
+.formLayout pre,
+.formLayout .highlight,
+.formLayout .highlight pre,
+.formLayout code .highlight,
+.formLayout code .highlight pre {
+    font-size: calc(
+        1.05rem * var(--deck-typography-scale, 1) *
+        var(--slide-density-scale)
+    ) !important;
+    line-height: 1.35 !important;
+}
+
 /* Style slidedown's snippet (progressive reveal) items */
 .formLayout .snippet {
     color: var(--font-color, #f91) !important;
+    font-size: calc(
+        1.18rem * var(--deck-typography-scale, 1) *
+        var(--slide-density-scale)
+    ) !important;
     margin-left: 2rem !important;
     margin-bottom: 0.5rem !important;
     position: relative !important;
 }
 
 .formLayout .snippet::before {
-    content: "•" !important;
+    content: var(--snippet-marker, "•") !important;
     position: absolute !important;
     left: -1.5rem !important;
     color: var(--font-color, #f91) !important;

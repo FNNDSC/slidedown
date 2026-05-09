@@ -32,20 +32,21 @@ Examples:
     slidedown . output/ --inputFile presentation.sd
 
     # With custom assets and output subdirectory
-    slidedown . output/ --inputFile slides.sd --assetsDir custom_theme/ --outputSubdir presentation/
+    slidedown . output/ --inputFile slides.sd \\
+        --assetsDir custom_theme/ --outputSubdir presentation/
 
     # Verbose output
     slidedown . output/ --inputFile slides.sd -vv
 """
 
 import sys
+from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser, Namespace
 from pathlib import Path
-from argparse import ArgumentParser, Namespace, ArgumentDefaultsHelpFormatter
 
 from chris_plugin import chris_plugin
-from .lib import Parser, Compiler, __version__, LOG, state_connectToLogger
-from .models import ProgramState, pipeline
 
+from .lib import LOG, Compiler, Parser, __version__, state_connectToLogger
+from .models import ProgramState, pipeline
 
 DISPLAY_TITLE = r"""
        _ _     _          _
@@ -59,19 +60,28 @@ DISPLAY_TITLE = r"""
 
 # Define CLI arguments
 parser = ArgumentParser(
-    description="slidedown - Text-first presentation compiler with behavioral markup",
+    description=(
+        "slidedown - Text-first presentation compiler "
+        "with behavioral markup"
+    ),
     formatter_class=ArgumentDefaultsHelpFormatter,
 )
 
 parser.add_argument(
-    "--inputFile", required=True, type=str, help="Input slidedown (.sd) file (relative to inputdir)"
+    "--inputFile",
+    required=True,
+    type=str,
+    help="Input slidedown (.sd) file (relative to inputdir)",
 )
 
 parser.add_argument(
     "--assetsDir",
     default=None,
     type=str,
-    help="Directory containing runtime assets (css/js/html). Defaults to package assets/ dir",
+    help=(
+        "Directory containing runtime assets (css/js/html). "
+        "Defaults to package assets/ dir"
+    ),
 )
 
 parser.add_argument(
@@ -97,7 +107,9 @@ parser.add_argument(
     help="Increase output verbosity (can be repeated: -v, -vv, -vvv)",
 )
 
-parser.add_argument("-V", "--version", action="version", version=f"%(prog)s {__version__}")
+parser.add_argument(
+    "-V", "--version", action="version", version=f"%(prog)s {__version__}"
+)
 
 
 def env_check(inputstate: ProgramState) -> ProgramState:
@@ -149,8 +161,14 @@ def env_check(inputstate: ProgramState) -> ProgramState:
         state.assetsInputdir = package_root / "assets"
 
     if not state.assetsInputdir.exists():
-        print(f"Error: Assets directory not found: {state.assetsInputdir}", file=sys.stderr)
-        print("Specify with --assetsDir or ensure package is properly installed", file=sys.stderr)
+        print(
+            f"Error: Assets directory not found: {state.assetsInputdir}",
+            file=sys.stderr,
+        )
+        print(
+            "Specify with --assetsDir or ensure package is properly installed",
+            file=sys.stderr,
+        )
         state.envOK = False
         sys.exit(1)
 
@@ -190,7 +208,10 @@ def source_parse(inputstate: ProgramState) -> ProgramState:
 
     try:
         source = state.inputSourceFile.read_text(encoding="utf-8")
-        LOG(f"Read {len(source)} characters from {state.inputSourceFile.name}", level=2)
+        LOG(
+            f"Read {len(source)} characters from {state.inputSourceFile.name}",
+            level=2,
+        )
     except Exception as e:
         print(f"Error reading input file: {e}", file=sys.stderr)
         sys.exit(1)
@@ -250,7 +271,13 @@ def html_compile(inputstate: ProgramState) -> ProgramState:
             input_dir=str(state.inputdir),
         )
         state.compileResult = compiler.compile()
-        LOG(f"Compilation complete: {state.compileResult['slide_count']} slides", level=2)
+        LOG(
+            (
+                "Compilation complete: "
+                f"{state.compileResult['slide_count']} slides"
+            ),
+            level=2,
+        )
     except Exception as e:
         print(f"Compilation error: {e}", file=sys.stderr)
         if state.verbosity >= 3:

@@ -43,7 +43,8 @@ else
     PLATFORM_MSG := "Non-Android detected - using uv pip"
 endif
 
-.PHONY: help venv dev install test lint format typecheck clean purge shell compile serve presentation
+.PHONY: help venv dev install test lint format typecheck clean purge shell
+.PHONY: compile serve presentation readme-presentation
 
 help:
 	@echo "Slidedown development targets:"
@@ -57,7 +58,7 @@ help:
 	@echo "  make presentation        - Compile and serve presentation (see variables below)"
 	@echo "  make compile             - Compile presentation only"
 	@echo "  make serve               - Serve compiled presentation only"
-	@echo "  make readme-presentation - Compile README.md to docs/readme-presentation/"
+	@echo "  make readme-presentation - Compile README presentation source"
 	@echo "  make shell               - Start shell with activated virtual environment"
 	@echo ""
 	@echo "Variables (override with: make compile SOURCE=myfile.sd THEME=dark):"
@@ -160,11 +161,13 @@ serve:
 presentation: compile serve
 
 readme-presentation:
-	@echo "Compiling README.md to presentation..."
-	./slideshow README.md --outputdir ./docs-temp --no-serve --theme conventional-light
+	@echo "Compiling docs/readme-presentation.sd to presentation..."
+	$(VENV_BIN)/slidedown docs docs-temp \
+		--inputFile readme-presentation.sd \
+		--theme conventional-light
 	@echo "Updating docs/readme-presentation/..."
 	rm -rf docs/readme-presentation/*
-	cp -r docs-temp/README.md/* docs/readme-presentation/
+	cp -r docs-temp/* docs/readme-presentation/
 	rm -rf docs-temp
 	@echo "✓ README presentation updated in docs/readme-presentation/"
 	@echo "  View locally: open docs/readme-presentation/index.html"

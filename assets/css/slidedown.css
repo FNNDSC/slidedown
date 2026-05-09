@@ -970,6 +970,11 @@ mark {
     opacity: 1 !important;
 }
 
+.snippet::before {
+    content: var(--snippet-marker, "•");
+    margin-right: 0.5em;
+}
+
 .snippet.sl-hidden {
     visibility: hidden !important;
     opacity: 0 !important;

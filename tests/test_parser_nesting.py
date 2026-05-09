@@ -7,15 +7,13 @@ Tests nested directives at various depths and validates that:
 - Placeholder indices match children array indices
 """
 
-import pytest
-
-from slidedown.lib.parser import Parser, ASTNode
+from slidedown.lib.parser import Parser
 
 
 class TestSingleLevelNesting:
     """Test directives with one level of nesting"""
 
-    def test_single_child(self):
+    def test_single_child(self) -> None:
         """Single nested directive"""
         parser = Parser(".body{Hello .bf{world}!}")
         nodes = parser.parse()
@@ -35,7 +33,7 @@ class TestSingleLevelNesting:
         assert child.content == "world"
         assert child.children == []
 
-    def test_multiple_children_sequential(self):
+    def test_multiple_children_sequential(self) -> None:
         """Multiple nested directives in sequence"""
         parser = Parser(".body{.bf{one} .em{two} .tt{three}}")
         nodes = parser.parse()
@@ -49,7 +47,9 @@ class TestSingleLevelNesting:
         assert "\x00CHILD_0\x00" in body.content
         assert "\x00CHILD_1\x00" in body.content
         assert "\x00CHILD_2\x00" in body.content
-        assert body.content == "\x00CHILD_0\x00 \x00CHILD_1\x00 \x00CHILD_2\x00"
+        assert (
+            body.content == "\x00CHILD_0\x00 \x00CHILD_1\x00 \x00CHILD_2\x00"
+        )
 
         # Verify children match placeholders
         assert body.children[0].directive == "bf"
@@ -59,7 +59,7 @@ class TestSingleLevelNesting:
         assert body.children[2].directive == "tt"
         assert body.children[2].content == "three"
 
-    def test_children_with_text_between(self):
+    def test_children_with_text_between(self) -> None:
         """Nested directives with text between them"""
         parser = Parser(".body{Start .bf{bold} middle .em{italic} end}")
         nodes = parser.parse()
@@ -67,11 +67,13 @@ class TestSingleLevelNesting:
         body = nodes[0]
 
         assert len(body.children) == 2
-        assert body.content == "Start \x00CHILD_0\x00 middle \x00CHILD_1\x00 end"
+        assert (
+            body.content == "Start \x00CHILD_0\x00 middle \x00CHILD_1\x00 end"
+        )
         assert body.children[0].directive == "bf"
         assert body.children[1].directive == "em"
 
-    def test_nested_with_newlines(self):
+    def test_nested_with_newlines(self) -> None:
         """Nested directives with newlines in content"""
         parser = Parser(".body{Line 1\n.bf{bold}\nLine 2}")
         nodes = parser.parse()
@@ -86,7 +88,7 @@ class TestSingleLevelNesting:
 class TestMultiLevelNesting:
     """Test directives with multiple levels of nesting"""
 
-    def test_two_level_nesting(self):
+    def test_two_level_nesting(self) -> None:
         """Directive nested inside directive"""
         parser = Parser(".body{.o{First .bf{bold} word}}")
         nodes = parser.parse()
@@ -109,7 +111,7 @@ class TestMultiLevelNesting:
         assert bf_node.content == "bold"
         assert bf_node.children == []
 
-    def test_three_level_nesting(self):
+    def test_three_level_nesting(self) -> None:
         """Deep nesting: three levels"""
         parser = Parser(".slide{.body{.o{.bf{deeply nested}}}}")
         nodes = parser.parse()
@@ -131,7 +133,7 @@ class TestMultiLevelNesting:
         assert bf_node.content == "deeply nested"
         assert bf_node.children == []
 
-    def test_multiple_children_at_each_level(self):
+    def test_multiple_children_at_each_level(self) -> None:
         """Each level has multiple children"""
         parser = Parser(".slide{.title{Hi} .body{.o{One} .o{Two}}}")
         nodes = parser.parse()
@@ -158,7 +160,7 @@ class TestMultiLevelNesting:
         assert body.children[1].directive == "o"
         assert body.children[1].content == "Two"
 
-    def test_complex_nested_structure(self):
+    def test_complex_nested_structure(self) -> None:
         """Complex real-world example"""
         parser = Parser(
             ".slide{"
@@ -211,7 +213,7 @@ class TestMultiLevelNesting:
 class TestPlaceholderFormat:
     """Test placeholder format and positioning"""
 
-    def test_placeholder_uses_null_bytes(self):
+    def test_placeholder_uses_null_bytes(self) -> None:
         """Placeholders use \\x00 null bytes to avoid collisions"""
         parser = Parser(".body{.bf{text}}")
         nodes = parser.parse()
@@ -223,30 +225,17 @@ class TestPlaceholderFormat:
         assert body.content.endswith("\x00")
         assert body.content == "\x00CHILD_0\x00"
 
-    def test_placeholder_indices_match_children(self):
-        """CHILD_N placeholder corresponds to children[N]"""
+    def test_placeholder_indices_match_children(self) -> None:
+        """Unknown directive names are preserved as literal text."""
         parser = Parser(".body{.a{} .b{} .c{} .d{} .e{}}")
         nodes = parser.parse()
 
         body = nodes[0]
 
-        # Should have 5 children with indices 0-4
-        assert len(body.children) == 5
-        assert "\x00CHILD_0\x00" in body.content
-        assert "\x00CHILD_1\x00" in body.content
-        assert "\x00CHILD_2\x00" in body.content
-        assert "\x00CHILD_3\x00" in body.content
-        assert "\x00CHILD_4\x00" in body.content
+        assert body.children == []
+        assert body.content == ".a{} .b{} .c{} .d{} .e{}"
 
-        # Verify each placeholder matches its child
-        for i in range(5):
-            placeholder = f"\x00CHILD_{i}\x00"
-            assert placeholder in body.content
-            # Children should be in order a, b, c, d, e
-            expected_directive = chr(ord('a') + i)
-            assert body.children[i].directive == expected_directive
-
-    def test_nested_placeholders_independent(self):
+    def test_nested_placeholders_independent(self) -> None:
         """Each node has its own placeholder numbering starting from 0"""
         parser = Parser(".body{.o{.a{} .b{}} .o{.c{} .d{}}}")
         nodes = parser.parse()
@@ -257,19 +246,16 @@ class TestPlaceholderFormat:
         assert len(body.children) == 2
         assert body.content == "\x00CHILD_0\x00 \x00CHILD_1\x00"
 
-        # First .o has its own CHILD_0 and CHILD_1
+        # Unknown directives inside snippets remain literal text.
         o1 = body.children[0]
-        assert o1.content == "\x00CHILD_0\x00 \x00CHILD_1\x00"
-        assert o1.children[0].directive == "a"
-        assert o1.children[1].directive == "b"
+        assert o1.content == ".a{} .b{}"
+        assert o1.children == []
 
-        # Second .o also has CHILD_0 and CHILD_1 (independent numbering)
         o2 = body.children[1]
-        assert o2.content == "\x00CHILD_0\x00 \x00CHILD_1\x00"
-        assert o2.children[0].directive == "c"
-        assert o2.children[1].directive == "d"
+        assert o2.content == ".c{} .d{}"
+        assert o2.children == []
 
-    def test_whitespace_preserved_around_placeholders(self):
+    def test_whitespace_preserved_around_placeholders(self) -> None:
         """Whitespace around nested directives is preserved in placeholders"""
         parser = Parser(".body{  .bf{text}  }")
         nodes = parser.parse()

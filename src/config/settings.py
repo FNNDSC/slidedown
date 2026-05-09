@@ -33,12 +33,18 @@ class AppSettings(BaseSettings):
     # Parser configuration
     placeholder_prefix: str = Field(
         default="\x00CHILD_",
-        description="Prefix for directive placeholders in content (uses null byte to avoid collisions)",
+        description=(
+            "Prefix for directive placeholders in content "
+            "(uses null byte to avoid collisions)"
+        ),
     )
 
     placeholder_suffix: str = Field(
         default="\x00",
-        description="Suffix for directive placeholders in content (uses null byte to avoid collisions)",
+        description=(
+            "Suffix for directive placeholders in content "
+            "(uses null byte to avoid collisions)"
+        ),
     )
 
     # Compilation configuration
@@ -60,7 +66,10 @@ class AppSettings(BaseSettings):
     # Asset configuration
     default_assets_dir: str = Field(
         default="assets",
-        description="Default assets directory name (relative to package or specified path)",
+        description=(
+            "Default assets directory name "
+            "(relative to package or specified path)"
+        ),
     )
 
     # Output configuration
@@ -107,7 +116,9 @@ class AppSettings(BaseSettings):
             return None
 
         # Extract the middle part
-        content = placeholder[len(self.placeholder_prefix) : -len(self.placeholder_suffix)]
+        content = placeholder[
+            len(self.placeholder_prefix) : -len(self.placeholder_suffix)
+        ]
 
         try:
             return int(content)

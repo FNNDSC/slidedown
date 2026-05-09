@@ -5,7 +5,7 @@ Type-safe structures for parser operations and return values.
 """
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..lib.parser import ASTNode
@@ -27,6 +27,7 @@ class DirectiveMatch:
         For source ".slide{content}" at position 0:
         DirectiveMatch(name="slide", position=0)
     """
+
     name: str
     position: int
 
@@ -55,9 +56,10 @@ class ProcessedContent:
             modifiers={"style": "color:red"}
         )
     """
+
     content: str
-    children: List['ASTNode']  # Forward reference for type checking
-    modifiers: Dict[str, str]
+    children: list["ASTNode"]  # Forward reference for type checking
+    modifiers: dict[str, str]
 
 
 @dataclass
@@ -87,5 +89,6 @@ class ExtractedModifiers:
             remaining="  Plain content"  # Whitespace preserved
         )
     """
-    modifiers: Dict[str, str]
+
+    modifiers: dict[str, str]
     remaining: str

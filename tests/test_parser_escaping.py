@@ -6,16 +6,14 @@ Tests the two-layer protection system:
 2. Backslash escaping (protect valid directives from being parsed)
 """
 
-import pytest
-
-from slidedown.lib.parser import Parser, ASTNode
 from slidedown.lib.directives import DirectiveRegistry
+from slidedown.lib.parser import Parser
 
 
 class TestDirectiveValidation:
     """Test that only registered directive names are parsed"""
 
-    def test_invalid_directive_name_ignored(self):
+    def test_invalid_directive_name_ignored(self) -> None:
         """Invalid directive names should be passed through as text"""
         parser = Parser(".tt{.directive{content}}")
         nodes = parser.parse()
@@ -26,7 +24,7 @@ class TestDirectiveValidation:
         assert nodes[0].content == ".directive{content}"
         assert len(nodes[0].children) == 0
 
-    def test_multiple_invalid_directives_ignored(self):
+    def test_multiple_invalid_directives_ignored(self) -> None:
         """Multiple invalid directives in content"""
         parser = Parser(".body{.invalid{x} and .notreal{y}}")
         nodes = parser.parse()
@@ -36,7 +34,7 @@ class TestDirectiveValidation:
         assert ".notreal{y}" in nodes[0].content
         assert len(nodes[0].children) == 0
 
-    def test_valid_directive_is_parsed(self):
+    def test_valid_directive_is_parsed(self) -> None:
         """Valid registered directives ARE parsed"""
         parser = Parser(".tt{.bf{bold}}")
         nodes = parser.parse()
@@ -47,7 +45,7 @@ class TestDirectiveValidation:
         assert nodes[0].children[0].directive == "bf"
         assert nodes[0].children[0].content == "bold"
 
-    def test_mixed_valid_invalid_directives(self):
+    def test_mixed_valid_invalid_directives(self) -> None:
         """Mix of valid and invalid directive names"""
         parser = Parser(".body{.o{bullet} and .invalid{text}}")
         nodes = parser.parse()
@@ -63,7 +61,7 @@ class TestDirectiveValidation:
 class TestModifierValidation:
     """Test that modifiers (.style, .class, .syntax) are recognized"""
 
-    def test_style_modifier_extracted_when_first(self):
+    def test_style_modifier_extracted_when_first(self) -> None:
         r"""\.style{} at start of content should be extracted as modifier"""
         parser = Parser(".body{.style{color: red} Content}")
         nodes = parser.parse()
@@ -73,20 +71,20 @@ class TestModifierValidation:
         assert nodes[0].modifiers.get("style") == "color: red"
         assert nodes[0].content.strip() == "Content"
 
-    def test_style_in_middle_is_directive(self):
+    def test_style_in_middle_is_directive(self) -> None:
         r"""\.style{} NOT at start should be treated as directive"""
         parser = Parser(".tt{Text .style{color: red}}")
         nodes = parser.parse()
 
         assert nodes[0].directive == "tt"
-        # .style IS registered as a directive, so without escaping it gets processed
+        # .style is registered, so without escaping it gets processed.
         # It will be extracted as a child or modifier depending on position
         # In this case, it's not at the start, so it's processed as a directive
-        # But style directive likely has special handling that makes it disappear
+        # The style directive has handling that can make it disappear.
         # Let's just verify it doesn't appear as plain text
         assert "Text .style{color: red}" != nodes[0].content
 
-    def test_class_modifier_extracted(self):
+    def test_class_modifier_extracted(self) -> None:
         r"""\.class{} modifier should be extracted"""
         parser = Parser(".body{.class{highlight} Content}")
         nodes = parser.parse()
@@ -97,7 +95,7 @@ class TestModifierValidation:
 class TestBackslashEscaping:
     """Test backslash escaping of directive syntax"""
 
-    def test_escaped_valid_directive_shows_literally(self):
+    def test_escaped_valid_directive_shows_literally(self) -> None:
         r"""Escaped directive \.bf\{...\} should show literally"""
         parser = Parser(r".tt{\.bf\{bold\}}")
         nodes = parser.parse()
@@ -112,7 +110,7 @@ class TestBackslashEscaping:
         # Content should have placeholder
         assert "ESCAPE_0" in nodes[0].content
 
-    def test_escaped_modifier_shows_literally(self):
+    def test_escaped_modifier_shows_literally(self) -> None:
         r"""Escaped \.style\{...\} should show literally"""
         parser = Parser(r".tt{\.style\{color: red\}}")
         nodes = parser.parse()
@@ -122,7 +120,7 @@ class TestBackslashEscaping:
         assert 0 in parser.escaped_sequences
         assert parser.escaped_sequences[0] == ".style{color: red}"
 
-    def test_multiple_escaped_sequences(self):
+    def test_multiple_escaped_sequences(self) -> None:
         r"""Multiple escaped sequences in one directive"""
         parser = Parser(r".body{\.o\{first\} and \.bf\{second\}}")
         nodes = parser.parse()
@@ -134,17 +132,17 @@ class TestBackslashEscaping:
         assert "ESCAPE_0" in nodes[0].content
         assert "ESCAPE_1" in nodes[0].content
 
-    def test_escaped_nested_braces(self):
+    def test_escaped_nested_braces(self) -> None:
         r"""Escaped directive with nested braces"""
         parser = Parser(r".tt{\.code\{function() \{ return x; \}\}}")
-        nodes = parser.parse()
+        parser.parse()
 
         assert 0 in parser.escaped_sequences
         # The escaped content should preserve internal braces
         assert "{" in parser.escaped_sequences[0]
         assert "}" in parser.escaped_sequences[0]
 
-    def test_unescaped_vs_escaped_same_directive(self):
+    def test_unescaped_vs_escaped_same_directive(self) -> None:
         r"""Show difference between escaped and unescaped"""
         # Unescaped - will parse
         parser1 = Parser(".tt{.bf{bold}}")
@@ -161,25 +159,25 @@ class TestBackslashEscaping:
 class TestEscapingEdgeCases:
     """Test edge cases and combinations"""
 
-    def test_escaped_invalid_directive(self):
+    def test_escaped_invalid_directive(self) -> None:
         r"""Escaping an invalid directive name (unnecessary but should work)"""
         parser = Parser(r".tt{\.invalid\{content\}}")
-        nodes = parser.parse()
+        parser.parse()
 
         # Should still be escaped and stored
         assert 0 in parser.escaped_sequences
         assert parser.escaped_sequences[0] == ".invalid{content}"
 
-    def test_partial_escape_backslash_only_before_dot(self):
+    def test_partial_escape_backslash_only_before_dot(self) -> None:
         r"""Backslash before dot but not braces"""
         parser = Parser(r".tt{\.bf{text}}")
-        nodes = parser.parse()
+        parser.parse()
 
         # Should still recognize the escape pattern
         # The escaping looks for \. at the start
         assert 0 in parser.escaped_sequences
 
-    def test_backslash_in_regular_text(self):
+    def test_backslash_in_regular_text(self) -> None:
         """Backslash not followed by directive pattern"""
         parser = Parser(r".tt{This is \\ a backslash}")
         nodes = parser.parse()
@@ -187,17 +185,17 @@ class TestEscapingEdgeCases:
         # Should pass through (no directive pattern to escape)
         assert r"\\" in nodes[0].content or "\\" in nodes[0].content
 
-    def test_escaped_directive_at_start_of_content(self):
+    def test_escaped_directive_at_start_of_content(self) -> None:
         r"""Escaped directive at the very start"""
         parser = Parser(r".body{\.style\{color: red\} Text}")
         nodes = parser.parse()
 
-        # Even though .style{} normally would be extracted as modifier at start,
+        # Even though .style{} is normally extracted as an initial modifier,
         # the escaping should prevent that
         assert 0 in parser.escaped_sequences
         assert "style" not in nodes[0].modifiers
 
-    def test_nested_escaped_directive(self):
+    def test_nested_escaped_directive(self) -> None:
         r"""Escaped directive inside another directive"""
         parser = Parser(r".o{Use \.tt\{code\} for inline code}")
         nodes = parser.parse()
@@ -210,11 +208,12 @@ class TestEscapingEdgeCases:
 class TestEndToEndEscaping:
     """Test complete parsing + compilation of escaped directives"""
 
-    def test_escaped_directive_compiles_to_literal_text(self):
+    def test_escaped_directive_compiles_to_literal_text(self) -> None:
         r"""Verify escaped directive becomes literal HTML text"""
-        from slidedown.lib.compiler import Compiler
-        from pathlib import Path
         import tempfile
+        from pathlib import Path
+
+        from slidedown.lib.compiler import Compiler
 
         parser = Parser(r".slide{.body{Use \.o\{bullet\} for bullets}}")
         ast = parser.parse()
@@ -230,10 +229,14 @@ class TestEndToEndEscaping:
 
             # The escaped .o{bullet} should appear as literal text in HTML
             # It will be HTML-escaped
-            assert ".o{bullet}" in result or ".o&#123;bullet&#125;" in result or \
-                   "&lt;o&gt;{bullet}" in result or ".o{" in result
+            assert (
+                ".o{bullet}" in result
+                or ".o&#123;bullet&#125;" in result
+                or "&lt;o&gt;{bullet}" in result
+                or ".o{" in result
+            )
 
-    def test_multiple_escapes_in_real_example(self):
+    def test_multiple_escapes_in_real_example(self) -> None:
         r"""Real-world example from documentation"""
         source = r""".slide{
   .title{Slidedown Syntax}
@@ -261,20 +264,20 @@ class TestEndToEndEscaping:
 class TestRegistryIntegration:
     """Test that parser correctly uses DirectiveRegistry"""
 
-    def test_parser_creates_registry_if_not_provided(self):
+    def test_parser_creates_registry_if_not_provided(self) -> None:
         """Parser should create registry if none provided"""
         parser = Parser(".slide{test}")
         assert parser.registry is not None
         assert isinstance(parser.registry, DirectiveRegistry)
 
-    def test_parser_uses_provided_registry(self):
+    def test_parser_uses_provided_registry(self) -> None:
         """Parser should use provided registry"""
         registry = DirectiveRegistry()
         parser = Parser(".slide{test}", registry=registry)
         assert parser.registry is registry
 
-    def test_custom_directive_in_registry(self):
-        """If we could register custom directives, parser should recognize them"""
+    def test_custom_directive_in_registry(self) -> None:
+        """Parser should recognize directives when they are registered"""
         # This is more of a documentation test - showing how it would work
         # if custom directives were registered
         parser = Parser(".slide{test}")

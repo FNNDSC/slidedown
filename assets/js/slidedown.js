@@ -428,6 +428,139 @@ function setupTypewriter(t) {
     };
 }
 
+/////////
+///////// Runtime typography scale controls
+/////////
+
+const typographyScale_STEP = 0.1;
+const typographyScale_MIN = 0.6;
+const typographyScale_MAX = 2.4;
+let typographyScale_base = null;
+let typographyScale_current = null;
+let typographyScale_noticeTimer = null;
+
+function activeElement_isTextEntry() {
+    const activeElement = document.activeElement;
+    if (!activeElement) {
+        return false;
+    }
+
+    const tagName = activeElement.tagName;
+    if (
+        tagName === "INPUT" ||
+        tagName === "TEXTAREA" ||
+        tagName === "SELECT"
+    ) {
+        return true;
+    }
+
+    return activeElement.isContentEditable === true;
+}
+
+function typographyScale_read() {
+    const rootStyle = getComputedStyle(document.documentElement);
+    const rawScale = rootStyle.getPropertyValue(
+        "--deck-typography-scale"
+    ).trim();
+    const parsedScale = parseFloat(rawScale);
+
+    if (Number.isFinite(parsedScale) && parsedScale > 0) {
+        return parsedScale;
+    }
+    return 1;
+}
+
+function typographyScale_write(scale) {
+    const clampedScale = Math.min(
+        typographyScale_MAX,
+        Math.max(typographyScale_MIN, scale)
+    );
+    const roundedScale = Math.round(clampedScale * 100) / 100;
+
+    document.documentElement.style.setProperty(
+        "--deck-typography-scale",
+        String(roundedScale)
+    );
+    typographyScale_current = roundedScale;
+    typographyScale_noticeShow(roundedScale);
+}
+
+function typographyScale_reset() {
+    typographyScale_write(typographyScale_base);
+}
+
+function typographyScale_adjust(delta) {
+    if (typographyScale_current === null) {
+        typographyScale_current = typographyScale_read();
+    }
+    typographyScale_write(typographyScale_current + delta);
+}
+
+function typographyScale_noticeShow(scale) {
+    let notice = document.getElementById("typography-scale-notice");
+    if (!notice) {
+        notice = document.createElement("div");
+        notice.id = "typography-scale-notice";
+        notice.style.position = "fixed";
+        notice.style.right = "24px";
+        notice.style.bottom = "24px";
+        notice.style.zIndex = "9999";
+        notice.style.padding = "10px 14px";
+        notice.style.background = "rgba(0, 0, 0, 0.82)";
+        notice.style.color = "#fc9";
+        notice.style.border = "2px solid #f91";
+        notice.style.fontFamily = "sans-serif";
+        notice.style.fontSize = "16px";
+        notice.style.letterSpacing = "1px";
+        notice.style.pointerEvents = "none";
+        notice.style.opacity = "0";
+        notice.style.transition = "opacity 160ms ease";
+        document.body.appendChild(notice);
+    }
+
+    notice.textContent = `TEXT SCALE ${scale.toFixed(2)}x`;
+    notice.style.opacity = "1";
+
+    if (typographyScale_noticeTimer) {
+        clearTimeout(typographyScale_noticeTimer);
+    }
+    typographyScale_noticeTimer = setTimeout(() => {
+        notice.style.opacity = "0";
+    }, 900);
+}
+
+function typographyScale_keyHandle(event) {
+    if (event.ctrlKey || event.metaKey || event.altKey) {
+        return false;
+    }
+    if (activeElement_isTextEntry()) {
+        return false;
+    }
+
+    if (event.key === "+" || event.key === "=") {
+        event.preventDefault();
+        typographyScale_adjust(typographyScale_STEP);
+        return true;
+    }
+    if (event.key === "-" || event.key === "_") {
+        event.preventDefault();
+        typographyScale_adjust(-typographyScale_STEP);
+        return true;
+    }
+    if (event.key === "0") {
+        event.preventDefault();
+        typographyScale_reset();
+        return true;
+    }
+
+    return false;
+}
+
+function typographyScale_initialize() {
+    typographyScale_base = typographyScale_read();
+    typographyScale_current = typographyScale_base;
+}
+
 
 /////////
 ///////// A Page object that describes the HTML version elements from a
@@ -941,6 +1074,10 @@ Page.prototype = {
 
         e = e || window.event;
 
+        if (typographyScale_keyHandle(e)) {
+            return;
+        }
+
         if (e.keyCode == '38') {
             // up arrow
             console.log('up arrow')
@@ -1054,6 +1191,9 @@ function scalePresentation() {
 }
 
 window.onload = function() {
+    // Capture compiled deck typography baseline before runtime changes
+    typographyScale_initialize();
+
     // Scale presentation to fit viewport
     scalePresentation();
 
@@ -1063,8 +1203,6 @@ window.onload = function() {
 
 // Rescale on window resize
 window.addEventListener('resize', scalePresentation);
-
-
 
 // ============================================================
 // HIGH-FIDELITY BRIDGE SYSTEMS (PORTED FROM ARGUS)

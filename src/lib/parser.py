@@ -1,5 +1,4 @@
-"""
-Parser for .directive{} syntax
+"""Parser for slidedown ``.directive{}`` syntax.
 
 Transforms slidedown markup into an abstract syntax tree (AST).
 
@@ -23,11 +22,20 @@ Example:
     'title'
 """
 
-import re
-from typing import Dict, List, Optional
-from dataclasses import dataclass
+from __future__ import annotations
 
-from ..models.parser import DirectiveMatch, ProcessedContent, ExtractedModifiers
+import re
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+from ..models.parser import (
+    DirectiveMatch,
+    ExtractedModifiers,
+    ProcessedContent,
+)
+
+if TYPE_CHECKING:
+    from .directives import DirectiveRegistry
 
 
 @dataclass
@@ -46,7 +54,7 @@ class ASTNode:
                  (e.g., "Hello \x00CHILD_0\x00 world")
         children: Nested directive nodes, indexed to match placeholders
                   (CHILD_0 → children[0], CHILD_1 → children[1], etc.)
-        line_number: Source line number where directive appears (for error reporting)
+        line_number: Source line number where directive appears
 
     Example:
         For source ".slide{.title{Hi} .body{There}}" at line 1:
@@ -61,10 +69,11 @@ class ASTNode:
             line_number=1
         )
     """
+
     directive: str
-    modifiers: Dict[str, str]
+    modifiers: dict[str, str]
     content: str
-    children: List['ASTNode']
+    children: list[ASTNode]
     line_number: int
 
 
@@ -80,7 +89,12 @@ class Parser:
     - Backslash escaping (\.directive\{...\} for literal syntax)
     """
 
-    def __init__(self, source: str, debug: bool = False, registry=None):
+    def __init__(
+        self,
+        source: str,
+        debug: bool = False,
+        registry: DirectiveRegistry | None = None,
+    ) -> None:
         """
         Initialize parser with source text
 
@@ -95,7 +109,7 @@ class Parser:
             position: Current character position in source (for scanning)
             line_number: Current line number in source (for error reporting)
             ast: Accumulated list of parsed top-level nodes
-            protected_code_blocks: Dict mapping placeholder IDs to raw .code{} content
+            protected_code_blocks: Raw .code{} content by placeholder ID
             registry: DirectiveRegistry for validating directive names
             escaped_sequences: Dict mapping placeholders to escaped content
         """
@@ -103,13 +117,14 @@ class Parser:
         self.debug = debug
         self.position = 0
         self.line_number = 1
-        self.ast: List[ASTNode] = []
-        self.protected_code_blocks: Dict[int, str] = {}
-        self.escaped_sequences: Dict[int, str] = {}
+        self.ast: list[ASTNode] = []
+        self.protected_code_blocks: dict[int, str] = {}
+        self.escaped_sequences: dict[int, str] = {}
 
         # Import and create registry if not provided
         if registry is None:
             from .directives import DirectiveRegistry
+
             registry = DirectiveRegistry()
         self.registry = registry
 
@@ -117,9 +132,9 @@ class Parser:
         r"""
         Pre-process source to protect backslash-escaped sequences
 
-        Finds patterns like \.directive\{...\} and replaces them with placeholders
-        so they won't be parsed as directives. The escaped content is stored for
-        later restoration during compilation.
+        Finds patterns like \.directive\{...\} and replaces them with
+        placeholders so they will not be parsed as directives. The escaped
+        content is stored for later restoration during compilation.
 
         Returns:
             Modified source with escaped sequences replaced by placeholders
@@ -129,54 +144,64 @@ class Parser:
             Output: ".tt{Use \x00ESCAPE_0\x00 syntax}"
             Stores: escaped_sequences[0] = ".directive{content}"
         """
-        result = []
-        pos = 0
-        escape_id = 0
+        result: list[str] = []
+        pos: int = 0
+        escape_id: int = 0
 
         while pos < len(source):
             # Look for backslash before dot
-            if pos < len(source) - 1 and source[pos] == '\\' and source[pos + 1] == '.':
+            if (
+                pos < len(source) - 1
+                and source[pos] == "\\"
+                and source[pos + 1] == "."
+            ):
                 # Found \. - scan forward to find the pattern
                 # Match \.word\{ ... \}
-                match = re.match(r'\\\.(\w+(?:-\w+)*)\\?\{', source[pos:])
+                match = re.match(r"\\\.(\w+(?:-\w+)*)\\?\{", source[pos:])
                 if match:
                     # Found escaped directive pattern like \.directive\{
-                    directive_name = match.group(1)
-                    brace_start = pos + match.end() - 1  # Position before {
+                    directive_name: str = match.group(1)
+                    brace_start: int = pos + match.end() - 1
 
                     # Find if the { is escaped too
-                    if source[brace_start] == '\\':
+                    if source[brace_start] == "\\":
                         brace_start += 1  # Skip the backslash
 
                     # Now find matching \} (escaped closing brace)
-                    depth = 1
-                    brace_pos = brace_start + 1
-                    escaped_content = f".{directive_name}{{"
+                    depth: int = 1
+                    brace_pos: int = brace_start + 1
+                    escaped_content: str = f".{directive_name}{{"
 
                     while brace_pos < len(source) and depth > 0:
-                        if brace_pos < len(source) - 1 and source[brace_pos:brace_pos + 2] == '\\}':
+                        if (
+                            brace_pos < len(source) - 1
+                            and source[brace_pos : brace_pos + 2] == "\\}"
+                        ):
                             depth -= 1
                             if depth == 0:
-                                escaped_content += '}'
+                                escaped_content += "}"
                                 brace_pos += 2
                                 break
                             else:
-                                escaped_content += '}'
+                                escaped_content += "}"
                                 brace_pos += 2
-                        elif brace_pos < len(source) - 1 and source[brace_pos:brace_pos + 2] == '\\{':
+                        elif (
+                            brace_pos < len(source) - 1
+                            and source[brace_pos : brace_pos + 2] == "\\{"
+                        ):
                             depth += 1
-                            escaped_content += '{'
+                            escaped_content += "{"
                             brace_pos += 2
-                        elif source[brace_pos] == '{':
+                        elif source[brace_pos] == "{":
                             depth += 1
                             escaped_content += source[brace_pos]
                             brace_pos += 1
-                        elif source[brace_pos] == '}':
+                        elif source[brace_pos] == "}":
                             depth -= 1
                             if depth > 0:
                                 escaped_content += source[brace_pos]
                             else:
-                                escaped_content += '}'
+                                escaped_content += "}"
                             brace_pos += 1
                         else:
                             escaped_content += source[brace_pos]
@@ -185,7 +210,7 @@ class Parser:
                     if depth == 0:
                         # Successfully found escaped directive
                         self.escaped_sequences[escape_id] = escaped_content
-                        placeholder = f'\x00ESCAPE_{escape_id}\x00'
+                        placeholder: str = f"\x00ESCAPE_{escape_id}\x00"
                         result.append(placeholder)
                         escape_id += 1
                         pos = brace_pos
@@ -202,15 +227,15 @@ class Parser:
                 result.append(source[pos])
                 pos += 1
 
-        return ''.join(result)
+        return "".join(result)
 
     def codeblocks_protect(self) -> str:
         """
         Pre-process source to protect .code{} blocks from directive parsing
 
-        Scans for .code{} directives and replaces them with placeholders to prevent
-        nested directives inside code blocks from being parsed. The raw content is
-        stored for later restoration during compilation.
+        Scans for .code{} directives and replaces them with placeholders to
+        prevent nested directives inside code blocks from being parsed. The raw
+        content is stored for later restoration during compilation.
 
         Returns:
             Modified source with .code{} blocks replaced by placeholders
@@ -218,53 +243,55 @@ class Parser:
         Example:
             Input: ".code{.syntax{language=python}\ndef foo(): pass\n}"
             Output: "\x00CODE_0\x00"
-            Stores: protected_code_blocks[0] = ".syntax{language=python}\ndef foo(): pass\n"
+            Stores: protected_code_blocks[0] = (
+                ".syntax{language=python}\ndef foo(): pass\n"
+            )
         """
-        result = []
-        pos = 0
-        code_id = 0
+        result: list[str] = []
+        pos: int = 0
+        code_id: int = 0
 
         while pos < len(self.source):
             # Look for .code{ directive
-            match = re.match(r'\.code\{', self.source[pos:])
+            match = re.match(r"\.code\{", self.source[pos:])
             if match:
                 # Found .code{ - find matching closing brace
-                brace_start = pos + match.end() - 1  # Position of opening {
-                brace_end = self.brace_findMatching(brace_start)
+                brace_start: int = pos + match.end() - 1
+                brace_end: int = self.brace_findMatching(brace_start)
 
                 # Extract raw content (including .syntax{} modifier if present)
-                raw_content = self.source[brace_start + 1:brace_end]
+                raw_content: str = self.source[brace_start + 1 : brace_end]
 
-                # Only protect if it contains .syntax{} modifier (multi-line code block)
+                # Only protect if it has .syntax{} modifier.
                 # Inline .code{} should be processed normally
-                if re.match(r'^\s*\.syntax\{', raw_content):
+                if re.match(r"^\s*\.syntax\{", raw_content):
                     # Store protected content
                     self.protected_code_blocks[code_id] = raw_content
 
                     # Replace entire .code{...} with placeholder
-                    result.append(f'.code{{\x00CODE_{code_id}\x00}}')
+                    result.append(f".code{{\x00CODE_{code_id}\x00}}")
                     code_id += 1
 
                     # Skip past this .code{} block
                     pos = brace_end + 1
                 else:
-                    # Not a syntax-highlighted code block, keep the .code{} directive intact
-                    # so it can be processed normally by the directive handler
-                    result.append(self.source[pos:brace_end + 1])
+                    # Keep non-highlighted .code{} directives intact so the
+                    # handler can process them normally.
+                    result.append(self.source[pos : brace_end + 1])
                     pos = brace_end + 1
             else:
                 # Regular character, keep it
                 result.append(self.source[pos])
                 pos += 1
 
-        return ''.join(result)
+        return "".join(result)
 
-    def parse(self) -> List[ASTNode]:
+    def parse(self) -> list[ASTNode]:
         """
         Parse source text into abstract syntax tree
 
         Main entry point for parsing. Scans source for top-level .directive{}
-        patterns, processes each recursively, and returns a forest of AST trees.
+        patterns, processes each recursively, and returns an AST forest.
 
         Returns:
             List of top-level ASTNode objects, one per top-level directive.
@@ -282,13 +309,14 @@ class Parser:
             >>> nodes[0].directive
             'slide'
         """
-        nodes = []
+        nodes: list[ASTNode] = []
 
         # Pre-process: protect backslash-escaped sequences
         self.source = self.escapes_protect(self.source)
 
-        # Pre-process: convert \\ to <br> for line breaks
-        self.source = self.source.replace('\\\\', '<br>')
+        # Pre-process: convert explicit trailing line-break markers to <br>.
+        # Literal backslashes in inline text are preserved.
+        self.source = re.sub(r"\\\\(?=\s*\n)", "<br>", self.source)
 
         # Pre-process: protect .code{} blocks from parsing
         self.source = self.codeblocks_protect()
@@ -303,8 +331,11 @@ class Parser:
 
         while self.position < len(self.source):
             # Skip whitespace
-            while self.position < len(self.source) and self.source[self.position].isspace():
-                if self.source[self.position] == '\n':
+            while (
+                self.position < len(self.source)
+                and self.source[self.position].isspace()
+            ):
+                if self.source[self.position] == "\n":
                     self.line_number += 1
                 self.position += 1
 
@@ -316,33 +347,37 @@ class Parser:
             if not match:
                 break
 
-            directive_name = match.name
-            directive_pos = match.position
+            directive_name: str = match.name
+            directive_pos: int = match.position
 
             # Find opening brace
-            brace_pos = self.source.find('{', directive_pos)
+            brace_pos: int = self.source.find("{", directive_pos)
             if brace_pos == -1:
-                self.error(f"Expected '{{' after directive '.{directive_name}'")
+                self.error(
+                    f"Expected '{{' after directive '.{directive_name}'"
+                )
 
             # Find matching closing brace
             try:
-                close_brace_pos = self.brace_findMatching(brace_pos)
+                close_brace_pos: int = self.brace_findMatching(brace_pos)
             except SyntaxError:
                 raise
 
             # Extract content
-            content = self.source[brace_pos + 1:close_brace_pos]
+            content: str = self.source[brace_pos + 1 : close_brace_pos]
 
             # Process content recursively
-            processed = self.content_processRecursive(content, self.line_number)
+            processed: ProcessedContent = self.content_processRecursive(
+                content, self.line_number
+            )
 
             # Create AST node
-            node = ASTNode(
+            node: ASTNode = ASTNode(
                 directive=directive_name,
                 modifiers=processed.modifiers,
                 content=processed.content,
                 children=processed.children,
-                line_number=self.line_number
+                line_number=self.line_number,
             )
             nodes.append(node)
 
@@ -351,7 +386,7 @@ class Parser:
 
         return nodes
 
-    def directive_find(self) -> Optional[DirectiveMatch]:
+    def directive_find(self) -> DirectiveMatch | None:
         """
         Find next .directive{ pattern in source from current position
 
@@ -360,11 +395,11 @@ class Parser:
         "font-doom", "my-custom-directive").
 
         Only matches directive names registered in the DirectiveRegistry.
-        Invalid directive names like .directive{} or .style{} (when not modifiers)
-        are skipped.
+        Invalid directive names like .directive{} or .style{} are skipped
+        when they are not modifiers.
 
         Returns:
-            DirectiveMatch with name and position, or None if no more directives
+            DirectiveMatch with name and position, or None.
 
         Example:
             For source ".slide{content}" at position 0:
@@ -376,16 +411,16 @@ class Parser:
             For source ".invalid{text}" where "invalid" is not registered:
             Returns None (skips invalid directives)
         """
-        pattern = r'\.(\w+(?:-\w+)*)\{'
-        search_pos = self.position
+        pattern: str = r"\.(\w+(?:-\w+)*)\{"
+        search_pos: int = self.position
 
         while search_pos < len(self.source):
             match = re.search(pattern, self.source[search_pos:])
             if not match:
                 return None
 
-            directive = match.group(1)
-            pos = search_pos + match.start()
+            directive: str = match.group(1)
+            pos: int = search_pos + match.start()
 
             # Check if this directive name is registered
             if self.registry.get(directive) is not None:
@@ -410,27 +445,28 @@ class Parser:
             Character position of matching closing '}'
 
         Raises:
-            SyntaxError: If EOF reached before finding matching brace (depth != 0)
+            SyntaxError: If EOF occurs before matching brace is found.
 
         Example:
-            For source ".code{function() { return {}; }}" at position 5 (opening brace):
+            For source ".code{function() { return {}; }}" at position 5:
             Returns 32 (position of final closing brace)
 
             Depth tracking: {1 function() {2 return {3}2; }1}0
         """
-        depth = 1
-        pos = start_pos + 1
+        depth: int = 1
+        pos: int = start_pos + 1
 
         while pos < len(self.source) and depth > 0:
-            if self.source[pos] == '{':
+            if self.source[pos] == "{":
                 depth += 1
-            elif self.source[pos] == '}':
+            elif self.source[pos] == "}":
                 depth -= 1
             pos += 1
 
         if depth != 0:
             raise SyntaxError(
-                f"Unmatched brace at line {self.line_number}, position {start_pos}"
+                f"Unmatched brace at line {self.line_number}, "
+                f"position {start_pos}"
             )
 
         return pos - 1
@@ -450,12 +486,12 @@ class Parser:
 
         Args:
             content: Raw content string from inside directive braces
-            line_num: Source line number (for error reporting in nested directives)
+            line_num: Source line number for nested directive errors
 
         Returns:
             ProcessedContent containing:
-                - content: String with nested directives replaced by placeholders
-                - children: List of child ASTNodes (indexed to match placeholders)
+                - content: Nested directives replaced by placeholders
+                - children: Child ASTNodes indexed to match placeholders
                 - modifiers: Extracted modifier directives dict
 
         Example:
@@ -469,26 +505,26 @@ class Parser:
         from ..config import appsettings
 
         # Extract modifiers first
-        extracted = self.modifiers_extract(content)
-        modifiers = extracted.modifiers
-        remaining_content = extracted.remaining
+        extracted: ExtractedModifiers = self.modifiers_extract(content)
+        modifiers: dict[str, str] = extracted.modifiers
+        remaining_content: str = extracted.remaining
 
         # Find and replace nested directives with placeholders
-        children = []
-        processed = remaining_content
-        child_index = 0
+        children: list[ASTNode] = []
+        processed: str = remaining_content
+        child_index: int = 0
 
         # Scan for nested directives
         pos = 0
         while pos < len(processed):
             # Look for .directive{ pattern
-            match = re.search(r'\.(\w+(?:-\w+)*)\{', processed[pos:])
+            match = re.search(r"\.(\w+(?:-\w+)*)\{", processed[pos:])
             if not match:
                 break
 
             directive_name = match.group(1)
-            match_start = pos + match.start()
-            brace_start = pos + match.end() - 1  # Position of {
+            match_start: int = pos + match.start()
+            brace_start = pos + match.end() - 1
 
             # Check if this is a valid registered directive
             if self.registry.get(directive_name) is None:
@@ -500,54 +536,59 @@ class Parser:
             depth = 1
             brace_pos = brace_start + 1
             while brace_pos < len(processed) and depth > 0:
-                if processed[brace_pos] == '{':
+                if processed[brace_pos] == "{":
                     depth += 1
-                elif processed[brace_pos] == '}':
+                elif processed[brace_pos] == "}":
                     depth -= 1
                 brace_pos += 1
 
             if depth != 0:
-                raise SyntaxError(f"Unmatched brace in nested directive '.{directive_name}' at line {line_num}")
+                raise SyntaxError(
+                    "Unmatched brace in nested directive "
+                    f"'.{directive_name}' at line {line_num}"
+                )
 
-            brace_end = brace_pos - 1  # Position of }
+            brace_end: int = brace_pos - 1
 
             # Extract nested content
-            nested_content = processed[brace_start + 1:brace_end]
+            nested_content: str = processed[brace_start + 1 : brace_end]
 
             # Recursively process nested content
-            processed_child = self.content_processRecursive(nested_content, line_num)
+            processed_child: ProcessedContent = self.content_processRecursive(
+                nested_content, line_num
+            )
 
             # Create child node
-            child = ASTNode(
+            child: ASTNode = ASTNode(
                 directive=directive_name,
                 modifiers=processed_child.modifiers,
                 content=processed_child.content,
                 children=processed_child.children,
-                line_number=line_num
+                line_number=line_num,
             )
             children.append(child)
 
             # Replace directive with placeholder
             placeholder = appsettings.placeHolder_make(child_index)
-            processed = processed[:match_start] + placeholder + processed[brace_pos:]
+            processed = (
+                processed[:match_start] + placeholder + processed[brace_pos:]
+            )
 
-            # Adjust position (placeholder might be different length than original)
+            # Adjust position for placeholder/original length differences.
             pos = match_start + len(placeholder)
             child_index += 1
 
         return ProcessedContent(
-            content=processed,
-            children=children,
-            modifiers=modifiers
+            content=processed, children=children, modifiers=modifiers
         )
 
     def modifiers_extract(self, content: str) -> ExtractedModifiers:
         """
         Extract modifier directives from content beginning
 
-        Scans for .style{}, .class{}, and .syntax{} directives at the start of content
-        (after optional leading whitespace). Extracts their values into a dict
-        and returns the remaining content with modifiers removed.
+        Scans for .style{}, .class{}, and .syntax{} directives at the start
+        of content. Extracts their values into a dict and returns the
+        remaining content with modifiers removed.
 
         Note: If no modifiers are found, returns original content unchanged
         (preserves leading whitespace).
@@ -561,29 +602,34 @@ class Parser:
                 - remaining: Content with modifiers stripped
 
         Example:
-            Input: ".style{color: red} .class{big} .syntax{language=python} Content"
+            Input:
+                ".style{color: red} .class{big} "
+                ".syntax{language=python} Content"
             Output: ExtractedModifiers(
-                modifiers={"style": "color: red", "class": "big", "syntax": "language=python"},
+                modifiers={
+                    "style": "color: red",
+                    "class": "big",
+                    "syntax": "language=python",
+                },
                 remaining="Content"
             )
 
             Input: "  Plain text"
             Output: ExtractedModifiers(modifiers={}, remaining="  Plain text")
         """
-        modifiers = {}
+        modifiers: dict[str, str] = {}
         pos = 0
 
         # Skip leading whitespace to find modifiers
-        ws_start = pos
         while pos < len(content) and content[pos].isspace():
             pos += 1
 
         # Check if there's a modifier at this position
-        first_modifier_found = False
+        first_modifier_found: bool = False
 
         # Look for .style{}, .class{}, and .syntax{} at the start
         while pos < len(content):
-            match = re.match(r'^\.((style|class|syntax))\{', content[pos:])
+            match = re.match(r"^\.((style|class|syntax))\{", content[pos:])
             if not match:
                 break
 
@@ -598,39 +644,41 @@ class Parser:
             depth = 1
             brace_pos = brace_start + 1
             while brace_pos < len(content) and depth > 0:
-                if content[brace_pos] == '{':
+                if content[brace_pos] == "{":
                     depth += 1
-                elif content[brace_pos] == '}':
+                elif content[brace_pos] == "}":
                     depth -= 1
                 brace_pos += 1
 
             if depth != 0:
-                raise SyntaxError(f"Unmatched brace in modifier '.{modifier_name}'")
+                raise SyntaxError(
+                    f"Unmatched brace in modifier '.{modifier_name}'"
+                )
 
             # Extract modifier value
-            modifier_value = content[brace_start + 1:brace_pos - 1]
+            modifier_value: str = content[brace_start + 1 : brace_pos - 1]
 
-            # Special handling for .style{} - extract align= and width= if present
-            if modifier_name == 'style':
-                style_value = modifier_value
+            # Special handling for .style{} align= and width=.
+            if modifier_name == "style":
+                style_value: str = modifier_value
 
                 # Extract align= if present
-                align_match = re.search(r'align\s*=\s*(\w+)', style_value)
+                align_match = re.search(r"align\s*=\s*(\w+)", style_value)
                 if align_match:
-                    modifiers['align'] = align_match.group(1)
-                    style_value = re.sub(r'align\s*=\s*\w+\s*;?\s*', '', style_value).strip()
+                    modifiers["align"] = align_match.group(1)
+                    style_value = re.sub(
+                        r"align\s*=\s*\w+\s*;?\s*", "", style_value
+                    ).strip()
 
                 # Extract width= if present
-                width_match = re.search(r'width\s*=\s*([\w%]+)', style_value)
+                width_match = re.search(r"width\s*=\s*([\w%]+)", style_value)
                 if width_match:
-                    modifiers['width'] = width_match.group(1)
-                    style_value = re.sub(r'width\s*=\s*[\w%]+\s*;?\s*', '', style_value).strip()
+                    modifiers["width"] = width_match.group(1)
+                    style_value = re.sub(
+                        r"width\s*=\s*[\w%]+\s*;?\s*", "", style_value
+                    ).strip()
 
-                # Remove trailing semicolon if it's the only thing left
-                style_value = style_value.rstrip(';').strip()
-                if style_value:
-                    modifiers[modifier_name] = style_value
-                # Don't add empty style modifier
+                modifiers[modifier_name] = style_value.strip()
             else:
                 modifiers[modifier_name] = modifier_value
 
@@ -671,9 +719,9 @@ class Parser:
             Context: ...text .slide content more text...
                                    ^
         """
-        context_start = max(0, self.position - 40)
-        context_end = min(len(self.source), self.position + 40)
-        context = self.source[context_start:context_end]
+        context_start: int = max(0, self.position - 40)
+        context_end: int = min(len(self.source), self.position + 40)
+        context: str = self.source[context_start:context_end]
 
         raise SyntaxError(
             f"\n{message}\n"

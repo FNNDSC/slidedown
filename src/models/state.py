@@ -5,15 +5,17 @@ Defines ProgramState dataclass for the functional pipeline pattern and
 the pipeline() helper for composing transformation stages.
 """
 
-from pathlib import Path
 from argparse import Namespace
-from typing import Any, Optional, Type, TypeVar, List, Dict, Callable, TYPE_CHECKING
+from collections.abc import Callable
 from dataclasses import dataclass, field
+from pathlib import Path
+from typing import TYPE_CHECKING, TypeVar
 
 # Forward reference for type hint - avoid circular import
 if TYPE_CHECKING:
     from ..lib.parser import ASTNode
 
+from .compiler import CompileResult
 
 PS = TypeVar("PS", bound="ProgramState")
 
@@ -27,7 +29,8 @@ class ProgramState:
     with each stage adding new fields as the compilation progresses.
 
     Pipeline stages and their state additions:
-        - Initial: inputdir, outputdir, verbosity, inputFile, assetsDir, outputSubdir
+        - Initial: inputdir, outputdir, verbosity, inputFile,
+          assetsDir, outputSubdir
         - env_check: inputSourceFile, assetsInputdir, htmlOutputdir, envOK
         - source_parse: parsedSource
         - html_compile: compileResult
@@ -49,11 +52,11 @@ class ProgramState:
     """
 
     # CLI arguments
-    inputdir: Optional[Path] = field(default=None)
-    outputdir: Optional[Path] = field(default=None)
+    inputdir: Path | None = field(default=None)
+    outputdir: Path | None = field(default=None)
     verbosity: int = field(default=1)
     inputFile: str = field(default="")
-    assetsDir: Optional[str] = field(default=None)
+    assetsDir: str | None = field(default=None)
     outputSubdir: str = field(default=".")
     themeName: str = field(default="default")
 
@@ -62,14 +65,21 @@ class ProgramState:
     inputSourceFile: Path = field(default=Path("/"))
     assetsInputdir: Path = field(default=Path("/"))
     htmlOutputdir: Path = field(default=Path("/"))
-    parsedSource: Optional[List[Any]] = field(default=None)  # List[ASTNode] at runtime
-    protectedCodeBlocks: Dict[int, str] = field(default_factory=dict)  # Protected .code{} blocks
-    escapedSequences: Dict[int, str] = field(default_factory=dict)  # Backslash-escaped sequences
-    compileResult: Optional[Dict] = field(default=None)
+    parsedSource: list["ASTNode"] | None = field(default=None)
+    protectedCodeBlocks: dict[int, str] = field(
+        default_factory=dict
+    )  # Protected .code{} blocks
+    escapedSequences: dict[int, str] = field(
+        default_factory=dict
+    )  # Backslash-escaped sequences
+    compileResult: CompileResult | None = field(default=None)
 
     @classmethod
     def state_createFromNamespace(
-        cls: Type["ProgramState"], options: Namespace, inputdir: Path, outputdir: Path
+        cls: type["ProgramState"],
+        options: Namespace,
+        inputdir: Path,
+        outputdir: Path,
     ) -> "ProgramState":
         """
         Create ProgramState from argparse Namespace and directory paths.
@@ -90,14 +100,21 @@ class ProgramState:
 
         # Get the set of valid field names for ProgramState
         import dataclasses
+
         valid_fields = {f.name for f in dataclasses.fields(cls)}
 
         # Filter options_dict to only include fields that exist in ProgramState
-        filtered_options = {k: v for k, v in options_dict.items() if k in valid_fields}
+        filtered_options = {
+            k: v for k, v in options_dict.items() if k in valid_fields
+        }
 
         # Merge the filtered CLI options with the explicitly defined arguments.
         # This will override any defaults set in the dataclass.
-        merged_args = {**filtered_options, "inputdir": inputdir, "outputdir": outputdir}
+        merged_args = {
+            **filtered_options,
+            "inputdir": inputdir,
+            "outputdir": outputdir,
+        }
 
         # Instantiate the dataclass by unpacking the merged dictionary.
         return cls(**merged_args)
@@ -113,7 +130,8 @@ class ProgramState:
 
 
 def pipeline(
-    initial_state: ProgramState, *stages: Callable[[ProgramState], ProgramState]
+    initial_state: ProgramState,
+    *stages: Callable[[ProgramState], ProgramState],
 ) -> ProgramState:
     """
     Execute a functional pipeline of state transformations.
@@ -143,4 +161,5 @@ def pipeline(
     But reads left-to-right instead of inside-out.
     """
     from functools import reduce
+
     return reduce(lambda state, stage: stage(state), stages, initial_state)

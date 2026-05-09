@@ -123,6 +123,46 @@ Defines a presentation slide. This is the top-level container for all slide cont
 * Required children: Typically contains `.title{}` and `.body{}`
 * Optional modifiers: `.style{}`, `.class{}`
 
+*Density classes:*
+
+Use `.class{hero}`, `.class{roomy}`, `.class{dense}`, or
+`.class{compact}` on `.slide{}` to tune typography scale while preserving the
+presentation viewport.
+
+[source,slidedown]
+----
+.slide{.class{dense}
+  .title{Detailed Methods}
+  .body{
+    Dense slides keep more content readable without browser zoom changes.
+  }
+}
+----
+
+Set a deck-wide typography baseline in `.meta{}` when the whole presentation
+needs larger or smaller text. Supported baselines are `compact`, `normal`,
+`large`, `xlarge`, and `presentation`.
+
+[source,slidedown]
+----
+.meta{
+  typography:
+    baseline: xlarge
+}
+----
+
+Use `scale` for precise control. When both `baseline` and `scale` are present,
+`scale` wins.
+
+[source,slidedown]
+----
+.meta{
+  typography:
+    baseline: large
+    scale: 1.42
+}
+----
+
 *Example with custom styling:*
 
 [source,slidedown]

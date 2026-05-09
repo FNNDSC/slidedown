@@ -1,6 +1,6 @@
 [project]
 name = "slidedown"
-version = "1.1.1"
+version = "1.1.2"
 description = "Text-first presentation compiler with behavioral markup"
 authors = [
     {name = "Rudolph Pienaar", email = "rudolph.pienaar@gmail.com"}
@@ -57,22 +57,57 @@ slidedown = "slidedown.__main__:main"
 [tool.setuptools.package-data]
 slidedown = ["assets/**/*"]
 
+[tool.setuptools.data-files]
+"share/slidedown/themes/default" = [
+    "themes/default/theme.css",
+    "themes/default/theme.yaml",
+]
+"share/slidedown/themes/conventional-light" = [
+    "themes/conventional-light/theme.css",
+    "themes/conventional-light/theme.yaml",
+]
+"share/slidedown/themes/terminal" = [
+    "themes/terminal/theme.css",
+    "themes/terminal/theme.yaml",
+]
+"share/slidedown/themes/retro-terminal" = [
+    "themes/retro-terminal/theme.css",
+    "themes/retro-terminal/theme.yaml",
+]
+"share/slidedown/themes/lcars-lower-decks" = [
+    "themes/lcars-lower-decks/theme.css",
+    "themes/lcars-lower-decks/theme.yaml",
+    "themes/lcars-lower-decks/slidedown-lcars-adapter.css",
+]
+"share/slidedown/themes/lcars-lower-decks/templates" = [
+    "themes/lcars-lower-decks/templates/lcars-data-cascade.html",
+    "themes/lcars-lower-decks/templates/lcars-frame.html",
+    "themes/lcars-lower-decks/templates/lcars-scripts.js",
+]
+
 [build-system]
 requires = ["setuptools>=68.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["slidedown"]
+packages = [
+    "slidedown",
+    "slidedown.config",
+    "slidedown.lib",
+    "slidedown.models",
+]
 package-dir = {"slidedown" = "src"}
 
 [tool.black]
-line-length = 100
+line-length = 79
 target-version = ['py310', 'py311', 'py312']
 include = '\.pyi?$'
 
 [tool.ruff]
-line-length = 100
+line-length = 79
 target-version = "py310"
+
+[tool.ruff.lint]
 select = [
     "E",   # pycodestyle errors
     "W",   # pycodestyle warnings
@@ -82,9 +117,7 @@ select = [
     "C4",  # flake8-comprehensions
     "UP",  # pyupgrade
 ]
-ignore = [
-    "E501",  # line too long (handled by black)
-]
+ignore = []
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -101,3 +134,13 @@ python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = [
+    "chris_plugin",
+    "cowsay",
+    "pygments",
+    "pygments.*",
+    "yaml",
+]
+ignore_missing_imports = true

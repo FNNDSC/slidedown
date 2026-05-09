@@ -1,34 +1,123 @@
-"""
-Directive implementations for slidedown
+"""Directive registry and HTML handlers for slidedown markup.
 
-Each directive transforms AST nodes into HTML with appropriate attributes/structure.
-Uses DirectiveSpec for metadata and validation.
+Each directive transforms an AST node into HTML. The registry keeps directive
+metadata beside handlers so parsing, compilation, and documentation can share a
+single source of truth.
 """
 
-from typing import Callable, Dict, Optional, Any
-from pyfiglet import Figlet
+from __future__ import annotations
+
+import re
+from collections.abc import Callable
+from typing import cast
+
 import cowsay as cowsay_module
+from pyfiglet import Figlet
 from pygments import highlight
-from pygments.lexers import get_lexer_by_name, TextLexer
-from pygments.lexer import Lexer
 from pygments.formatters import HtmlFormatter
+from pygments.lexer import Lexer
+from pygments.lexers import TextLexer, get_lexer_by_name
 from pygments.util import ClassNotFound
 
-from ..models.directives import DirectiveSpec, DirectiveCategory, RESERVED_DIRECTIVES
+from ..models.compiler import PresentationMetaConfig
+from ..models.directives import DirectiveCategory, DirectiveSpec
+from ..models.handlers import CompilerContext, DirectiveNode
+from . import directive_groups
 from .lexer import SlidedownLexer
+
+CLASS_TOKEN_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_-]*$")
+
+
+def classNames_normalize(raw_class_names: str) -> list[str]:
+    """Normalize a raw class modifier into safe CSS class tokens.
+
+    Splits a ``.class{}`` modifier on whitespace and keeps only class names
+    that are valid simple CSS tokens. Invalid tokens are dropped so user input
+    cannot break the generated class attribute.
+
+    Args:
+        raw_class_names: Raw whitespace-separated class names from a parsed
+            directive modifier.
+
+    Returns:
+        List of valid CSS class names in their original order.
+    """
+    class_names: list[str] = []
+    for class_name in raw_class_names.split():
+        if CLASS_TOKEN_PATTERN.fullmatch(class_name):
+            class_names.append(class_name)
+    return class_names
+
+
+def metaYaml_dedent(yaml_content: str) -> str:
+    """Dedent parser-skewed YAML metadata content.
+
+    The parser can strip indentation from the first metadata line while later
+    root-level lines keep shared indentation. This helper removes only that
+    shared leading indentation after a direct YAML parse has already failed.
+
+    Args:
+        yaml_content: Raw ``.meta{}`` content after outer whitespace stripping.
+
+    Returns:
+        Dedented YAML content suitable for a second parse attempt.
+    """
+    lines: list[str] = yaml_content.split("\n")
+    non_empty_lines: list[str] = [line for line in lines if line.strip()]
+
+    if not non_empty_lines or len(non_empty_lines) <= 1:
+        return yaml_content
+
+    first_indent: int = len(non_empty_lines[0]) - len(
+        non_empty_lines[0].lstrip()
+    )
+    if first_indent != 0:
+        return yaml_content
+
+    root_level_indents: list[int] = []
+    for line in non_empty_lines[1:]:
+        stripped: str = line.lstrip()
+        if (
+            stripped
+            and stripped[0].isalpha()
+            and ":" in stripped
+            and not stripped.startswith("-")
+        ):
+            indent: int = len(line) - len(stripped)
+            root_level_indents.append(indent)
+
+    non_zero_indents: list[int] = [
+        indent for indent in root_level_indents if indent > 0
+    ]
+    if not non_zero_indents:
+        return yaml_content
+
+    base_indent: int = min(non_zero_indents)
+    dedented_lines: list[str] = []
+    for line in lines:
+        if line.strip():
+            leading_spaces: int = len(line) - len(line.lstrip(" "))
+            spaces_to_remove: int = min(leading_spaces, base_indent)
+            dedented_lines.append(line[spaces_to_remove:])
+        else:
+            dedented_lines.append(line)
+
+    return "\n".join(dedented_lines)
 
 
 class DirectiveRegistry:
-    """
-    Registry of directive specifications and handlers
+    """Registry of directive specifications and handlers.
 
     Maps directive names to DirectiveSpec objects containing metadata
     and compilation handlers.
+
+    Attributes:
+        specs: Mapping of directive names and aliases to directive specs.
     """
 
     def __init__(self) -> None:
-        """Initialize the directive registry and register all built-in directives"""
-        self.specs: Dict[str, DirectiveSpec] = {}
+        """Initialize the registry with built-in directives."""
+        self.specs: dict[str, DirectiveSpec] = {}
         self.coreDirectives_register()
         self.formattingDirectives_register()
         self.effectDirectives_register()
@@ -37,23 +126,28 @@ class DirectiveRegistry:
         self.metadataDirectives_register()
 
     def register(self, spec: DirectiveSpec) -> None:
-        """Register a directive specification"""
+        """Register a directive specification.
+
+        Args:
+            spec: Directive metadata and handler to register.
+        """
         self.specs[spec.name] = spec
         # Also register aliases
         for alias in spec.aliases:
             self.specs[alias] = spec
 
-    def get(self, name: str) -> Optional[Callable[[Any, Any], str]]:
-        """
-        Get directive handler by name
+    def get(
+        self, name: str
+    ) -> Callable[[DirectiveNode, CompilerContext], str] | None:
+        """Get a directive handler by name.
 
-        Supports wildcard matching for pattern-based directives (font-*, cowpy-*)
+        Supports wildcard matching for pattern-based directives.
 
         Args:
-            name: Directive name to look up
+            name: Directive name to look up.
 
         Returns:
-            Handler function or None if not found
+            Handler function, or None when no directive matches.
         """
         # Direct match
         if name in self.specs:
@@ -66,8 +160,15 @@ class DirectiveRegistry:
 
         return None
 
-    def spec_get(self, name: str) -> Optional[DirectiveSpec]:
-        """Get full directive specification by name"""
+    def spec_get(self, name: str) -> DirectiveSpec | None:
+        """Get full directive specification by name.
+
+        Args:
+            name: Directive name to look up.
+
+        Returns:
+            Directive specification, or None when no directive matches.
+        """
         if name in self.specs:
             return self.specs[name]
 
@@ -78,407 +179,510 @@ class DirectiveRegistry:
 
         return None
 
-    def directives_listByCategory(self, category: DirectiveCategory) -> list[DirectiveSpec]:
-        """Get all directives in a category"""
-        return [spec for spec in self.specs.values() if spec.category == category]
+    def directives_listByCategory(
+        self, category: DirectiveCategory
+    ) -> list[DirectiveSpec]:
+        """Get all directives in a category.
+
+        Args:
+            category: Directive category to filter by.
+
+        Returns:
+            List of directive specs in the requested category.
+        """
+        return [
+            spec for spec in self.specs.values() if spec.category == category
+        ]
 
     def coreDirectives_register(self) -> None:
-        """Register core structural directives"""
+        """Register core structural directives."""
 
-        def slide_handler(node: Any, compiler: Any) -> str:
-            """Handle .slide{} - compile to slide div"""
+        def slide_handler(
+            node: DirectiveNode, compiler: CompilerContext
+        ) -> str:
+            """Compile a slide directive.
+
+            Args:
+                node: Parsed ``.slide{}`` AST node.
+                compiler: Active compiler instance.
+
+            Returns:
+                HTML for the slide container and hidden title metadata.
+            """
             # Skip empty slides (used as examples in text, not actual slides)
             if not node.content or not node.content.strip():
-                return ''
+                return ""
 
-            # slide_count incremented in compiler.node_compile BEFORE children compiled
-            slide_num = compiler.slide_count
+            # slide_count is incremented before children are compiled.
+            slide_num: int = compiler.slide_count
 
             # node.content already has placeholders substituted by compiler
-            content = node.content
+            content: str = node.content
 
-            # Extract title content from children (before title_handler returned empty)
+            # Extract title content before title_handler returns empty.
             # Find title child node and get its content
-            title_content = ""
+            title_content: str = ""
             for child in node.children:
-                if child.directive == 'title':
+                if child.directive == "title":
                     title_content = child.content
                     break
 
             # Build CSS classes - add alignment class if specified
-            css_classes = "container slide"
-            align = node.modifiers.get('align', '')
+            css_classes: str = "container slide"
+            align: str = node.modifiers.get("align", "")
             if align:
                 css_classes += f" align-{align}"
 
-            # Build style attribute - all slides hidden by default, JS shows slide 1
-            user_style = node.modifiers.get('style', '')
+            user_classes: list[str] = classNames_normalize(
+                node.modifiers.get("class", "")
+            )
+            if user_classes:
+                css_classes += f" {' '.join(user_classes)}"
+
+            # Slides start hidden; JavaScript shows the active slide.
+            user_style: str = node.modifiers.get("style", "")
             if user_style:
                 style_attr = f'style="display:none; {user_style}"'
             else:
                 style_attr = 'style="display:none;"'
 
             # Generate watermarks from theme config
-            watermarks_html = compiler.watermarks_generate()
+            watermarks_html: str = compiler.watermarks_generate()
 
-            # Extract effect from slide modifiers (e.g., .slide{.effect{histogram}})
-            slide_effect = node.modifiers.get('effect', 'starmap')
+            slide_effect: str = node.modifiers.get("effect", "starmap")
 
-            return f"""
-                <div id="slide-{slide_num}-title" style="display: none;">
-                    {title_content}
-                </div>
-                <div id="slide-{slide_num}-effect" style="display: none;">
-                    {slide_effect}
-                </div>
-                <div class="{css_classes}" id="slide-{slide_num}" name="slide-{slide_num}" {style_attr}>
-                    {watermarks_html}
-                    {content}
-                </div>
+            return (
+                "\n"
+                f'<div id="slide-{slide_num}-title" '
+                'style="display: none;">\n'
+                f"    {title_content}\n"
+                "</div>\n"
+                f'<div id="slide-{slide_num}-effect" '
+                'style="display: none;">\n'
+                f"    {slide_effect}\n"
+                "</div>\n"
+                f'<div class="{css_classes}" id="slide-{slide_num}" '
+                f'name="slide-{slide_num}" {style_attr}>\n'
+                f"    {watermarks_html}\n"
+                f"    {content}\n"
+                "</div>\n"
+            )
+
+        def title_handler(
+            node: DirectiveNode, compiler: CompilerContext
+        ) -> str:
+            """Compile slide title metadata.
+
+            Args:
+                node: Parsed ``.title{}`` AST node.
+                compiler: Active compiler instance.
+
+            Returns:
+                Empty string because slide_handler emits title metadata.
             """
-
-        def title_handler(node: Any, compiler: Any) -> str:
-            """Handle .title{} - slide title metadata (displayed in navbar, not body)"""
-            # Title content is stored in hidden slide-N-title div (see slide_handler)
-            # and displayed in navbar via JS, so we return empty string here
+            # Title appears in a hidden slide-N-title div for navbar JS.
             return ""
 
-        def body_handler(node: Any, compiler: Any) -> str:
-            """Handle .body{} - slide content area"""
+        def body_handler(
+            node: DirectiveNode, compiler: CompilerContext
+        ) -> str:
+            """Compile a slide body directive.
+
+            Args:
+                node: Parsed ``.body{}`` AST node.
+                compiler: Active compiler instance.
+
+            Returns:
+                Compiled body HTML.
+            """
             # node.content already has placeholders substituted by compiler
-            content = node.content
+            content: str = node.content
 
             # If body contains column divs, wrap them in a flex container
             # We need to properly match nested divs by counting depth
             if '<div class="column"' in content:
-                result = []
-                i = 0
+                result: list[str] = []
+                i: int = 0
                 while i < len(content):
                     # Look for start of column
                     if content[i:].startswith('<div class="column"'):
-                        # Found start of columns - collect all consecutive columns
-                        flex_start = i
-                        columns = []
+                        # Collect all consecutive column blocks.
+                        columns: list[str] = []
 
-                        while i < len(content) and '<div class="column"' in content[i:i+20]:
-                            # Find the opening tag
-                            col_start = i
-
-                            # Find matching closing </div> by counting nesting depth
-                            tag_start = content.find('<div class="column"', i)
-                            depth = 0
-                            j = tag_start
+                        while (
+                            i < len(content)
+                            and '<div class="column"' in content[i : i + 20]
+                        ):
+                            # Match closing </div> by nesting depth.
+                            tag_start: int = content.find(
+                                '<div class="column"', i
+                            )
+                            depth: int = 0
+                            j: int = tag_start
 
                             while j < len(content):
-                                if content[j:j+4] == '<div':
+                                if content[j : j + 4] == "<div":
                                     depth += 1
-                                elif content[j:j+6] == '</div>':
+                                elif content[j : j + 6] == "</div>":
                                     depth -= 1
                                     if depth == 0:
                                         # Found matching closing tag
-                                        col_end = j + 6
-                                        columns.append(content[tag_start:col_end])
+                                        col_end: int = j + 6
+                                        columns.append(
+                                            content[tag_start:col_end]
+                                        )
                                         i = col_end
                                         break
                                 j += 1
 
                             # Skip whitespace between columns
-                            while i < len(content) and content[i] in ' \n\t':
+                            while i < len(content) and content[i] in " \n\t":
                                 i += 1
 
                             # Check if next thing is another column
-                            if not content[i:].startswith('<div class="column"'):
+                            if not content[i:].startswith(
+                                '<div class="column"'
+                            ):
                                 break
 
                         # Wrap all collected columns in flex container
                         if columns:
                             result.append('<div style="display: flex;">\n')
-                            result.append('\n'.join(columns))
-                            result.append('\n</div>\n')
+                            result.append("\n".join(columns))
+                            result.append("\n</div>\n")
                     else:
                         result.append(content[i])
                         i += 1
 
-                content = ''.join(result)
+                content = "".join(result)
 
-            return content
+            return str(content)
 
-        self.register(DirectiveSpec(
-            name='slide',
-            category=DirectiveCategory.STRUCTURAL,
-            description='Defines a presentation slide',
-            handler=slide_handler,
-            requires_children=True,
-            examples=['.slide{.title{Hello} .body{World}}']
-        ))
+        self.register(
+            DirectiveSpec(
+                name="slide",
+                category=DirectiveCategory.STRUCTURAL,
+                description="Defines a presentation slide",
+                handler=slide_handler,
+                requires_children=True,
+                examples=[".slide{.title{Hello} .body{World}}"],
+            )
+        )
 
-        self.register(DirectiveSpec(
-            name='title',
-            category=DirectiveCategory.STRUCTURAL,
-            description='Slide title (metadata)',
-            handler=title_handler,
-            examples=['.title{My Slide Title}']
-        ))
+        self.register(
+            DirectiveSpec(
+                name="title",
+                category=DirectiveCategory.STRUCTURAL,
+                description="Slide title (metadata)",
+                handler=title_handler,
+                examples=[".title{My Slide Title}"],
+            )
+        )
 
-        self.register(DirectiveSpec(
-            name='body',
-            category=DirectiveCategory.STRUCTURAL,
-            description='Slide content container',
-            handler=body_handler,
-            examples=['.body{Content goes here}']
-        ))
+        self.register(
+            DirectiveSpec(
+                name="body",
+                category=DirectiveCategory.STRUCTURAL,
+                description="Slide content container",
+                handler=body_handler,
+                examples=[".body{Content goes here}"],
+            )
+        )
 
     def formattingDirectives_register(self) -> None:
-        """Register HTML formatting directives"""
-
-        def make_html_wrapper(tag: str, css_class: Optional[str] = None) -> Callable[[Any, Any], str]:
-            """Factory for simple HTML tag wrappers"""
-            def handler(node: Any, compiler: Any) -> str:
-                """Wrap content in HTML tag with optional style and class"""
-                style = node.modifiers.get('style', '')
-                style_attr = f' style="{style}"' if style else ''
-                class_attr = f' class="{css_class}"' if css_class else ''
-                return f'<{tag}{class_attr}{style_attr}>{node.content}</{tag}>'
-            return handler
-
-        formatting_specs = [
-            ('bf', 'strong', 'Bold/strong text', ['.bf{bold text}']),
-            ('em', 'em', 'Emphasized/italic text', ['.em{italic text}']),
-            ('tt', 'tt', 'Teletype/monospace text', ['.tt{monospace}']),
-            ('underline', 'u', 'Underlined text', ['.underline{underlined}']),
-        ]
-
-        for name, tag, desc, examples in formatting_specs:
-            self.register(DirectiveSpec(
-                name=name,
-                category=DirectiveCategory.FORMATTING,
-                description=desc,
-                handler=make_html_wrapper(tag),
-                examples=examples
-            ))
-
-        self.register(DirectiveSpec(
-            name='flash',
-            aliases=['blink'],
-            category=DirectiveCategory.FORMATTING,
-            description='Blinking text effect',
-            handler=make_html_wrapper('span', 'sl-blink'),
-            examples=['.flash{blinking text}', '.blink{also blinking}']
-        ))
-
-        # Heading aliases - cleaner syntax than <h1></h1>
-        heading_specs = [
-            ('h1', 'h1', 'Heading level 1 (largest)', ['.h1{Main Title}']),
-            ('h2', 'h2', 'Heading level 2', ['.h2{Section Title}']),
-            ('h3', 'h3', 'Heading level 3', ['.h3{Subsection Title}']),
-            ('h4', 'h4', 'Heading level 4', ['.h4{Minor Heading}']),
-            ('h5', 'h5', 'Heading level 5', ['.h5{Small Heading}']),
-            ('h6', 'h6', 'Heading level 6 (smallest)', ['.h6{Tiny Heading}']),
-        ]
-
-        for name, tag, desc, examples in heading_specs:
-            self.register(DirectiveSpec(
-                name=name,
-                category=DirectiveCategory.FORMATTING,
-                description=desc,
-                handler=make_html_wrapper(tag),
-                examples=examples
-            ))
+        """Register HTML formatting directives."""
+        directive_groups.formattingDirectives_register(self)
 
     def effectDirectives_register(self) -> None:
-        """Register special effect directives"""
+        """Register special effect directives."""
 
-        def typewriter_handler(node: Any, compiler: Any) -> str:
-            """Handle .typewriter{} - character-by-character typing animation"""
+        def typewriter_handler(
+            node: DirectiveNode, compiler: CompilerContext
+        ) -> str:
+            """Compile a typewriter directive.
+
+            Args:
+                node: Parsed ``.typewriter{}`` AST node.
+                compiler: Active compiler instance.
+
+            Returns:
+                ``pre`` element configured for JavaScript typing.
+            """
             import html
 
-            slide_num = compiler.slide_count
+            slide_num: int = compiler.slide_count
 
-            # node.content already has children compiled and placeholders substituted
-            content = node.content
+            # node.content already has compiled child HTML.
+            content: str = node.content
 
             # Skip empty typewriters (they break JS and serve no purpose)
             if not content or not content.strip():
-                return ''
+                return ""
 
             # Track typewriter count per slide (for multiple typewriters)
             if slide_num not in compiler.typewriter_counters:
                 compiler.typewriter_counters[slide_num] = 0
 
             compiler.typewriter_counters[slide_num] += 1
-            typewriter_num = compiler.typewriter_counters[slide_num]
+            typewriter_num: int = compiler.typewriter_counters[slide_num]
 
-            style = node.modifiers.get('style', '')
-            # Let CSS control display context (inline for bullets, block for standalone)
+            style: str = node.modifiers.get("style", "")
+            # Let CSS control inline/block display context.
             if style:
                 style_attr = f' style="{style}"'
             else:
-                style_attr = ''
+                style_attr = ""
 
             # Always use typewriter-{slide}-{num} format for consistency
-            typewriter_id = f'typewriter-{slide_num}-{typewriter_num}'
+            typewriter_id: str = f"typewriter-{slide_num}-{typewriter_num}"
 
             # Process backslash escapes for literal characters
             # \> → > (literal greater-than)
             # \< → < (literal less-than)
             # \& → & (literal ampersand)
             # \\ → \ (literal backslash)
-            text_content = content.replace('\\\\', '\x00BACKSLASH\x00')
-            text_content = text_content.replace('\\>', '>')
-            text_content = text_content.replace('\\<', '<')
-            text_content = text_content.replace('\\&', '&')
-            text_content = text_content.replace('\x00BACKSLASH\x00', '\\')
+            text_content: str = content.replace("\\\\", "\x00BACKSLASH\x00")
+            text_content = text_content.replace("\\>", ">")
+            text_content = text_content.replace("\\<", "<")
+            text_content = text_content.replace("\\&", "&")
+            text_content = text_content.replace("\x00BACKSLASH\x00", "\\")
 
             # Store text in data attribute to bypass HTML entity parsing issues
             # Escape quotes for attribute safety
-            escaped_attr = html.escape(text_content, quote=True)
+            escaped_attr: str = html.escape(text_content, quote=True)
 
             # Typewriter content allows HTML for formatting (e.g., <b>bold</b>)
             # Use backslash escapes for literal characters (e.g., \> for >)
-            return f'<pre id="{typewriter_id}"{style_attr} data-text="{escaped_attr}"></pre>'
+            return (
+                f'<pre id="{typewriter_id}"{style_attr} '
+                f'data-text="{escaped_attr}"></pre>'
+            )
 
-        def snippet_handler(node: Any, compiler: Any) -> str:
-            """Handle .o{} - progressive reveal bullet point"""
-            slide_num = compiler.slide_count
+        def snippet_handler(
+            node: DirectiveNode, compiler: CompilerContext
+        ) -> str:
+            """Compile a progressive reveal snippet.
+
+            Args:
+                node: Parsed ``.o{}`` AST node.
+                compiler: Active compiler instance.
+
+            Returns:
+                Hidden snippet element revealed by JavaScript.
+            """
+            slide_num: int = compiler.slide_count
 
             # Skip empty snippets (they break JS and serve no purpose)
             if not node.content or not node.content.strip():
-                return ''
+                return ""
 
             # Track snippet count per slide
             if slide_num not in compiler.snippet_counters:
                 compiler.snippet_counters[slide_num] = 0
 
             compiler.snippet_counters[slide_num] += 1
-            snippet_num = compiler.snippet_counters[slide_num]
+            snippet_num: int = compiler.snippet_counters[slide_num]
 
-            style = node.modifiers.get('style', '')
-            style_attr = f' style="{style}"' if style else ''
+            style: str = node.modifiers.get("style", "")
+            style_attr: str = f' style="{style}"' if style else ""
 
-            return f'''<div class="snippet sl-hidden" id="order-{slide_num}-{snippet_num}"{style_attr}>{node.content}</div>'''
+            return (
+                '<div class="snippet sl-hidden" '
+                f'id="order-{slide_num}-{snippet_num}"'
+                f"{style_attr}>{node.content}</div>"
+            )
 
-        self.register(DirectiveSpec(
-            name='typewriter',
-            category=DirectiveCategory.EFFECT,
-            description='Character-by-character typing animation',
-            handler=typewriter_handler,
-            examples=['.typewriter{Text appears slowly}']
-        ))
+        self.register(
+            DirectiveSpec(
+                name="typewriter",
+                category=DirectiveCategory.EFFECT,
+                description="Character-by-character typing animation",
+                handler=typewriter_handler,
+                examples=[".typewriter{Text appears slowly}"],
+            )
+        )
 
-        self.register(DirectiveSpec(
-            name='o',
-            category=DirectiveCategory.EFFECT,
-            description='Progressive reveal bullet (snippet)',
-            handler=snippet_handler,
-            examples=['.o{First bullet}', '.o{Second bullet}']
-        ))
+        self.register(
+            DirectiveSpec(
+                name="o",
+                category=DirectiveCategory.EFFECT,
+                description="Progressive reveal bullet (snippet)",
+                handler=snippet_handler,
+                examples=[".o{First bullet}", ".o{Second bullet}"],
+            )
+        )
 
-        def column_handler(node: Any, compiler: Any) -> str:
-            """Handle .column{} - column layout container with optional styling"""
+        def column_handler(
+            node: DirectiveNode, compiler: CompilerContext
+        ) -> str:
+            """Compile a column layout directive.
+
+            Args:
+                node: Parsed ``.column{}`` AST node.
+                compiler: Active compiler instance.
+
+            Returns:
+                Column wrapper HTML.
+            """
             # Build style attribute from modifiers
-            styles = []
+            styles: list[str] = []
 
             # Handle align modifier
-            if 'align' in node.modifiers:
+            if "align" in node.modifiers:
                 styles.append(f"text-align: {node.modifiers['align']}")
 
             # Handle width modifier
-            if 'width' in node.modifiers:
+            if "width" in node.modifiers:
                 styles.append(f"width: {node.modifiers['width']}")
             else:
                 # Default: flex-grow so columns split equally
                 styles.append("flex: 1")
 
             # Add any other custom CSS from .style{}
-            if 'style' in node.modifiers:
-                styles.append(node.modifiers['style'])
+            if "style" in node.modifiers:
+                styles.append(node.modifiers["style"])
 
             # Build style attribute
-            style_attr = f' style="{"; ".join(styles)}"' if styles else ''
+            style_attr: str = f' style="{"; ".join(styles)}"' if styles else ""
 
             return f'<div class="column"{style_attr}>{node.content}</div>'
 
-        self.register(DirectiveSpec(
-            name='column',
-            category=DirectiveCategory.EFFECT,
-            description='Column layout container for side-by-side content',
-            handler=column_handler,
-            examples=[
-                '.column{.style{align=left; width=50%}\n    Content here\n}',
-                '.column{.style{width=33%}\n    Narrow column\n}'
-            ]
-        ))
+        self.register(
+            DirectiveSpec(
+                name="column",
+                category=DirectiveCategory.EFFECT,
+                description="Column layout container for side-by-side content",
+                handler=column_handler,
+                examples=[
+                    (
+                        ".column{.style{align=left; width=50%}\n"
+                        "    Content here\n}"
+                    ),
+                    ".column{.style{width=33%}\n    Narrow column\n}",
+                ],
+            )
+        )
 
     def transformDirectives_register(self) -> None:
-        """Register content transformation directives (ASCII art)"""
+        """Register content transformation directives."""
 
-        def font_handler(node: Any, compiler: Any) -> str:
-            """Handle .font-<name>{} - figlet ASCII art"""
+        def font_handler(
+            node: DirectiveNode, compiler: CompilerContext
+        ) -> str:
+            """Compile a Figlet font directive.
+
+            Args:
+                node: Parsed ``.font-*{}`` AST node.
+                compiler: Active compiler instance.
+
+            Returns:
+                ``pre`` element containing rendered ASCII art.
+            """
             # Extract font name from directive (e.g., 'font-doom' -> 'doom')
-            font_name = node.directive.split('-', 1)[1] if '-' in node.directive else 'standard'
+            font_name: str = (
+                node.directive.split("-", 1)[1]
+                if "-" in node.directive
+                else "standard"
+            )
 
             try:
-                f = Figlet(font=font_name)
-                ascii_art = f.renderText(node.content)
-                return f'<pre>{ascii_art}</pre>'
-            except Exception as e:
-                return f'<pre>ERROR: Figlet font "{font_name}" not found\n{node.content}</pre>'
+                f: Figlet = Figlet(font=font_name)
+                ascii_art: str = f.renderText(node.content)
+                return f"<pre>{ascii_art}</pre>"
+            except Exception:
+                return (
+                    f'<pre>ERROR: Figlet font "{font_name}" not found\n'
+                    f"{node.content}</pre>"
+                )
 
-        def cowpy_handler(node: Any, compiler: Any) -> str:
-            """Handle .cowpy-<char>{} - cowsay speech bubbles"""
+        def cowpy_handler(
+            node: DirectiveNode, compiler: CompilerContext
+        ) -> str:
+            """Compile a cowsay-style directive.
+
+            Args:
+                node: Parsed ``.cowpy-*{}`` AST node.
+                compiler: Active compiler instance.
+
+            Returns:
+                ``pre`` element containing rendered speech bubble text.
+            """
             # Extract character name (e.g., 'cowpy-tux' -> 'tux')
-            char_name = node.directive.split('-', 1)[1] if '-' in node.directive else 'default'
+            char_name: str = (
+                node.directive.split("-", 1)[1]
+                if "-" in node.directive
+                else "default"
+            )
 
             try:
-                result = cowsay_module.get_output_string(char_name, node.content)
-                return f'<pre>{result}</pre>'
-            except Exception as e:
-                return f'<pre>ERROR: Cowsay character "{char_name}" not found\n{node.content}</pre>'
+                result: str = cowsay_module.get_output_string(
+                    char_name, node.content
+                )
+                return f"<pre>{result}</pre>"
+            except Exception:
+                return (
+                    f'<pre>ERROR: Cowsay character "{char_name}" '
+                    f"not found\n{node.content}</pre>"
+                )
 
         # Register wildcard font directive
-        self.register(DirectiveSpec(
-            name='font-*',
-            category=DirectiveCategory.TRANSFORM,
-            description='ASCII art using Figlet fonts',
-            handler=font_handler,
-            is_wildcard=True,
-            examples=[
-                '.font-standard{Text}',
-                '.font-doom{DOOM}',
-                '.font-slant{Slanted}'
-            ]
-        ))
+        self.register(
+            DirectiveSpec(
+                name="font-*",
+                category=DirectiveCategory.TRANSFORM,
+                description="ASCII art using Figlet fonts",
+                handler=font_handler,
+                is_wildcard=True,
+                examples=[
+                    ".font-standard{Text}",
+                    ".font-doom{DOOM}",
+                    ".font-slant{Slanted}",
+                ],
+            )
+        )
 
         # Register wildcard cowsay directive
-        self.register(DirectiveSpec(
-            name='cowpy-*',
-            category=DirectiveCategory.TRANSFORM,
-            description='ASCII speech bubbles with characters',
-            handler=cowpy_handler,
-            is_wildcard=True,
-            examples=[
-                '.cowpy-cow{Moo!}',
-                '.cowpy-tux{Hello from Linux}',
-                '.cowpy-dragon{Rawr!}'
-            ]
-        ))
+        self.register(
+            DirectiveSpec(
+                name="cowpy-*",
+                category=DirectiveCategory.TRANSFORM,
+                description="ASCII speech bubbles with characters",
+                handler=cowpy_handler,
+                is_wildcard=True,
+                examples=[
+                    ".cowpy-cow{Moo!}",
+                    ".cowpy-tux{Hello from Linux}",
+                    ".cowpy-dragon{Rawr!}",
+                ],
+            )
+        )
 
-        def code_handler(node: Any, compiler: Any) -> str:
-            """Handle .code{} - inline code OR syntax highlighted code blocks"""
-            # Check if this is a syntax-highlighted code block (has .syntax{} modifier)
-            if 'syntax' in node.modifiers:
+        def code_handler(
+            node: DirectiveNode, compiler: CompilerContext
+        ) -> str:
+            """Compile inline or syntax-highlighted code.
+
+            Args:
+                node: Parsed ``.code{}`` AST node.
+                compiler: Active compiler instance.
+
+            Returns:
+                Inline code HTML or Pygments-highlighted block HTML.
+            """
+            # Syntax-highlighted blocks carry a .syntax{} modifier.
+            if "syntax" in node.modifiers:
                 # SYNTAX-HIGHLIGHTED CODE BLOCK
-                language = node.modifiers['syntax']
+                language: str = node.modifiers["syntax"]
 
                 # Parse language=value if present
-                if '=' in language:
+                if "=" in language:
                     # Handle language=python, language=c, etc.
-                    language = language.split('=', 1)[1].strip()
+                    language = language.split("=", 1)[1].strip()
 
                 # Get appropriate lexer
                 lexer: Lexer
                 try:
-                    if language.lower() in ['slidedown', 'sd']:
+                    if language.lower() in ["slidedown", "sd"]:
                         lexer = SlidedownLexer()
                     else:
                         lexer = get_lexer_by_name(language)
@@ -487,224 +691,175 @@ class DirectiveRegistry:
                     lexer = TextLexer()
 
                 # Generate highlighted HTML with inline styles
-                # noclasses=True means styles are inline, no external CSS needed
-                formatter = HtmlFormatter(style='monokai', noclasses=True)
-                highlighted = highlight(node.content, lexer, formatter)
+                # Inline styles keep highlighted blocks self-contained.
+                pygments_style: str = compiler.theme.pygmentsStyle_get()
+                formatter: HtmlFormatter = HtmlFormatter(
+                    style=pygments_style, noclasses=True
+                )
+                highlighted: str = cast(
+                    str, highlight(node.content, lexer, formatter)
+                )
 
                 return highlighted
             else:
                 # INLINE CODE (no syntax highlighting, just <code> tag)
-                style = node.modifiers.get('style', '')
+                style: str = node.modifiers.get("style", "")
                 # Add !important to each CSS property to override theme styles
                 if style:
                     # Split by semicolon, add !important to each property
-                    properties = [p.strip() for p in style.split(';') if p.strip()]
-                    important_props = [f'{p} !important' if '!important' not in p else p
-                                       for p in properties]
-                    style = '; '.join(important_props)
-                style_attr = f' style="{style}"' if style else ''
-                return f'<code{style_attr}>{node.content}</code>'
+                    properties: list[str] = [
+                        p.strip() for p in style.split(";") if p.strip()
+                    ]
+                    important_props: list[str] = [
+                        f"{p} !important" if "!important" not in p else p
+                        for p in properties
+                    ]
+                    style = "; ".join(important_props)
+                style_attr: str = f' style="{style}"' if style else ""
+                return f"<code{style_attr}>{node.content}</code>"
 
-        self.register(DirectiveSpec(
-            name='code',
-            category=DirectiveCategory.TRANSFORM,
-            description='Syntax highlighted code blocks',
-            handler=code_handler,
-            examples=[
-                '.code{.syntax{language=python}\ndef hello():\n    print("Hi")\n}',
-                '.code{.syntax{language=slidedown}\n.slide{.title{Demo}}\n}',
-                '.code{.syntax{language=c}\nint main() { return 0; }\n}'
-            ]
-        ))
+        self.register(
+            DirectiveSpec(
+                name="code",
+                category=DirectiveCategory.TRANSFORM,
+                description="Syntax highlighted code blocks",
+                handler=code_handler,
+                examples=[
+                    (
+                        ".code{.syntax{language=python}\n"
+                        "def hello():\n    print('Hi')\n}"
+                    ),
+                    (
+                        ".code{.syntax{language=slidedown}\n"
+                        ".slide{.title{Demo}}\n}"
+                    ),
+                    ".code{.syntax{language=c}\nint main() { return 0; }\n}",
+                ],
+            )
+        )
 
-        def comment_handler(node: Any, compiler: Any) -> str:
-            """Handle .comment{} - stripped from output"""
+        def comment_handler(
+            node: DirectiveNode, compiler: CompilerContext
+        ) -> str:
+            """Compile a comment directive.
+
+            Args:
+                node: Parsed ``.comment{}`` AST node.
+                compiler: Active compiler instance.
+
+            Returns:
+                Empty string because comments are stripped from output.
+            """
             return ""
 
-        self.register(DirectiveSpec(
-            name='comment',
-            category=DirectiveCategory.STRUCTURAL,
-            description='Comments that are stripped from compiled output',
-            handler=comment_handler,
-            examples=[
-                '.comment{This is a comment}',
-                '.comment{TODO: Fix this slide later}',
-                '.comment{Multi-line\ncomment\ntext}'
-            ]
-        ))
+        self.register(
+            DirectiveSpec(
+                name="comment",
+                category=DirectiveCategory.STRUCTURAL,
+                description="Comments that are stripped from compiled output",
+                handler=comment_handler,
+                examples=[
+                    ".comment{This is a comment}",
+                    ".comment{TODO: Fix this slide later}",
+                    ".comment{Multi-line\ncomment\ntext}",
+                ],
+            )
+        )
 
     def modifierDirectives_register(self) -> None:
-        """
-        Register reserved modifier directives
+        """Register reserved modifier directives.
 
         These are handled specially by the parser - they're extracted
         into the modifiers dict rather than creating child nodes.
         """
-
-        def style_handler(node: Any, compiler: Any) -> str:
-            """Should never be called - .style{} extracted by parser"""
-            return ""
-
-        def class_handler(node: Any, compiler: Any) -> str:
-            """Should never be called - .class{} extracted by parser"""
-            return ""
-
-        self.register(DirectiveSpec(
-            name='style',
-            category=DirectiveCategory.MODIFIER,
-            description='Inline CSS styles (parser-extracted modifier)',
-            handler=style_handler,
-            examples=['.slide{.style{color: red} .body{Content}}']
-        ))
-
-        self.register(DirectiveSpec(
-            name='class',
-            category=DirectiveCategory.MODIFIER,
-            description='CSS class name (parser-extracted modifier)',
-            handler=class_handler,
-            examples=['.slide{.class{special-slide} .body{Content}}']
-        ))
-
-        def syntax_handler(node: Any, compiler: Any) -> str:
-            """Should never be called - .syntax{} extracted by parser"""
-            return ""
-
-        self.register(DirectiveSpec(
-            name='effect',
-            category=DirectiveCategory.MODIFIER,
-            description='Bridge animation for LCARS theme',
-            handler=style_handler,
-            examples=['.slide{.effect{histogram}}']
-        ))
-
-        self.register(DirectiveSpec(
-            name='syntax',
-            category=DirectiveCategory.MODIFIER,
-            description='Programming language for .code{} (parser-extracted modifier)',
-            handler=syntax_handler,
-            examples=['.code{.syntax{language=python} def foo(): pass}']
-        ))
+        directive_groups.modifierDirectives_register(self)
 
     def metadataDirectives_register(self) -> None:
-        """
-        Register metadata directives
+        """Register metadata directives.
 
         These directives provide presentation-level metadata and configuration
         that overrides theme settings.
         """
 
-        def meta_handler(node: Any, compiler: Any) -> str:
-            """
-            Handle .meta{} - presentation metadata and configuration
+        def meta_handler(
+            node: DirectiveNode, compiler: CompilerContext
+        ) -> str:
+            """Compile presentation metadata.
 
             Parses YAML content, validates file paths, and stores in compiler
             for merging with theme configuration.
+
+            Args:
+                node: Parsed ``.meta{}`` AST node.
+                compiler: Active compiler instance.
+
+            Returns:
+                Empty string because metadata is not visible slide content.
             """
             import yaml
-            from pathlib import Path
 
             # node.content contains the YAML configuration
-            yaml_content = node.content.strip()
+            yaml_content: str = node.content.strip()
 
             if not yaml_content:
                 return ""
 
             try:
-                # Dedent YAML content
-                # The parser strips leading whitespace from the first line but may leave
-                # it on subsequent lines. We need to detect and remove this base indentation.
-                lines = yaml_content.split('\n')
-                non_empty_lines = [line for line in lines if line.strip()]
+                # Parse first; valid YAML should not be dedented further.
+                try:
+                    meta_config: PresentationMetaConfig | None = (
+                        yaml.safe_load(yaml_content)
+                    )
+                except yaml.YAMLError:
+                    meta_config = None
 
-                if non_empty_lines and len(non_empty_lines) > 1:
-                    # The parser strips leading whitespace from the first line but may leave
-                    # it on subsequent lines. We detect this by looking at the indentation
-                    # of lines that appear to be at the root level.
+                # Dedent YAML content only when the direct parse fails.
+                # The parser strips leading whitespace from the first line but
+                # can leave it on later lines. Remove the shared indent.
+                if not isinstance(meta_config, dict):
+                    yaml_content = metaYaml_dedent(yaml_content)
+                    meta_config = yaml.safe_load(yaml_content)
 
-                    first_indent = len(non_empty_lines[0]) - len(non_empty_lines[0].lstrip())
-
-                    # Find lines that look like root-level YAML keys
-                    # These are lines that: start with a letter (after spaces), contain :,
-                    # and are not list items (don't start with -)
-                    root_level_indents = []
-                    for i, line in enumerate(non_empty_lines):
-                        stripped = line.lstrip()
-                        if (stripped and
-                            stripped[0].isalpha() and
-                            ':' in stripped and
-                            not stripped.startswith('-')):
-                            indent = len(line) - len(stripped)
-                            # Skip the first line's indent, we want to find the base indent of others
-                            if i > 0 or indent > 0:
-                                root_level_indents.append(indent)
-
-                    # Get the minimum non-zero indentation as base indent
-                    non_zero_indents = [ind for ind in root_level_indents if ind > 0]
-
-                    if first_indent == 0 and non_zero_indents:
-                        # Find the smallest non-zero indent - this is likely the base indentation
-                        # that needs to be removed from all lines
-                        base_indent = min(non_zero_indents)
-
-                        # Remove base_indent spaces from all lines (only remove actual spaces, not content)
-                        dedented_lines = []
-                        for line in lines:
-                            if line.strip():  # Non-empty line
-                                # Count leading spaces
-                                leading_spaces = len(line) - len(line.lstrip(' '))
-                                # Remove up to base_indent spaces (but not more than exist)
-                                spaces_to_remove = min(leading_spaces, base_indent)
-                                dedented_lines.append(line[spaces_to_remove:])
-                            else:  # Empty line
-                                dedented_lines.append(line)
-                        yaml_content = '\n'.join(dedented_lines)
-
-                # Parse YAML
-                meta_config = yaml.safe_load(yaml_content)
                 if meta_config is None:
-                    meta_config = {}
+                    meta_config = cast(PresentationMetaConfig, {})
 
                 # Store in compiler for later merging
-                if not hasattr(compiler, 'meta_config'):
+                if not hasattr(compiler, "meta_config"):
                     compiler.meta_config = {}
-
-                # Validate watermark image paths if present
-                if 'watermarks' in meta_config:
-                    watermarks = meta_config['watermarks']
-                    if not isinstance(watermarks, list):
-                        watermarks = [watermarks]
-
-                    for wm in watermarks:
-                        if isinstance(wm, dict) and 'image' in wm:
-                            # Resolve path relative to input directory
-                            image_path = wm['image']
-                            # Input dir is the directory of the source file
-                            # We'll validate this path during compilation
-                            # Store it as-is for now
-                            pass
 
                 # Merge into compiler meta_config
                 compiler.meta_config.update(meta_config)
 
             except yaml.YAMLError as e:
                 from .log import LOG
+
                 LOG(f"Error parsing .meta{{}} YAML: {e}", level=1)
                 return ""
             except Exception as e:
                 from .log import LOG
+
                 LOG(f"Error processing .meta{{}}: {e}", level=1)
                 return ""
 
             # .meta{} doesn't produce any output HTML
             return ""
 
-        self.register(DirectiveSpec(
-            name='meta',
-            category=DirectiveCategory.METADATA,
-            description='Presentation metadata and configuration (overrides theme settings)',
-            handler=meta_handler,
-            examples=[
-                '.meta{\n  navigation:\n    show_buttons: false\n}',
-                '.meta{\n  watermarks:\n    - image: logos/company.svg\n      position: bottom-right\n}'
-            ]
-        ))
+        self.register(
+            DirectiveSpec(
+                name="meta",
+                category=DirectiveCategory.METADATA,
+                description=(
+                    "Presentation metadata and configuration "
+                    "(overrides theme settings)"
+                ),
+                handler=meta_handler,
+                examples=[
+                    ".meta{\n  navigation:\n    show_buttons: false\n}",
+                    (
+                        ".meta{\n  watermarks:\n"
+                        "    - image: logos/company.svg\n"
+                        "      position: bottom-right\n}"
+                    ),
+                ],
+            )
+        )

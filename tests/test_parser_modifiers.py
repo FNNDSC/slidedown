@@ -7,15 +7,13 @@ Tests that .style{} and .class{} directives are:
 - Handled correctly at start of content
 """
 
-import pytest
-
-from slidedown.lib.parser import Parser, ASTNode
+from slidedown.lib.parser import Parser
 
 
 class TestStyleModifier:
     """Test .style{} modifier extraction"""
 
-    def test_single_style_modifier(self):
+    def test_single_style_modifier(self) -> None:
         """Single .style{} at start of content"""
         parser = Parser(".slide{.style{color: red} Content}")
         nodes = parser.parse()
@@ -33,17 +31,23 @@ class TestStyleModifier:
         assert "\x00CHILD_0\x00" not in slide.content
         assert slide.content == "Content"
 
-    def test_style_with_complex_css(self):
+    def test_style_with_complex_css(self) -> None:
         """Style modifier with complex CSS"""
-        parser = Parser(".slide{.style{background: black; color: lightgreen; font-size: 2em;} Text}")
+        parser = Parser(
+            ".slide{.style{background: black; color: lightgreen; "
+            "font-size: 2em;} Text}"
+        )
         nodes = parser.parse()
 
         slide = nodes[0]
 
-        assert slide.modifiers["style"] == "background: black; color: lightgreen; font-size: 2em;"
+        assert (
+            slide.modifiers["style"]
+            == "background: black; color: lightgreen; font-size: 2em;"
+        )
         assert slide.content == "Text"
 
-    def test_style_only_no_content(self):
+    def test_style_only_no_content(self) -> None:
         """Directive with only style modifier, no other content"""
         parser = Parser(".slide{.style{color: blue}}")
         nodes = parser.parse()
@@ -54,9 +58,11 @@ class TestStyleModifier:
         assert slide.content == ""
         assert len(slide.children) == 0
 
-    def test_style_with_nested_directives(self):
+    def test_style_with_nested_directives(self) -> None:
         """Style modifier with nested directives in content"""
-        parser = Parser(".slide{.style{color: red} .title{Hello} .body{World}}")
+        parser = Parser(
+            ".slide{.style{color: red} .title{Hello} .body{World}}"
+        )
         nodes = parser.parse()
 
         slide = nodes[0]
@@ -76,7 +82,7 @@ class TestStyleModifier:
 class TestClassModifier:
     """Test .class{} modifier extraction"""
 
-    def test_single_class_modifier(self):
+    def test_single_class_modifier(self) -> None:
         """Single .class{} at start of content"""
         parser = Parser(".slide{.class{special-slide} Content}")
         nodes = parser.parse()
@@ -88,7 +94,7 @@ class TestClassModifier:
         assert len(slide.children) == 0
         assert slide.content == "Content"
 
-    def test_class_with_multiple_classes(self):
+    def test_class_with_multiple_classes(self) -> None:
         """Class modifier with space-separated class names"""
         parser = Parser(".slide{.class{big bold highlighted} Text}")
         nodes = parser.parse()
@@ -97,7 +103,7 @@ class TestClassModifier:
 
         assert slide.modifiers["class"] == "big bold highlighted"
 
-    def test_class_only(self):
+    def test_class_only(self) -> None:
         """Directive with only class modifier"""
         parser = Parser(".div{.class{container}}")
         nodes = parser.parse()
@@ -111,7 +117,7 @@ class TestClassModifier:
 class TestMultipleModifiers:
     """Test both .style{} and .class{} together"""
 
-    def test_style_and_class(self):
+    def test_style_and_class(self) -> None:
         """Both style and class modifiers"""
         parser = Parser(".slide{.style{color: red} .class{special} Content}")
         nodes = parser.parse()
@@ -125,7 +131,7 @@ class TestMultipleModifiers:
         assert slide.content == "Content"
         assert len(slide.children) == 0
 
-    def test_class_then_style(self):
+    def test_class_then_style(self) -> None:
         """Class before style (order shouldn't matter)"""
         parser = Parser(".slide{.class{big} .style{font-size: 2em} Text}")
         nodes = parser.parse()
@@ -136,9 +142,12 @@ class TestMultipleModifiers:
         assert slide.modifiers["style"] == "font-size: 2em"
         assert slide.content == "Text"
 
-    def test_multiple_modifiers_with_nested_directives(self):
+    def test_multiple_modifiers_with_nested_directives(self) -> None:
         """Both modifiers plus nested directives"""
-        parser = Parser(".slide{.style{color: blue} .class{special} .title{Hi} .body{There}}")
+        parser = Parser(
+            ".slide{.style{color: blue} .class{special} "
+            ".title{Hi} .body{There}}"
+        )
         nodes = parser.parse()
 
         slide = nodes[0]
@@ -159,7 +168,7 @@ class TestMultipleModifiers:
 class TestModifierPositioning:
     """Test that modifiers must be at start of content"""
 
-    def test_modifier_at_start_with_whitespace(self):
+    def test_modifier_at_start_with_whitespace(self) -> None:
         """Modifier can have leading whitespace"""
         parser = Parser(".slide{  .style{color: red}  Content}")
         nodes = parser.parse()
@@ -171,7 +180,7 @@ class TestModifierPositioning:
         # Content should have leading whitespace removed after modifier
         assert slide.content == "Content"
 
-    def test_modifier_not_at_start_treated_as_directive(self):
+    def test_modifier_not_at_start_treated_as_directive(self) -> None:
         """Modifier in middle of content is NOT extracted"""
         parser = Parser(".slide{Content .style{color: red}}")
         nodes = parser.parse()
@@ -190,7 +199,7 @@ class TestModifierPositioning:
 class TestNestedModifiers:
     """Test modifiers in nested directives"""
 
-    def test_modifier_in_nested_directive(self):
+    def test_modifier_in_nested_directive(self) -> None:
         """Child directive can have its own modifiers"""
         parser = Parser(".slide{.body{.style{font-weight: bold} Text}}")
         nodes = parser.parse()
@@ -205,7 +214,7 @@ class TestNestedModifiers:
         assert body.modifiers["style"] == "font-weight: bold"
         assert body.content == "Text"
 
-    def test_modifiers_at_multiple_levels(self):
+    def test_modifiers_at_multiple_levels(self) -> None:
         """Modifiers at both parent and child levels"""
         parser = Parser(
             ".slide{.style{background: black} "
@@ -223,7 +232,7 @@ class TestNestedModifiers:
         assert body.modifiers["style"] == "color: green"
         assert body.content == "Content"
 
-    def test_complex_nested_with_modifiers(self):
+    def test_complex_nested_with_modifiers(self) -> None:
         """Complex structure with modifiers at multiple levels"""
         parser = Parser(
             ".slide{.style{background: black} .class{dark} "
@@ -254,7 +263,7 @@ class TestNestedModifiers:
 class TestModifierWhitespace:
     """Test whitespace handling with modifiers"""
 
-    def test_whitespace_before_modifier(self):
+    def test_whitespace_before_modifier(self) -> None:
         """Leading whitespace before modifier is skipped"""
         parser = Parser(".slide{   .style{color: red} Text}")
         nodes = parser.parse()
@@ -264,7 +273,7 @@ class TestModifierWhitespace:
         assert slide.modifiers["style"] == "color: red"
         assert slide.content == "Text"
 
-    def test_whitespace_between_modifiers(self):
+    def test_whitespace_between_modifiers(self) -> None:
         """Whitespace between multiple modifiers"""
         parser = Parser(".slide{.style{color: red}   .class{big}   Text}")
         nodes = parser.parse()
@@ -275,7 +284,7 @@ class TestModifierWhitespace:
         assert slide.modifiers["class"] == "big"
         assert slide.content == "Text"
 
-    def test_whitespace_preserved_in_content(self):
+    def test_whitespace_preserved_in_content(self) -> None:
         """Whitespace in content after modifiers is preserved"""
         parser = Parser(".slide{.style{color: red}  Content with  spaces  }")
         nodes = parser.parse()
@@ -287,7 +296,7 @@ class TestModifierWhitespace:
         # This test documents actual behavior
         assert slide.content == "Content with  spaces  "
 
-    def test_newlines_after_modifiers(self):
+    def test_newlines_after_modifiers(self) -> None:
         """Newlines after modifiers"""
         parser = Parser(".slide{.style{color: red}\n.class{big}\nContent}")
         nodes = parser.parse()
@@ -303,7 +312,7 @@ class TestModifierWhitespace:
 class TestEmptyModifiers:
     """Test edge cases with empty modifier values"""
 
-    def test_empty_style_value(self):
+    def test_empty_style_value(self) -> None:
         """Style modifier with empty value"""
         parser = Parser(".slide{.style{} Content}")
         nodes = parser.parse()
@@ -314,7 +323,7 @@ class TestEmptyModifiers:
         assert slide.modifiers["style"] == ""
         assert slide.content == "Content"
 
-    def test_empty_class_value(self):
+    def test_empty_class_value(self) -> None:
         """Class modifier with empty value"""
         parser = Parser(".slide{.class{} Content}")
         nodes = parser.parse()

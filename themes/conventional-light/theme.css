@@ -53,6 +53,27 @@ body {
   flex: 1;
   padding: 80px;
   background-color: #ffffff;
+  --slide-density-scale: 1.12;
+  font-size: calc(
+    32px * var(--deck-typography-scale, 1) *
+    var(--slide-density-scale)
+  );
+}
+
+.slide.hero {
+  --slide-density-scale: 1.35;
+}
+
+.slide.roomy {
+  --slide-density-scale: 1.22;
+}
+
+.slide.dense {
+  --slide-density-scale: 0.96;
+}
+
+.slide.compact {
+  --slide-density-scale: 0.84;
 }
 
 /* Typography */
