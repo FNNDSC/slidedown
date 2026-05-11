@@ -249,17 +249,11 @@ class DirectiveRegistry:
             # Generate watermarks from theme config
             watermarks_html: str = compiler.watermarks_generate()
 
-            slide_effect: str = node.modifiers.get("effect", "starmap")
-
             return (
                 "\n"
                 f'<div id="slide-{slide_num}-title" '
                 'style="display: none;">\n'
                 f"    {title_content}\n"
-                "</div>\n"
-                f'<div id="slide-{slide_num}-effect" '
-                'style="display: none;">\n'
-                f"    {slide_effect}\n"
                 "</div>\n"
                 f'<div class="{css_classes}" id="slide-{slide_num}" '
                 f'name="slide-{slide_num}" {style_attr}>\n'

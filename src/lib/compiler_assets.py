@@ -52,11 +52,13 @@ def assets_copy(compiler: CompilerAssets) -> None:
         LOG(f"Copied theme assets: {theme_assets_dir}", level=3)
 
     if compiler.theme.lcars_is():
-        lcars_scripts_path = compiler.theme.templatePath_get(
-            "lcars-scripts.js"
-        )
-        if lcars_scripts_path.exists():
-            dst_js = compiler.output_dir / "js" / "lcars-scripts.js"
-            dst_js.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(lcars_scripts_path, dst_js)
-            LOG("Copied LCARS scripts from templates/", level=3)
+        for script_name in [
+            "lcars-scripts.js",
+            "slidedown-lcars-cascade.js",
+        ]:
+            lcars_scripts_path = compiler.theme.templatePath_get(script_name)
+            if lcars_scripts_path.exists():
+                dst_js = compiler.output_dir / "js" / script_name
+                dst_js.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(lcars_scripts_path, dst_js)
+                LOG(f"Copied LCARS script: {script_name}", level=3)

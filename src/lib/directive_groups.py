@@ -86,11 +86,6 @@ def modifierDirectives_register(registry: DirectiveRegistrar) -> None:
             "Programming language for .code{} (parser-extracted modifier)",
             [".code{.syntax{language=python} def foo(): pass}"],
         ),
-        (
-            "effect",
-            "Bridge animation for LCARS theme",
-            [".slide{.effect{histogram}}"],
-        ),
     ]
 
     for name, description, examples in modifier_specs:

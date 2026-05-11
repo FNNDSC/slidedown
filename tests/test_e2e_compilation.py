@@ -143,6 +143,107 @@ class TestBasicSlideCompilation:
             assert '<div class="panel-3">' in html
             assert "VER" in html
             assert "v9.8.7-abcde" in html
+            assert 'id="lcars-date"' in html
+            assert 'id="lcars-time"' in html
+
+    def test_lcars_frame_excludes_bridge_artifacts(self) -> None:
+        """Compile LCARS theme without non-upstream bridge artifacts."""
+        source = """
+.slide{
+  .title{Canonical LCARS}
+  .body{Bridge telemetry should not be generated.}
+}
+"""
+        parser = Parser(source)
+        ast = parser.parse()
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            package_root = Path(__file__).parent.parent
+            assets_dir = package_root / "assets"
+
+            compiler = Compiler(
+                ast=ast,
+                output_dir=tmpdir,
+                assets_dir=str(assets_dir),
+                verbosity=0,
+                theme_name="lcars-lower-decks",
+            )
+            result = compiler.compile()
+
+            assert result["status"] is True
+
+            html = (Path(tmpdir) / "index.html").read_text()
+            theme_css = (Path(tmpdir) / "css" / "theme.css").read_text()
+            slide_js = (Path(tmpdir) / "js" / "slidedown.js").read_text()
+            lcars_js = (
+                Path(tmpdir) / "js" / "lcars-scripts.js"
+            ).read_text()
+            cascade_js = (
+                Path(tmpdir) / "js" / "slidedown-lcars-cascade.js"
+            ).read_text()
+            compiled_output = "\n".join(
+                [html, theme_css, slide_js, lcars_js, cascade_js]
+            )
+
+            forbidden_fragments = [
+                "BRIDGE_STATE",
+                "High-Fidelity Bridge",
+                "lcars-telemetry-bank",
+                "telemetry-wrapper",
+                "lcars-nerd-graphic",
+                "lcars-flicker",
+                "slide-1-effect",
+                "effect-starmap",
+                "effect-histogram",
+                "effect-waveform",
+                "effect-orbital",
+            ]
+            for fragment in forbidden_fragments:
+                assert fragment not in compiled_output
+
+    def test_lcars_frame_loads_supplemental_cascade_animation(self) -> None:
+        """Compile LCARS theme with supplemental cascade animation."""
+        source = """
+.slide{
+  .title{Animated Cascade}
+  .body{Supplemental LCARS scripts should load separately.}
+}
+"""
+        parser = Parser(source)
+        ast = parser.parse()
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            package_root = Path(__file__).parent.parent
+            assets_dir = package_root / "assets"
+
+            compiler = Compiler(
+                ast=ast,
+                output_dir=tmpdir,
+                assets_dir=str(assets_dir),
+                verbosity=0,
+                theme_name="lcars-lower-decks",
+            )
+            result = compiler.compile()
+
+            assert result["status"] is True
+
+            output_path = Path(tmpdir)
+            html = (output_path / "index.html").read_text()
+            cascade_js_path = (
+                output_path / "js" / "slidedown-lcars-cascade.js"
+            )
+            cascade_template = (
+                package_root
+                / "themes"
+                / "lcars-lower-decks"
+                / "templates"
+                / "lcars-data-cascade.html"
+            ).read_text()
+
+            assert cascade_js_path.exists()
+            assert "slidedown-lcars-cascade.js" in html
+            assert "prefers-reduced-motion" in cascade_js_path.read_text()
+            assert "03</div>" in cascade_template
 
     def test_slide_class_modifier_renders_density_class(self) -> None:
         """Compile slide class modifier as a slide-level density class."""

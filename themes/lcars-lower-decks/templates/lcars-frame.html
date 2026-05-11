@@ -11,21 +11,9 @@
                 </a>
             </div>
             <div class="left-frame-top" id="top-frame">
-                <div class="panel-1" id="lcars-telemetry-bank">
-                    <div class="telemetry-wrapper">
-                        <div class="tele-col">
-                            <div class="tele-header">SYS: STATUS</div>
-                            <div class="tele-content" id="tele-sys"></div>
-                        </div>
-                        <div class="tele-col">
-                            <div class="tele-header">NET: TRAFFIC</div>
-                            <div class="tele-content" id="tele-net"></div>
-                        </div>
-                        <div class="tele-col">
-                            <div class="tele-header">PROC: LOG</div>
-                            <div class="tele-content" id="tele-log"></div>
-                        </div>
-                    </div>
+                <div class="panel-1">
+                    <span id="lcars-date"></span>
+                    <span class="hop" id="lcars-time"></span>
                 </div>
                 <div class="panel-2">
                     SLIDE
@@ -39,29 +27,9 @@
             </div>
             <div class="right-frame-top">
                 <div class="banner">
-                    <div
-                        id="lcars-nerd-graphic"
-                        style="
-                            width: 120px;
-                            height: 100%;
-                            margin-right: 20px;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                        "
-                    ></div>
                     <span id="pageTitle">{title}</span>
-                    <div class="lcars-data-bank">
-                        <span class="lcars-flicker">-8812</span>
-                        <span class="lcars-flicker">-4402</span>
-                        <span class="lcars-flicker">-9912</span>
-                    </div>
                 </div>
                 <div class="data-cascade-button-group">{cascade_html}
-                    <div class="lcars-nav-flicker">
-                        <span class="lcars-flicker">-1024</span>
-                        <span class="lcars-flicker">-512</span>
-                    </div>
                     <nav>
                         <button onclick="page.advance_toPrevious()">01</button>
                         <button onclick="page.advance_toNext()">02</button>
@@ -92,13 +60,13 @@
                         VER <span class="hop">{build_info}</span>
                     </div>
                     <div class="panel-4">
-                        04<span class="hop lcars-flicker">-41969</span>
+                        04<span class="hop">-41969</span>
                     </div>
                     <div class="panel-5">
-                        05<span class="hop lcars-flicker">-1701D</span>
+                        05<span class="hop">-1701D</span>
                     </div>
                     <div class="panel-6">
-                        06<span class="hop lcars-flicker">-081966</span>
+                        06<span class="hop">-081966</span>
                     </div>
                 </div>
                 <div>
@@ -123,3 +91,4 @@
     </section>
 
     <script src="js/lcars-scripts.js"></script>
+    <script src="js/slidedown-lcars-cascade.js"></script>
