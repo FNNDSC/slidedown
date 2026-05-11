@@ -14,6 +14,11 @@
 	font-size: 1.375rem;
 	color-scheme: dark;
 	--lfw: 240px;
+	--topbar-scale: 1;
+	--gutter-scale: 1;
+	--lfw-scaled: calc(var(--lfw) * var(--gutter-scale));
+	--data-wrapper-height: 184px;
+	--dc-row-height-base: 45px;
 	--butter: #fec;
 	--daybreak: #f91;
 	--harvestgold: #fa4;
@@ -117,6 +122,8 @@
 		--radius-content-top: 0 0 0 30px;
 		--radius-content-bottom: 30px 0 0 0;
 		--nav-width: 180px;
+		--data-wrapper-height: 150px;
+		--dc-row-height-base: 35px;
 	}
 }
 
@@ -269,9 +276,9 @@ button:active {
 
 .left-frame-top,
 .left-frame	{
-	width: var(--lfw);
+	width: var(--lfw-scaled);
 	text-align: right;
-	font-size: clamp(.875rem, 2vw, 1rem);
+	font-size: max(0.65rem, calc(clamp(.875rem, 2vw, 1rem) * var(--gutter-scale)));
 	line-height: 1.2;
 	font-weight: bold;
 	color: black;
@@ -354,7 +361,7 @@ button:active {
 	text-align: right;
 	text-transform: uppercase;
 	line-height: 1.1;
-	font-size: clamp(1.25rem, 0.75rem + 4vw, 3.75rem);
+	font-size: calc(clamp(1.25rem, 0.75rem + 4vw, 3.75rem) * var(--topbar-scale));
 	color: var(--banner-color);
 }
 
@@ -409,13 +416,13 @@ button:active {
 	justify-content: flex-end;
 	align-items: flex-end;
 	max-width: 100%;
-	height: 184px;
+	height: calc(var(--data-wrapper-height) * var(--topbar-scale));
 	overflow: hidden;
 	padding-top: 10px;
  	padding-right: 2rem;
  	padding-left: clamp(20px, 3vw, 50px);
  	column-gap: .5rem;
- 	font-size: 1.25rem; 
+ 	font-size: max(0.5rem, calc(1.25rem * var(--topbar-scale)));
 }
 
 .data-column {
@@ -423,19 +430,13 @@ button:active {
 	grid-template-columns: 1fr;
 	text-align: right;
 	line-height: 1;
-	--dc-row-height: 45px;
+	--dc-row-height: calc(var(--dc-row-height-base) * var(--topbar-scale));
 }
 
 @media (max-width: 1300px) {
 	.data-wrapper {
-		height: 150px;
-		font-size: 1rem;
+		font-size: max(0.5rem, calc(1rem * var(--topbar-scale)));
 	}
-
-	.data-column {
-		--dc-row-height: 35px;
-	}
-
 }
 
 @media (max-width: 740px) {
@@ -512,7 +513,7 @@ button:active {
 
 .panel-1 a	{
 	display: flex;
-	width: var(--lfw);
+	width: var(--lfw-scaled);
 	justify-content: flex-end;
 	align-items: flex-end;
 	background-color: var(--panel-1-color);
@@ -531,7 +532,7 @@ button:active {
 
 .panel-1-button	{
 	display: flex;
-	width: var(--lfw);
+	width: var(--lfw-scaled);
 	justify-content: flex-end;
 	align-items: flex-end;
 	background-color: var(--panel-1-color);
@@ -580,15 +581,16 @@ nav button,
 .buttons button	{
 	display: flex;
 	flex-direction: column;
-	justify-content: flex-end;
-	align-items: flex-end;
-	width: var(--nav-width);
-	height: calc(var(--nav-width) / 2.8);
-	padding-inline: 1.5rem;
-	padding-bottom: .7rem;
+	justify-content: center;
+	align-items: center;
+	width: calc(var(--nav-width) * var(--topbar-scale));
+	height: calc(var(--nav-width) / 2.8 * var(--topbar-scale));
+	padding-inline: calc(1.5rem * var(--topbar-scale));
+	padding-bottom: calc(.7rem * var(--topbar-scale));
+	font-size: max(0.6rem, calc(1rem * var(--topbar-scale)));
 	border-radius: 100vmax;
 	background-color: var(--button-color);
-	text-align: right;
+	text-align: center;
 	line-height: 1.175;
 	text-decoration: none;
 	text-transform: uppercase;
@@ -627,9 +629,9 @@ nav button:nth-child(4) {
 	}
 
 	nav button {
-		padding-bottom: .5rem;
-		font-size: .875rem;
-		padding-inline: 1.25rem;
+		padding-bottom: calc(.5rem * var(--topbar-scale));
+		font-size: calc(.875rem * var(--topbar-scale));
+		padding-inline: calc(1.25rem * var(--topbar-scale));
 	}
 }
 
@@ -708,7 +710,7 @@ nav button:nth-child(4) {
 	justify-content: flex-end;
 	align-items: flex-end;
 	min-height: 3.75rem;
-	width: var(--lfw);
+	width: var(--lfw-scaled);
 	background-color: var(--button-color-sidebar);
 	border-radius: 0;
 	border-bottom: var(--panel-border);	
@@ -732,7 +734,7 @@ nav button:nth-child(4) {
 .panel-button	{
 	display: flex;
 	justify-content: flex-end;
-	width: var(--lfw);
+	width: var(--lfw-scaled);
 	border-radius: 0;
 	padding: var(--left-frame-padding);
 	border-bottom: var(--panel-border); 
@@ -774,7 +776,7 @@ nav button:nth-child(4) {
 	border-bottom: var(--panel-border);
 	border-left: none;
   outline: none;
-  width: var(--lfw);
+  width: var(--lfw-scaled);
   padding: var(--left-frame-padding);
   padding-bottom: 10vh;
   background-color: var(--panel-top-button-color);
@@ -1026,7 +1028,7 @@ zack {
 }
 
 main	{
-	padding-top: clamp(1.5rem, 5vw, 60px);
+	padding-top: calc(clamp(0.5rem, 2vw, 20px) * var(--topbar-scale));
 	padding-bottom: .5rem;
 	padding-left: clamp(20px, 3vw, 50px);
 }
@@ -1915,7 +1917,7 @@ body {
     min-height: 60vh !important;
     display: block !important;
     color: var(--font-color, #f91) !important;
-    padding: 2rem !important;
+    padding: 0 2rem 2rem 2rem !important;
     min-height: 80vh !important;
     border: none !important;
     flex: none !important;
@@ -2108,6 +2110,12 @@ body {
 
 .right-frame-top::before {
     background: radial-gradient(circle at top right, transparent 60px, var(--corner-color-top) 60px) !important;
+    transition: opacity 0.4s ease 0.25s !important;
+}
+
+.right-frame-top.hidden::before {
+    opacity: 0 !important;
+    transition: opacity 0.2s ease 0s !important;
 }
 
 .right-frame::before {
@@ -2118,22 +2126,22 @@ body {
 .panel-1 {
     display: flex !important;
     flex-direction: column !important;
-    width: var(--lfw) !important;
+    width: var(--lfw-scaled) !important;
     justify-content: flex-end !important;
     align-items: flex-end !important;
     background-color: var(--panel-1-color) !important;
-    min-height: clamp(90px, 11vw, 160px) !important;
+    min-height: calc(clamp(90px, 11vw, 160px) * var(--topbar-scale)) !important;
     padding: var(--left-frame-padding) !important;
     border-bottom: var(--panel-border) !important;
 }
 
 .panel-2 {
     display: flex !important;
-    width: var(--lfw) !important;
+    width: var(--lfw-scaled) !important;
     justify-content: flex-end !important;
     align-items: flex-end !important;
     background-color: var(--panel-2-color) !important;
-    min-height: clamp(60px, 8vw, 120px) !important;
+    min-height: calc(clamp(60px, 8vw, 120px) * var(--topbar-scale)) !important;
     padding: var(--left-frame-padding) !important;
     border-bottom: var(--panel-border) !important;
 }
@@ -2149,11 +2157,21 @@ body {
     padding: 0 !important;
 }
 
+/* On hide: collapse immediately together */
 .left-frame-top,
 .right-frame-top {
     max-height: 100vh !important;
-    transition: max-height 0.5s ease, opacity 0.5s ease, margin 0.5s ease, padding 0.5s ease !important;
+    transition: max-height 0.4s ease, opacity 0.4s ease, margin 0.4s ease, padding 0.4s ease !important;
     overflow: visible !important;
+}
+
+/* On show: gutter/elbow expands first, right side fades in after */
+.left-frame-top {
+    transition: max-height 0.4s ease, opacity 0.4s ease 0.1s, margin 0.4s ease, padding 0.4s ease !important;
+}
+
+.right-frame-top {
+    transition: max-height 0.4s ease, opacity 0.4s ease 0.25s, margin 0.4s ease, padding 0.4s ease !important;
 }
 
 /* Scroll-top button styling */
@@ -2178,7 +2196,7 @@ body {
 /* Panel button for toggle */
 .panel-button {
     display: flex !important;
-    width: var(--lfw) !important;
+    width: var(--lfw-scaled) !important;
     justify-content: flex-end !important;
     align-items: flex-end !important;
     background-color: var(--panel-3-color) !important;
@@ -2190,6 +2208,21 @@ body {
     font-weight: bold !important;
     text-transform: uppercase !important;
     cursor: pointer !important;
+}
+
+/* Scale control buttons (TB / GW) in nav */
+nav button.scale-btn {
+    background-color: var(--honey) !important;
+    letter-spacing: 0.05em !important;
+}
+
+nav button.scale-btn:nth-of-type(6) {
+    background-color: var(--harvestgold) !important;
+}
+
+/* Hide SLIDE N/M panel at extreme topbar reduction (25%) */
+.topbar-xs .panel-2 {
+    display: none !important;
 }
 
 /* --- Slidedown Layout Stability Fix --- */
