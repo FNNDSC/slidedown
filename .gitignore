@@ -25,4 +25,6 @@ Thumbs.db
 # Test outputs
 /tmp/
 output/
+.coverage
+htmlcov/
 .aider*
