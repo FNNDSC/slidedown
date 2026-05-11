@@ -6,6 +6,8 @@
 
 .meta{
   title: "Slidedown - Text-first Presentation Compiler"
+  lcars:
+    data_cascades: true
   css:
     ".container":
         font-size: "36px"
