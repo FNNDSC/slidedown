@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 260">
+  <defs>
+    <linearGradient id="cyanGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#22d3ee;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#06b6d4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0891b2;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="neonGreen" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4ade80;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#22c55e;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Dark background -->
+  <rect width="600" height="260" fill="#1a1a1a" rx="8"/>
+
+  <!-- Typography with monospace font -->
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&amp;display=swap');
+    .wordmark { font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 64px; fill: #e5e7eb; }
+    .directive-syntax { font-family: 'IBM Plex Mono', monospace; font-weight: 400; font-size: 64px; fill: #22d3ee; }
+    .tagline { font-family: 'IBM Plex Mono', monospace; font-size: 18px; fill: #9ca3af; letter-spacing: 1px; }
+  </style>
+
+  <!-- Main logo: .slide{down} -->
+  <!-- Dot -->
+  <text x="80" y="100" class="directive-syntax">.</text>
+
+  <!-- Stylized "S" as slide shape (raised) -->
+  <g transform="translate(115, 25)">
+    <!-- Slide outline forming proper "S" shape -->
+    <path d="M 50 0 L 5 0 L 5 10 L 43 10 L 43 22 L 5 22 L 5 50 L 50 50 L 55 45 L 50 40 L 12 40 L 12 28 L 50 28 Z"
+          fill="url(#cyanGradient)" opacity="0.95"/>
+    <!-- Subtle horizontal lines inside to suggest slide content -->
+    <line x1="15" y1="15" x2="38" y2="15" stroke="#1a1a1a" stroke-width="2" opacity="0.5"/>
+    <line x1="15" y1="35" x2="38" y2="35" stroke="#1a1a1a" stroke-width="2" opacity="0.5"/>
+  </g>
+
+  <!-- "lide" -->
+  <text x="190" y="100" class="wordmark">lide</text>
+
+  <!-- Opening brace -->
+  <text x="310" y="100" class="directive-syntax">{</text>
+
+  <!-- "down" -->
+  <text x="345" y="100" class="wordmark">down</text>
+
+  <!-- Closing brace -->
+  <text x="510" y="100" class="directive-syntax">}</text>
+
+  <!-- Arrow from S downward to text-first -->
+  <path d="M 145 80 L 145 160 M 139 154 L 145 160 L 151 154"
+        stroke="url(#neonGreen)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- "text-first presentations" tagline -->
+  <text x="300" y="190" text-anchor="middle" class="tagline">text-first presentations</text>
+</svg>

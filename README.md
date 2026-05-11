@@ -9,9 +9,15 @@ diffable, scriptable, easy to version, and still capable of presentation
 effects such as progressive reveals, typewriter text, code highlighting,
 themes, and custom CSS.
 
-View the original self-hosted README presentation:
+View the README as an interactive presentation — pick a theme:
 
-https://fnndsc.github.io/slidedown/readme-presentation/
+| Theme | Live Demo |
+|---|---|
+| `conventional-light` | https://fnndsc.github.io/slidedown/readme-presentation/ |
+| `default` | https://fnndsc.github.io/slidedown/themes/default/ |
+| `lcars-lower-decks` | https://fnndsc.github.io/slidedown/themes/lcars-lower-decks/ |
+| `retro-terminal` | https://fnndsc.github.io/slidedown/themes/retro-terminal/ |
+| `terminal` | https://fnndsc.github.io/slidedown/themes/terminal/ |
 
 ## Quick Start
 

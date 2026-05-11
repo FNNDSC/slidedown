@@ -1,0 +1,478 @@
+
+/* Terminal Theme - Modern terminal aesthetic */
+
+/* Fira Code and JetBrains Mono fonts */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;700&family=JetBrains+Mono:wght@300;400;500;700&display=swap');
+
+/* Global */
+html {
+  min-height: 100%;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  color: #d4d4d4;
+  background-color: #0d0d0d;
+  overflow: hidden;
+  font-family: 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+}
+
+/* Presentation viewport wrapper - fixed 2K dimensions */
+.presentation-viewport {
+  position: absolute;
+  width: 2560px;
+  height: 1440px;
+  transform-origin: top left;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: #1e1e1e;
+  box-shadow: 0 0 40px rgba(78, 201, 176, 0.1);
+  border: 1px solid #2d2d30;
+}
+
+/* Form layout container */
+.formLayout {
+  background-color: #1e1e1e;
+  border: none;
+  padding: 0;
+  flex: 1;
+  color: #d4d4d4;
+  font-size: 32px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Slide */
+.slide {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  padding: 50px;
+  --slide-density-scale: 1.1;
+  font-size: calc(
+    32px * var(--deck-typography-scale, 1) *
+    var(--slide-density-scale)
+  );
+}
+
+.slide.hero {
+  --slide-density-scale: 1.32;
+}
+
+.slide.roomy {
+  --slide-density-scale: 1.2;
+}
+
+.slide.dense {
+  --slide-density-scale: 0.94;
+}
+
+.slide.compact {
+  --slide-density-scale: 0.82;
+}
+
+.slide h1 {
+  font-size: 3em;
+  margin: 0.3em 0;
+  text-align: center;
+  color: #4ec9b0;
+  font-weight: 500;
+  text-shadow: 0 0 20px rgba(78, 201, 176, 0.3);
+}
+
+.slide h2 {
+  font-size: 2.4em;
+  margin: 0.3em 0;
+  text-align: center;
+  color: #9cdcfe;
+  font-weight: 400;
+}
+
+.slide h3 {
+  font-size: 1.8em;
+  margin: 0.3em 0;
+  color: #ce9178;
+  font-weight: 400;
+}
+
+.slide p {
+  font-size: 1.4em;
+  line-height: 1.6;
+  margin: 0.5em 0;
+  color: #d4d4d4;
+}
+
+.slide ul, .slide ol {
+  font-size: 1.3em;
+  line-height: 1.7;
+  margin: 0.5em 0;
+}
+
+.slide li {
+  margin: 0.3em 0;
+  color: #d4d4d4;
+}
+
+/* Code blocks */
+.slide pre {
+  font-size: 1.2em;
+  line-height: 1.4;
+  max-width: 100%;
+  overflow: auto;
+  background-color: #252526;
+  border: 1px solid #3e3e42;
+  border-radius: 4px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.slide code {
+  font-family: 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+  color: #ce9178;
+  background-color: #252526;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.slide pre code {
+  background-color: transparent;
+  padding: 0;
+  color: #d4d4d4;
+}
+
+/* Emphasis and strong */
+.slide strong {
+  color: #4ec9b0;
+  font-weight: 500;
+}
+
+.slide em {
+  color: #9cdcfe;
+  font-style: italic;
+}
+
+/* Links */
+a {
+  color: #4ec9b0;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: #6ee7d2;
+  text-decoration: underline;
+}
+
+/* Slide progress bar */
+#slideProgress {
+  width: 100%;
+  background-color: #2d2d30;
+}
+
+#slideBar {
+  width: 1%;
+  height: 5px;
+  background-color: #4ec9b0;
+  box-shadow: 0 0 10px rgba(78, 201, 176, 0.5);
+}
+
+/* Alignment modifiers */
+.align-left {
+  text-align: left;
+}
+
+.align-center {
+  text-align: center;
+}
+
+.align-center ul,
+.align-center ol {
+  list-style-position: inside;
+}
+
+.align-right {
+  text-align: right;
+}
+
+.align-right ul,
+.align-right ol {
+  list-style-position: inside;
+}
+
+/* Column layout support */
+.slide .column {
+  flex: 1;
+  padding: 0 15px;
+  box-sizing: border-box;
+}
+
+.slide .column:first-of-type {
+  padding-left: 0;
+}
+
+.slide .column:last-of-type {
+  padding-right: 0;
+}
+
+/* Buttons */
+button {
+  background-color: #2d2d30;
+  border: 1px solid #3e3e42;
+  color: #d4d4d4;
+  font-family: 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+  font-size: 1em;
+  font-weight: 400;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+button:hover {
+  background-color: #3e3e42;
+  border-color: #4ec9b0;
+}
+
+button:active {
+  background-color: #252526;
+}
+
+/* Footer bar */
+.footer-bar {
+  background-color: #252526;
+  border-top: 1px solid #3e3e42;
+  padding: 15px 50px;
+  color: #858585;
+  font-size: 18px;
+  overflow: hidden;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer {
+  color: #858585;
+  font-size: 18px;
+}
+
+/* Tables */
+td, th {
+  border: 1px solid #3e3e42;
+  padding: 0.5rem;
+  text-align: center;
+  color: #d4d4d4;
+}
+
+th {
+  background-color: #2d2d30;
+  color: #4ec9b0;
+  font-weight: 500;
+}
+
+/* Images */
+img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+/* Selection */
+::selection {
+  background: #4ec9b0;
+  color: #1e1e1e;
+}
+
+/* Behavior Effects */
+
+/* Snippet/bullet visibility */
+.snippet {
+  color: #d4d4d4;
+}
+
+/* TTY/Terminal style */
+.tty {
+  color: #d4d4d4;
+  background-color: #1e1e1e;
+}
+
+/* Line positioning for effects */
+.line-1 {
+  position: relative;
+  top: 5%;
+  width: 50em;
+  margin: 0 auto;
+  font-size: 180%;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  transform: translateY(-50%);
+}
+
+/* Typewriter animation */
+.anim-typewriter {
+  animation: typewriter 4s steps(44) 1s 1 normal both,
+             blinkTextCursor 500ms steps(44) infinite normal;
+}
+
+@keyframes typewriter {
+  from { width: 0; }
+  to { width: 50em; }
+}
+
+@keyframes blinkTextCursor {
+  from { border-right-color: #4ec9b0; }
+  to { border-right-color: transparent; }
+}
+
+/* Typing effect with cursor */
+.typing {
+  font-size: 2em;
+  margin: 0;
+  font-family: 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+}
+
+.typing:after {
+  content: "|";
+  animation: blink 500ms linear infinite alternate;
+}
+
+@-webkit-keyframes blink {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@-moz-keyframes blink {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes blink {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* Typewriter effect for pre/code blocks */
+.typewriter pre {
+  overflow: hidden;
+  border-right: .15em solid #4ec9b0;
+  white-space: nowrap;
+  margin: 0 auto;
+  letter-spacing: .15em;
+  animation:
+    typing 3.5s steps(40, end),
+    blink-caret .75s step-end infinite;
+  color: #d4d4d4;
+}
+
+/* Typewriter elements by ID */
+pre[id^="typewriter-"] {
+  color: #d4d4d4;
+  font-family: 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+}
+
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes blink-caret {
+  from, to { border-color: transparent; }
+  50% { border-color: #4ec9b0; }
+}
+
+/* Blinking text */
+.blinking {
+  animation: blinkingText 1.2s infinite;
+}
+
+@keyframes blinkingText {
+  0% { color: #d4d4d4; }
+  49% { color: #d4d4d4; }
+  60% { color: transparent; }
+  99% { color: transparent; }
+  100% { color: #d4d4d4; }
+}
+
+/* Syntax highlighting helpers */
+.var-highlight {
+  color: #9cdcfe;
+}
+
+.string-highlight {
+  color: #ce9178;
+}
+
+/* Container for pre alignment */
+.container {
+  text-align: left;
+}
+
+.container pre {
+  display: inline-block;
+  text-align: left;
+}
+
+/* Watermark system */
+.slide .watermark {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.5;
+}
+
+/* Watermark positioning - 9 positions */
+.watermark.top-left {
+  top: 30px;
+  left: 30px;
+}
+
+.watermark.top-center {
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.watermark.top-right {
+  top: 30px;
+  right: 30px;
+}
+
+.watermark.center-left {
+  top: 50%;
+  left: 30px;
+  transform: translateY(-50%);
+}
+
+.watermark.center-right {
+  top: 50%;
+  right: 30px;
+  transform: translateY(-50%);
+}
+
+.watermark.bottom-left {
+  bottom: 30px;
+  left: 30px;
+}
+
+.watermark.bottom-center {
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.watermark.bottom-right {
+  bottom: 30px;
+  right: 30px;
+}
+
+/* Center position (both axes) */
+.watermark.center {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}

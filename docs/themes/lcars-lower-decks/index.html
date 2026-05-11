@@ -3,24 +3,23 @@
 <head>
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
     <meta content="utf-8" http-equiv="encoding">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title id="headTitle">slidedown presentation</title>
 
-    <!-- 3rd Party css -->
-    <link rel="stylesheet" href="https://yui.yahooapis.com/pure/0.6.0/pure-min.css">
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.13.0/css/all.css">
-    <link rel="stylesheet" href="termynal.css">
+    <!-- LCARS Antonio Font from Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;700&display=swap" rel="stylesheet">
 
-    <!-- 3rd Party js -->
-    <!-- Do we really need jquery? -->
-    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+    <!-- 3rd Party js for slidedown functionality -->
+    <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
 
-    <!-- This page css -->
-    <link rel="stylesheet" href="css/slidedown.css" type="text/css" />
-
-    <!-- Theme css -->
+    <!-- Theme css ONLY - no slidedown.css to avoid conflicts -->
     <link rel="stylesheet" href="css/theme.css" type="text/css" />
+
+    <style>
+        .metaData, #numberOfSlides, #slideIDprefix { display: none !important; }
+    </style>
 </head>
 
 
@@ -36,65 +35,95 @@
         <div class="metaData" id="numberOfSlides" style="display: none;">15</div>
         <div class="metaData" id="slideIDprefix" style="display: none;">slide-</div>
 
-        
-    <div class="boxtext pure-control-group" style="margin-bottom: -3px;">
-        <!-- Top "navigation" bar -->
-        <div id="slideProgress">
-            <div id="slideBar"></div>
+    <section class="wrap-all">
+        <div class="lcars-scanline"></div>
+        <div class="wrap">
+            <div class="scroll-top">
+                <a
+                    id="scroll-top"
+                    href="#"
+                    onclick="scrollToTop(); return false;"
+                >
+                    <span class="hop">screen</span> top
+                </a>
+            </div>
+            <div class="left-frame-top" id="top-frame">
+                <div class="panel-1">
+                    <span id="lcars-date"></span>
+                    <span class="hop" id="lcars-time"></span>
+                </div>
+                <div class="panel-2">
+                    SLIDE
+                    <span
+                        class="hop navbar-counter"
+                        data-template="{current} / {total}"
+                    >
+                        1 / 15
+                    </span>
+                </div>
+            </div>
+            <div class="right-frame-top">
+                <div class="banner">
+                    <span id="pageTitle">Slidedown - Text-first Presentation Compiler</span>
+                </div>
+                <div class="data-cascade-button-group">
+                    <nav>
+                        <button onclick="page.advance_toPrevious()">01</button>
+                        <button onclick="page.advance_toNext()">02</button>
+                        <button onclick="page.advance_toFirst()">03</button>
+                        <button onclick="page.advance_toLast()">04</button>
+                        <button id="tbBtn" class="scale-btn" onclick="cycleTopbarScale(1)">TB: 100%</button>
+                        <button id="gwBtn" class="scale-btn" onclick="cycleGutterScale(1)">GW: 100%</button>
+                    </nav>
+                </div>
+                <div class="bar-panel first-bar-panel">
+                    <div class="bar-1"></div>
+                    <div class="bar-2"></div>
+                    <div class="bar-3"></div>
+                    <div class="bar-4"></div>
+                    <div class="bar-5"></div>
+                </div>
+            </div>
         </div>
-
-        <div class="navbar-container">
-            <input  type    =  "button"
-                    onclick =  "page.advance_toPrevious()"
-                    style   =  "float: left;"
-                    value   =  "&#xf053"
-                    id      =  "previous"
-                    name    =  "previous"
-                    class   =  "pure-button
-                                pure-button-primary
-                                fas fas-chevron-left">
-            </input>
-            <input  type    =  "button"
-                    onclick =  "page.advance_toFirst()"
-                    value   =  "&#xf078"
-                    style   =  "float: left;"
-                    id      =  "first"
-                    name    =  "first"
-                    class   =  "pure-button
-                                pure-button-primary
-                                fas fa-chevron-down">
-            </input>
-
-            <div id="pageTitle" class="navbar-title"></div>
-
-            <input  type    =  "button"
-                    onclick =  "page.advance_toLast()"
-                    value   =  "&#xf077"
-                    style   =  "float: right;"
-                    id      =  "last"
-                    name    =  "last"
-                    class   =  "pure-button
-                                pure-button-primary
-                                fas fa-chevron-up">
-            </input>
-            <input  type    =  "button"
-                    onclick =  "page.advance_toNext()"
-                    value   =  "&#xf054"
-                    style   = "float: right;"
-                    id      =  "next"
-                    name    =  "next"
-                    class   =  "pure-button
-                                pure-button-primary
-                                fas fas-chevron-right">
-            </input>
-        </div>
-        <br style="clear: both;">
-    </div>
-
-
-
-        <div class="formLayout">
-            
+        <div class="wrap" id="gap">
+            <div class="left-frame">
+                <button
+                    onclick="toggleTopFrame(event)"
+                    id="topBtn"
+                    class="panel-button"
+                >
+                    <span class="hop">hide</span> detail
+                </button>
+                <div>
+                    <div class="panel-3">
+                        VER <span class="hop">v1.1.4-a7951</span>
+                    </div>
+                    <div class="panel-4">
+                        04<span class="hop">-41969</span>
+                    </div>
+                    <div class="panel-5">
+                        05<span class="hop">-1701D</span>
+                    </div>
+                    <div class="panel-6">
+                        06<span class="hop">-081966</span>
+                    </div>
+                </div>
+                <div>
+                    <div class="panel-7">
+                        07<span class="hop">-15</span>
+                    </div>
+                </div>
+            </div>
+            <div class="right-frame">
+                <div class="bar-panel">
+                    <div class="bar-6"></div>
+                    <div class="bar-7"></div>
+                    <div class="bar-8"></div>
+                    <div class="bar-9"></div>
+                    <div class="bar-10"></div>
+                </div>
+                <main>
+                    <div class="formLayout">
 
 
 <div id="slide-1-title" style="display: none;">
@@ -170,16 +199,16 @@ Select with <tt>--theme <name></tt> at compile time.<br>     Runtime switching i
        <pre id="typewriter-4-1" data-text="&gt; Installing slidedown..."></pre>
 <br />
 <br />
-<code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><span style="color: #3D7B7B; font-style: italic"># Clone and set up</span>
-git<span style="color: #BBB"> </span>clone<span style="color: #BBB"> </span>https://github.com/FNNDSC/slidedown
-<span style="color: #008000">cd</span><span style="color: #BBB"> </span>slidedown
-make<span style="color: #BBB"> </span>dev
+<code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span><span style="color: #959077"># Clone and set up</span>
+git<span style="color: #F8F8F2"> </span>clone<span style="color: #F8F8F2"> </span>https://github.com/FNNDSC/slidedown
+<span style="color: #F8F8F2">cd </span>slidedown
+make<span style="color: #F8F8F2"> </span>dev
 
-<span style="color: #3D7B7B; font-style: italic"># Compile and serve a presentation</span>
-make<span style="color: #BBB"> </span>presentation<span style="color: #BBB"> </span><span style="color: #19177C">SOURCE</span><span style="color: #666">=</span>examples/minimal/minimal.sd
+<span style="color: #959077"># Compile and serve a presentation</span>
+make<span style="color: #F8F8F2"> </span>presentation<span style="color: #F8F8F2"> SOURCE</span><span style="color: #FF4689">=</span>examples/minimal/minimal.sd
 
-<span style="color: #3D7B7B; font-style: italic"># Open http://localhost:8000</span>
-<span style="color: #BBB">    </span>
+<span style="color: #959077"># Open http://localhost:8000</span>
+<span style="color: #F8F8F2">    </span>
 </pre></div>
 </code>
 <br />
@@ -187,8 +216,8 @@ make<span style="color: #BBB"> </span>presentation<span style="color: #BBB"> </s
 <strong>No make?</strong> Use the <tt>slideshow</tt> script directly:
 <br />
 <br />
-<code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>./slideshow<span style="color: #BBB"> </span>examples/minimal/minimal.sd<span style="color: #BBB"> </span>--theme<span style="color: #BBB"> </span>conventional-light
-<span style="color: #BBB">    </span>
+<code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span>./slideshow<span style="color: #F8F8F2"> </span>examples/minimal/minimal.sd<span style="color: #F8F8F2"> </span>--theme<span style="color: #F8F8F2"> </span>conventional-light
+<span style="color: #F8F8F2">    </span>
 </pre></div>
 </code>   
 
@@ -205,7 +234,7 @@ make<span style="color: #BBB"> </span>presentation<span style="color: #BBB"> </s
        The core syntax is simple:
 <br />
 <br />
-<code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>.directive{content}
+<code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span>.directive{content}
 .directive{\.modifier{value} content}
 .directive{nested \.directives{work} too}
     
@@ -234,10 +263,10 @@ make<span style="color: #BBB"> </span>presentation<span style="color: #BBB"> </s
        <strong>Recommended — via Makefile:</strong>
 <br />
 <br />
-<code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>git<span style="color: #BBB"> </span>clone<span style="color: #BBB"> </span>https://github.com/FNNDSC/slidedown
-<span style="color: #008000">cd</span><span style="color: #BBB"> </span>slidedown
-make<span style="color: #BBB"> </span>dev
-<span style="color: #BBB">    </span>
+<code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span>git<span style="color: #F8F8F2"> </span>clone<span style="color: #F8F8F2"> </span>https://github.com/FNNDSC/slidedown
+<span style="color: #F8F8F2">cd </span>slidedown
+make<span style="color: #F8F8F2"> </span>dev
+<span style="color: #F8F8F2">    </span>
 </pre></div>
 </code>
 <br />
@@ -245,9 +274,9 @@ make<span style="color: #BBB"> </span>dev
 <strong>Manual install:</strong>
 <br />
 <br />
-<code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>python3<span style="color: #BBB"> </span>-m<span style="color: #BBB"> </span>venv<span style="color: #BBB"> </span>.venv
-.venv/bin/pip<span style="color: #BBB"> </span>install<span style="color: #BBB"> </span>-e<span style="color: #BBB"> </span><span style="color: #BA2121">&quot;.[dev]&quot;</span>
-<span style="color: #BBB">    </span>
+<code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span>python3<span style="color: #F8F8F2"> </span>-m<span style="color: #F8F8F2"> </span>venv<span style="color: #F8F8F2"> </span>.venv
+.venv/bin/pip<span style="color: #F8F8F2"> </span>install<span style="color: #F8F8F2"> </span>-e<span style="color: #F8F8F2"> </span><span style="color: #E6DB74">&quot;.[dev]&quot;</span>
+<span style="color: #F8F8F2">    </span>
 </pre></div>
 </code>
 <br />
@@ -270,11 +299,11 @@ make<span style="color: #BBB"> </span>dev
        <strong>Via Makefile:</strong>
 <br />
 <br />
-<code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>make<span style="color: #BBB"> </span>presentation<span style="color: #BBB"> </span><span style="color: #19177C">SOURCE</span><span style="color: #666">=</span>examples/minimal/minimal.sd
-make<span style="color: #BBB"> </span>presentation<span style="color: #BBB"> </span><span style="color: #19177C">SOURCE</span><span style="color: #666">=</span>examples/minimal/minimal.sd<span style="color: #BBB"> </span><span style="color: #19177C">THEME</span><span style="color: #666">=</span>retro-terminal<span style="color: #BBB"> </span><span style="color: #19177C">PORT</span><span style="color: #666">=9000</span>
-make<span style="color: #BBB"> </span>compile<span style="color: #BBB"> </span><span style="color: #19177C">SOURCE</span><span style="color: #666">=</span>examples/minimal/minimal.sd
-make<span style="color: #BBB"> </span>serve<span style="color: #BBB"> </span><span style="color: #19177C">SOURCE</span><span style="color: #666">=</span>examples/minimal/minimal.sd
-<span style="color: #BBB">    </span>
+<code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span>make<span style="color: #F8F8F2"> </span>presentation<span style="color: #F8F8F2"> SOURCE</span><span style="color: #FF4689">=</span>examples/minimal/minimal.sd
+make<span style="color: #F8F8F2"> </span>presentation<span style="color: #F8F8F2"> SOURCE</span><span style="color: #FF4689">=</span>examples/minimal/minimal.sd<span style="color: #F8F8F2"> THEME</span><span style="color: #FF4689">=</span>retro-terminal<span style="color: #F8F8F2"> PORT</span><span style="color: #FF4689">=</span><span style="color: #AE81FF">9000</span>
+make<span style="color: #F8F8F2"> </span>compile<span style="color: #F8F8F2"> SOURCE</span><span style="color: #FF4689">=</span>examples/minimal/minimal.sd
+make<span style="color: #F8F8F2"> </span>serve<span style="color: #F8F8F2"> SOURCE</span><span style="color: #FF4689">=</span>examples/minimal/minimal.sd
+<span style="color: #F8F8F2">    </span>
 </pre></div>
 </code>
 <br />
@@ -282,9 +311,9 @@ make<span style="color: #BBB"> </span>serve<span style="color: #BBB"> </span><sp
 <strong>Via slideshow script:</strong>
 <br />
 <br />
-<code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>./slideshow<span style="color: #BBB"> </span>path/to/deck.sd<span style="color: #BBB"> </span>--theme<span style="color: #BBB"> </span>lcars-lower-decks
-./slideshow<span style="color: #BBB"> </span>path/to/deck.sd<span style="color: #BBB"> </span>--no-serve<span style="color: #BBB"> </span>--outputdir<span style="color: #BBB"> </span>/tmp/out
-<span style="color: #BBB">    </span>
+<code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span>./slideshow<span style="color: #F8F8F2"> </span>path/to/deck.sd<span style="color: #F8F8F2"> </span>--theme<span style="color: #F8F8F2"> </span>lcars-lower-decks
+./slideshow<span style="color: #F8F8F2"> </span>path/to/deck.sd<span style="color: #F8F8F2"> </span>--no-serve<span style="color: #F8F8F2"> </span>--outputdir<span style="color: #F8F8F2"> </span>/tmp/out
+<span style="color: #F8F8F2">    </span>
 </pre></div>
 </code>
 <br />
@@ -292,8 +321,8 @@ make<span style="color: #BBB"> </span>serve<span style="color: #BBB"> </span><sp
 <strong>Direct CLI:</strong>
 <br />
 <br />
-<code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>slidedown<span style="color: #BBB"> </span>inputdir/<span style="color: #BBB"> </span>outputdir/<span style="color: #BBB"> </span>--inputFile<span style="color: #BBB"> </span>deck.sd<span style="color: #BBB"> </span>--theme<span style="color: #BBB"> </span>terminal
-<span style="color: #BBB">    </span>
+<code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span>slidedown<span style="color: #F8F8F2"> </span>inputdir/<span style="color: #F8F8F2"> </span>outputdir/<span style="color: #F8F8F2"> </span>--inputFile<span style="color: #F8F8F2"> </span>deck.sd<span style="color: #F8F8F2"> </span>--theme<span style="color: #F8F8F2"> </span>terminal
+<span style="color: #F8F8F2">    </span>
 </pre></div>
 </code>   
 
@@ -319,7 +348,7 @@ make<span style="color: #BBB"> </span>serve<span style="color: #BBB"> </span><sp
 Here's a minimal example:
 <br />
 <br />
-<code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>.slide{
+<code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span>.slide{
   \.title{My First Slide}
   \.body{
     \.typewriter{&gt; Initializing presentation...}
@@ -344,7 +373,7 @@ Here's a minimal example:
     
     
   
-       <code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>slidedown/
+       <code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span>slidedown/
 ├── src/
 │   ├── __main__.py          # CLI entry point
 │   ├── lib/
@@ -376,21 +405,21 @@ Here's a minimal example:
     
     
   
-       <strong>Run all tests:</strong>     <code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>make<span style="color: #BBB"> </span><span style="color: #008000">test</span>
-<span style="color: #BBB">    </span>
+       <strong>Run all tests:</strong>     <code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span>make<span style="color: #F8F8F2"> test</span>
+<span style="color: #F8F8F2">    </span>
 </pre></div>
 </code>
 <br />
 <br />
-<strong>Individual test files:</strong>     <code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>pytest<span style="color: #BBB"> </span>tests/test_parser_basic.py<span style="color: #BBB"> </span>-v
-pytest<span style="color: #BBB"> </span>tests/test_e2e_compilation.py<span style="color: #BBB"> </span>-v
-<span style="color: #BBB">    </span>
+<strong>Individual test files:</strong>     <code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span>pytest<span style="color: #F8F8F2"> </span>tests/test_parser_basic.py<span style="color: #F8F8F2"> </span>-v
+pytest<span style="color: #F8F8F2"> </span>tests/test_e2e_compilation.py<span style="color: #F8F8F2"> </span>-v
+<span style="color: #F8F8F2">    </span>
 </pre></div>
 </code>
 <br />
 <br />
-<strong>Coverage report:</strong>     <code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>make<span style="color: #BBB"> </span>coverage
-<span style="color: #BBB">    </span>
+<strong>Coverage report:</strong>     <code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span>make<span style="color: #F8F8F2"> </span>coverage
+<span style="color: #F8F8F2">    </span>
 </pre></div>
 </code>
 <br />
@@ -410,7 +439,7 @@ pytest<span style="color: #BBB"> </span>tests/test_e2e_compilation.py<span style
        <strong>Functional Pipeline Pattern:</strong>
 <br />
 <br />
-<code><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>.sd source → Parser → AST → Compiler → HTML
+<code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span>.sd source → Parser → AST → Compiler → HTML
                ↓         ↓        ↓
           ProgramState → → → → → →
     
@@ -505,19 +534,14 @@ Licensed under the MIT License.     See <tt>LICENSE</tt> file for details.
 <pre id="typewriter-15-1" data-text="&gt; Happy presenting!"></pre>   
 
 </div>
-
+</div>
+                </main>
+            </div>
         </div>
+    </section>
 
-        
-    <div class="footer-bar">
-        <span class="footer" style="float: left;">
-            Created with slidedown
-        </span>
-        <span id="slideCounter" class="footer" style="float: right;">
-            slide
-        </span>
-    </div>
-
+    <script src="js/lcars-scripts.js"></script>
+    <script src="js/slidedown-lcars-cascade.js"></script>
 
     </div>
 

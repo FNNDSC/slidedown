@@ -38,9 +38,26 @@
     interactive HTML presentations from plain text.
 
     .o{Text-first authoring - write presentations like you write code}
-    .o{Behavioral markup - .directive\{content\} syntax\}
+    .o{Behavioral markup - .directive\{content\} syntax}
     .o{Interactive effects - typewriter animations, progressive reveals}
     .o{Single-file workflow - one .sd source → standalone HTML}
+  }
+}
+
+.slide{
+  .title{Themes}
+  .body{
+    Five built-in themes — each presentation below uses the same\\
+    source compiled with a different theme:\\
+
+    .o{.bf{conventional-light} → https://fnndsc.github.io/slidedown/themes/conventional-light/}
+    .o{.bf{default} → https://fnndsc.github.io/slidedown/themes/default/}
+    .o{.bf{lcars-lower-decks} → https://fnndsc.github.io/slidedown/themes/lcars-lower-decks/}
+    .o{.bf{retro-terminal} → https://fnndsc.github.io/slidedown/themes/retro-terminal/}
+    .o{.bf{terminal} → https://fnndsc.github.io/slidedown/themes/terminal/}
+
+    Select with .tt{--theme <name>} at compile time.\\
+    Runtime switching is not supported — each theme is a full compile.
   }
 }
 
@@ -50,19 +67,22 @@
     .typewriter{> Installing slidedown...}
 
     .code{.syntax{language=bash}
-# Install
-pip install -e .
+# Clone and set up
+git clone https://github.com/FNNDSC/slidedown
+cd slidedown
+make dev
 
-# Compile a presentation
-slidedown examples/minimal/ output/ --inputFile minimal.sd
+# Compile and serve a presentation
+make presentation SOURCE=examples/minimal/minimal.sd
 
-# View it
-cd output/
-python3 -m http.server 8000
 # Open http://localhost:8000
     }
 
-    That's it!
+    .bf{No make?} Use the .tt{slideshow} script directly:
+
+    .code{.syntax{language=bash}
+./slideshow examples/minimal/minimal.sd --theme conventional-light
+    }
   }
 }
 
@@ -97,10 +117,19 @@ python3 -m http.server 8000
 .slide{
   .title{Installation}
   .body{
-    .bf{Install slidedown:}
+    .bf{Recommended — via Makefile:}
 
     .code{.syntax{language=bash}
-pip install -e .
+git clone https://github.com/FNNDSC/slidedown
+cd slidedown
+make dev
+    }
+
+    .bf{Manual install:}
+
+    .code{.syntax{language=bash}
+python3 -m venv .venv
+.venv/bin/pip install -e ".[dev]"
     }
 
     .bf{Requirements:}
@@ -108,33 +137,34 @@ pip install -e .
     .o{pip or uv}
     .o{Modern web browser}
 
-    .bf{Platform Support:}
-    .o{Linux, macOS, Windows}
-    .o{Android (via Termux)}
+    .bf{Platforms:} Linux, macOS, Windows (WSL), Android (Termux)
   }
 }
 
 .slide{
   .title{Usage}
   .body{
-    .bf{Basic compilation:}
+    .bf{Via Makefile:}
 
     .code{.syntax{language=bash}
-slidedown inputdir/ outputdir/ --inputFile presentation.sd
+make presentation SOURCE=examples/minimal/minimal.sd
+make presentation SOURCE=examples/minimal/minimal.sd THEME=retro-terminal PORT=9000
+make compile SOURCE=examples/minimal/minimal.sd
+make serve SOURCE=examples/minimal/minimal.sd
     }
 
-    .bf{With theme:}
+    .bf{Via slideshow script:}
 
     .code{.syntax{language=bash}
-slidedown input/ output/ --inputFile demo.sd --theme retro-terminal
+./slideshow path/to/deck.sd --theme lcars-lower-decks
+./slideshow path/to/deck.sd --no-serve --outputdir /tmp/out
     }
 
-    .bf{Available themes:}
-    .o{conventional-light (default)}
-    .o{conventional-dark}
-    .o{retro-terminal}
-    .o{terminal}
-    .o{lcars-lower-decks}
+    .bf{Direct CLI:}
+
+    .code{.syntax{language=bash}
+slidedown inputdir/ outputdir/ --inputFile deck.sd --theme terminal
+    }
   }
 }
 
@@ -146,7 +176,7 @@ slidedown input/ output/ --inputFile demo.sd --theme retro-terminal
     Here's a minimal example:
 
     .code{.syntax{language=text}
-\.slide\{\.style\{background: black; color: lightgreen;\}
+\.slide\{
   \.title\{My First Slide\}
   \.body\{
     \.typewriter\{> Initializing presentation...\}
@@ -155,8 +185,6 @@ slidedown input/ output/ --inputFile demo.sd --theme retro-terminal
     \.o\{\.em\{Text-first\} authoring\}
     \.o\{\.tt\{Behavioral\} markup\}
     \.o\{Interactive \.bf\{effects\}\}
-
-    \.cowpy-tux\{Made with slidedown!\}
   \}
 \}
     }
@@ -172,18 +200,19 @@ slidedown/
 │   ├── __main__.py          # CLI entry point
 │   ├── lib/
 │   │   ├── parser.py        # .sd syntax parser
+│   │   ├── lexer.py         # Tokenizer
 │   │   ├── compiler.py      # AST → HTML compiler
-│   │   └── directives.py    # Directive implementations
-│   └── models/
-│       ├── state.py         # Pipeline state management
-│       ├── directives.py    # Directive type definitions
-│       └── parser.py        # Parser return types
-├── assets/
-│   ├── css/                 # Slideshow CSS
-│   ├── js/                  # Navigation & effects JS
-│   └── html/                # HTML templates
-├── tests/                   # Test suite
-└── examples/                # Example presentations
+│   │   ├── compiler_rendering.py
+│   │   ├── compiler_assets.py
+│   │   ├── directives.py    # Directive implementations
+│   │   ├── theme.py         # Theme loader
+│   │   └── theme_base.py    # Theme hook system
+│   └── models/              # Type definitions
+├── themes/                  # 5 built-in themes
+├── assets/                  # CSS, JS, HTML templates
+├── docs/                    # Documentation + hosted presentations
+├── examples/                # Example .sd decks
+└── tests/                   # 97 tests
     }
   }
 }
@@ -193,10 +222,10 @@ slidedown/
   .body{
     .bf{Run all tests:}
     .code{.syntax{language=bash}
-pytest
+make test
     }
 
-    .bf{Run specific test files:}
+    .bf{Individual test files:}
     .code{.syntax{language=bash}
 pytest tests/test_parser_basic.py -v
 pytest tests/test_e2e_compilation.py -v
@@ -204,14 +233,15 @@ pytest tests/test_e2e_compilation.py -v
 
     .bf{Coverage report:}
     .code{.syntax{language=bash}
-pytest --cov=slidedown --cov-report=html
+make coverage
     }
 
-    .bf{Test categories:}
-    .o{Parser basics - directive parsing, nesting}
-    .o{Modifiers - \.style\{\} and \.class\{\} extraction}
-    .o{Nesting - recursive structure validation}
-    .o{End-to-end - full pipeline integration}
+    .bf{97 tests across 5 test files:}
+    .o{test_parser_basic — directive parsing}
+    .o{test_parser_modifiers — \.style\{\} and \.class\{\} extraction}
+    .o{test_parser_nesting — recursive structure}
+    .o{test_parser_escaping — escape sequences}
+    .o{test_e2e_compilation — full pipeline integration}
   }
 }
 
@@ -230,33 +260,29 @@ pytest --cov=slidedown --cov-report=html
     .o{.em{State Bus} - ProgramState dataclass carries state}
     .o{.em{Inside-Out Compilation} - children compiled first}
     .o{.em{Placeholder Substitution} - markers for child content}
+    .o{.em{Theme Hook System} - themes subclass ThemeHooks for custom layouts}
     .o{.em{Directive Registry} - extensible handler system}
   }
 }
 
 .slide{
-  .title{Navbar Customization}
+  .title{LCARS Theme}
   .body{
-    Customize navigation with \.meta\{navbar: ...\}
+    The .bf{lcars-lower-decks} theme brings a Star Trek LCARS\\
+    interface to your presentations.\\
 
-    .bf{Container styling:}
-    .o{background, border, padding, box-shadow}
+    .bf{Dynamic scaling (v1.2.0):}
+    .o{.tt{[} / .tt{]} — scale topbar up/down (100→75→50→25%)}
+    .o{.tt{\{} / .tt{\}} — scale gutters up/down}
+    .o{TB / GW on-screen buttons for touch/mouse}
+    .o{Scale state persists across reloads via localStorage}
 
-    .bf{Button options:}
-    .o{shape: "round", "square", or custom}
-    .o{size: width/height (e.g., "24px")}
-    .o{color, background, border}
-    .o{icon: FontAwesome HTML entity}
-    .o{tooltip: hover text}
+    .bf{Toggle chrome:}
+    .o{HIDEDETAIL / SHOWDETAIL collapses the full topbar}
+    .o{Smooth CSS transition animations}
 
-    .bf{Available buttons:}
-    .o{slide_first, slide_previous, slide_next, slide_last}
-    .o{slide_counter with format}
-    .o{title with custom color}
-
-    .bf{Layout zones:} left, center, right
-
-    See .tt{examples/watermarked/light-watermarks-demo.sd}
+    .bf{Live demo:}\\
+    https://fnndsc.github.io/slidedown/themes/lcars-lower-decks/
   }
 }
 
@@ -264,18 +290,20 @@ pytest --cov=slidedown --cov-report=html
   .title{Development Status}
   .body{
     .bf{Working:}
-    .o{Parser - recursive directive parsing}
-    .o{Compiler - AST to HTML compilation}
-    .o{CLI - functional command-line interface}
-    .o{Tests - 65 tests passing}
-    .o{Effects - typewriter, bullets, navigation}
-    .o{Themes - 5 themes available}
+    .o{Parser — recursive directive parsing}
+    .o{Compiler — AST to HTML compilation}
+    .o{CLI — functional command-line interface}
+    .o{Tests — 97 tests passing}
+    .o{Effects — typewriter, bullets, navigation}
+    .o{Themes — 5 themes, extensible hook system}
 
     .bf{Features:}
     .o{Watermarks with percentage sizing}
     .o{Custom CSS via \.meta\{css: ...\}}
     .o{Navbar customization}
+    .o{LCARS dynamic topbar/gutter scaling}
     .o{ASCII art (Figlet) and cowsay}
+    .o{Per-slide density classes}
   }
 }
 
@@ -300,18 +328,6 @@ pytest --cov=slidedown --cov-report=html
     .o{Add new directive implementations}
     .o{Create example presentations}
     .o{Improve documentation}
-  }
-}
-
-.slide{
-  .title{Credits}
-  .body{
-    Built on the shoulders of giants:
-
-    .o{.bf{tslide} - Original framework by rudolphpienaar}
-    .o{.bf{pyfiglet} - ASCII art generation}
-    .o{.bf{cowsay} - ASCII speech bubbles}
-    .o{.bf{ChRIS plugin} - CLI framework pattern}
   }
 }
 
