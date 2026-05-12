@@ -823,8 +823,8 @@ class TestASCIIArtDirectives:
             assert result["status"] is True
 
             html = (Path(tmpdir) / "index.html").read_text()
-            # Figlet output wrapped in <pre>
-            assert "<pre>" in html
+            # Figlet output wrapped in <pre class="figlet-art">
+            assert '<pre class="figlet-art">' in html
             # ASCII art will contain ASCII representation of letters
             # Check for underscores/pipes from rendered ASCII output.
             assert ("_" in html and "|" in html) or "HELLO" in html

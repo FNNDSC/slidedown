@@ -24,8 +24,41 @@ from ..models.directives import DirectiveCategory, DirectiveSpec
 from ..models.handlers import CompilerContext, DirectiveNode
 from . import directive_groups
 from .lexer import SlidedownLexer
+from .log import LOG
 
 CLASS_TOKEN_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_-]*$")
+
+
+def _ast_rebaseCodeIDs(nodes: list, offset: int) -> None:
+    """Rewrite CODE placeholder IDs in AST content strings by offset.
+
+    Args:
+        nodes: List of ASTNode objects to rewrite in-place.
+        offset: Integer to add to every CODE_N placeholder index.
+    """
+    for node in nodes:
+        node.content = re.sub(
+            r"\x00CODE_(\d+)\x00",
+            lambda m: f"\x00CODE_{int(m.group(1)) + offset}\x00",
+            node.content,
+        )
+        _ast_rebaseCodeIDs(list(node.children), offset)
+
+
+def _ast_rebaseEscapeIDs(nodes: list, offset: int) -> None:
+    """Rewrite ESCAPE placeholder IDs in AST content strings by offset.
+
+    Args:
+        nodes: List of ASTNode objects to rewrite in-place.
+        offset: Integer to add to every ESCAPE_N placeholder index.
+    """
+    for node in nodes:
+        node.content = re.sub(
+            r"\x00ESCAPE_(\d+)\x00",
+            lambda m: f"\x00ESCAPE_{int(m.group(1)) + offset}\x00",
+            node.content,
+        )
+        _ast_rebaseEscapeIDs(list(node.children), offset)
 
 
 def classNames_normalize(raw_class_names: str) -> list[str]:
@@ -124,6 +157,7 @@ class DirectiveRegistry:
         self.transformDirectives_register()
         self.modifierDirectives_register()
         self.metadataDirectives_register()
+        self.includeDirectives_register()
 
     def register(self, spec: DirectiveSpec) -> None:
         """Register a directive specification.
@@ -855,6 +889,116 @@ class DirectiveRegistry:
                         "    - image: logos/company.svg\n"
                         "      position: bottom-right\n}"
                     ),
+                ],
+            )
+        )
+
+    def includeDirectives_register(self) -> None:
+        """Register the .include{} directive for multi-file composition."""
+
+        def include_handler(
+            node: DirectiveNode, compiler: CompilerContext
+        ) -> str:
+            """Include and compile another .sd file inline.
+
+            Reads the target file relative to the current file's directory,
+            parses it, strips top-level ``.meta{}`` nodes (the parent deck's
+            metadata is authoritative), rebases code-block placeholder IDs to
+            avoid collisions, and compiles the result into the parent document.
+
+            Circular includes are detected and raise ``RecursionError``.
+
+            Args:
+                node: Parsed ``.include{}`` AST node; content is the path.
+                compiler: Active compiler instance.
+
+            Returns:
+                Compiled HTML for the included file's content.
+            """
+            from pathlib import Path as _Path
+
+            from .parser import Parser
+
+            relative_path = node.content.strip()
+            if not relative_path:
+                LOG(".include{} called with empty path — skipping", level=1)
+                return ""
+
+            # Resolve relative to the containing file's directory
+            target = (compiler.input_dir / relative_path).resolve()
+
+            if not target.exists():
+                raise FileNotFoundError(
+                    f".include{{{relative_path}}}: file not found at {target}"
+                )
+
+            # Circular include guard
+            include_stack: set[_Path] = getattr(
+                compiler, "_include_stack", set()
+            )
+            if target in include_stack:
+                raise RecursionError(
+                    f".include{{{relative_path}}}: "
+                    f"circular include detected ({target})"
+                )
+            include_stack.add(target)
+            # Persist the stack on the concrete compiler object
+            try:
+                object.__setattr__(compiler, "_include_stack", include_stack)
+            except (AttributeError, TypeError):
+                pass
+
+            try:
+                source = target.read_text(encoding="utf-8")
+                parser = Parser(source, debug=False)
+                included_ast = parser.parse()
+
+                # Strip top-level .meta{} nodes — parent deck is authoritative
+                filtered_ast = [
+                    n for n in included_ast if n.directive != "meta"
+                ]
+
+                # Rebase code-block placeholder IDs to avoid collisions
+                parent_blocks: dict[int, str] = getattr(
+                    compiler, "protected_code_blocks", {}
+                )
+                id_offset = (
+                    max(parent_blocks.keys()) + 1 if parent_blocks else 0
+                )
+                if parser.protected_code_blocks:
+                    _ast_rebaseCodeIDs(filtered_ast, id_offset)
+                    for k, v in parser.protected_code_blocks.items():
+                        parent_blocks[k + id_offset] = v
+
+                # Rebase escape-sequence placeholder IDs similarly
+                parent_escapes: dict[int, str] = getattr(
+                    compiler, "escaped_sequences", {}
+                )
+                esc_offset = (
+                    max(parent_escapes.keys()) + 1 if parent_escapes else 0
+                )
+                if parser.escaped_sequences:
+                    _ast_rebaseEscapeIDs(filtered_ast, esc_offset)
+                    for k, v in parser.escaped_sequences.items():
+                        parent_escapes[k + esc_offset] = v
+
+                return compiler.ast_compile(filtered_ast)
+
+            finally:
+                include_stack.discard(target)
+
+        self.register(
+            DirectiveSpec(
+                name="include",
+                category=DirectiveCategory.STRUCTURAL,
+                description=(
+                    "Include and compile another .sd file inline. "
+                    "Path is relative to the containing file's directory."
+                ),
+                handler=include_handler,
+                examples=[
+                    ".include{chapters/intro.sd}",
+                    ".include{../shared/title-slide.sd}",
                 ],
             )
         )

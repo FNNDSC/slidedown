@@ -100,6 +100,23 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--watch",
+    action="store_true",
+    default=False,
+    help=(
+        "Watch source file for changes and serve with live reload. "
+        "Starts an HTTP server (see --port)."
+    ),
+)
+
+parser.add_argument(
+    "--port",
+    type=int,
+    default=8000,
+    help="HTTP server port for --watch mode (default: 8000)",
+)
+
+parser.add_argument(
     "-v",
     "--verbosity",
     action="count",
@@ -269,6 +286,7 @@ def html_compile(inputstate: ProgramState) -> ProgramState:
             escaped_sequences=state.escapedSequences,
             theme_name=state.themeName,
             input_dir=str(state.inputdir),
+            watch=state.watch,
         )
         state.compileResult = compiler.compile()
         LOG(
@@ -314,9 +332,10 @@ def results_report(inputstate: ProgramState) -> ProgramState:
         LOG("\n✓ Compilation successful!", level=1)
         LOG(f"  Output: {state.compileResult['output_file']}", level=1)
         LOG(f"  Slides: {state.compileResult['slide_count']}", level=1)
-        LOG("\nTo view:", level=1)
-        LOG(f"  cd {state.htmlOutputdir}", level=1)
-        LOG("  python3 -m http.server 8000", level=1)
+        if not state.watch:
+            LOG("\nTo view:", level=1)
+            LOG(f"  cd {state.htmlOutputdir}", level=1)
+            LOG("  python3 -m http.server 8000", level=1)
     return state
 
 
@@ -359,7 +378,15 @@ def main(options: Namespace, inputdir: Path, outputdir: Path) -> None:
     state_connectToLogger(state)
 
     # Execute compilation pipeline
-    pipeline(state, env_check, source_parse, html_compile, results_report)
+    final_state = pipeline(
+        state, env_check, source_parse, html_compile, results_report
+    )
+
+    # Watch mode: start live-reload server (blocks until Ctrl-C)
+    if final_state.watch:
+        from .lib.watcher import watch_and_serve
+
+        watch_and_serve(final_state)
 
 
 if __name__ == "__main__":

@@ -59,6 +59,8 @@ class ProgramState:
     assetsDir: str | None = field(default=None)
     outputSubdir: str = field(default=".")
     themeName: str = field(default="default")
+    watch: bool = field(default=False)
+    port: int = field(default=8000)
 
     # Pipeline state
     envOK: bool = field(default=False)

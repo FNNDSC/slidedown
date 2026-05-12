@@ -45,6 +45,7 @@ class Compiler:
         escaped_sequences: dict[int, str] | None = None,
         theme_name: str = "default",
         input_dir: str = ".",
+        watch: bool = False,
     ) -> None:
         """
         Initialize compiler
@@ -58,6 +59,7 @@ class Compiler:
             escaped_sequences: Dict of backslash-escaped content from parser
             theme_name: Name of theme to use (default: "default")
             input_dir: Input directory for resolving relative paths
+            watch: Whether compiled output should include live-reload script
         """
         self.ast = ast
         self.output_dir = Path(output_dir)
@@ -66,6 +68,8 @@ class Compiler:
         self.verbosity = verbosity
         self.protected_code_blocks = protected_code_blocks or {}
         self.escaped_sequences = escaped_sequences or {}
+        self.watch = watch
+        self._include_stack: set[Path] = set()
         self.directives = DirectiveRegistry()
 
         # Load theme

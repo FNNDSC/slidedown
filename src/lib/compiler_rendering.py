@@ -47,6 +47,7 @@ class CompilerRenderer(Protocol):
     meta_config: PresentationMetaConfig
     slide_count: int
     theme: ThemeLike
+    watch: bool
 
     def config_getMerged(
         self, key: str, default: ConfigValue = None
@@ -210,13 +211,29 @@ def htmlDocument_build(compiler: CompilerRenderer, content: str) -> str:
             ]
         )
 
+    live_reload_script = ""
+    if compiler.watch:
+        live_reload_script = """
+    <script>
+    (function () {
+        var es = new EventSource('/events');
+        es.addEventListener('reload', function () {
+            window.location.reload();
+        });
+        es.onerror = function () {
+            es.close();
+            setTimeout(function () { window.location.reload(); }, 1000);
+        };
+    })();
+    </script>"""
+
     return f"""<!DOCTYPE html>
 <html>
 {head_html}{custom_css}
 <body>
 {body_content}
 
-    <script src="js/slidedown.js"></script>
+    <script src="js/slidedown.js"></script>{live_reload_script}
 </body>
 </html>"""
 

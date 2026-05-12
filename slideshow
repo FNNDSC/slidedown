@@ -31,6 +31,7 @@ Options:
   --theme <name>        Theme to use (default: default)
   --outputdir <path>    Output directory base (default: ./output)
   --port <number>       HTTP server port (default: 8000)
+  --watch               Watch source file for changes and serve with live reload
   --no-serve            Compile only, don't start HTTP server
   -h, --help           Show this help message
 
@@ -39,6 +40,7 @@ Examples:
   slideshow examples/minimal/minimal.sd --theme conventional-light
   slideshow examples/code/code.sd --theme retro-terminal --port 9000
   slideshow examples/code/code.sd --no-serve --outputdir /tmp/slides
+  slideshow examples/minimal/minimal.sd --watch
 
 Notes:
   - The output name is extracted from the parent directory of the .sd file
@@ -71,6 +73,7 @@ THEME="default"
 OUTPUT_BASE="./output"
 PORT="8000"
 SERVE="true"
+WATCH="false"
 
 # Parse optional arguments
 while [[ $# -gt 0 ]]; do
@@ -86,6 +89,10 @@ while [[ $# -gt 0 ]]; do
         --port)
             PORT="$2"
             shift 2
+            ;;
+        --watch)
+            WATCH="true"
+            shift
             ;;
         --no-serve)
             SERVE="false"
@@ -151,7 +158,16 @@ else
     exit 1
 fi
 
-# Run slidedown
+# Run slidedown (watch mode handles serving internally)
+if [ "$WATCH" == "true" ]; then
+    "$SLIDEDOWN" "$INPUT_DIR" "$OUTPUT_DIR" \
+        --inputFile "$SD_FILENAME" \
+        --theme "$THEME" \
+        --watch \
+        --port "$PORT"
+    exit 0
+fi
+
 # All paths are relative to INPUT_DIR, including assets
 "$SLIDEDOWN" "$INPUT_DIR" "$OUTPUT_DIR" --inputFile "$SD_FILENAME" --theme "$THEME"
 

@@ -24,10 +24,14 @@ class CompilerContext(Protocol):
 
     input_dir: Path
     meta_config: PresentationMetaConfig
+    protected_code_blocks: dict[int, str]
+    escaped_sequences: dict[int, str]
     slide_count: int
     snippet_counters: dict[int, int]
     theme: ThemeLike
     typewriter_counters: dict[int, int]
+
+    def ast_compile(self, nodes: list) -> str: ...
 
     def config_getMerged(
         self, key: str, default: ConfigValue = None
