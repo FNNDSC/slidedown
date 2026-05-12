@@ -48,6 +48,7 @@ class CompilerRenderer(Protocol):
     input_dir: Path
     meta_config: PresentationMetaConfig
     slide_count: int
+    standalone: bool
     theme: ThemeLike
     watch: bool
 

@@ -61,6 +61,7 @@ class ProgramState:
     themeName: str = field(default="default")
     watch: bool = field(default=False)
     port: int = field(default=8000)
+    standalone: bool = field(default=False)
 
     # Pipeline state
     envOK: bool = field(default=False)

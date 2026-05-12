@@ -48,6 +48,7 @@ class Compiler:
         theme_name: str = "default",
         input_dir: str = ".",
         watch: bool = False,
+        standalone: bool = False,
     ) -> None:
         """
         Initialize compiler
@@ -62,6 +63,7 @@ class Compiler:
             theme_name: Name of theme to use (default: "default")
             input_dir: Input directory for resolving relative paths
             watch: Whether compiled output should include live-reload script
+            standalone: Inline all local assets into a single HTML file
         """
         self.ast = ast
         self.output_dir = Path(output_dir)
@@ -71,6 +73,7 @@ class Compiler:
         self.protected_code_blocks = protected_code_blocks or {}
         self.escaped_sequences = escaped_sequences or {}
         self.watch = watch
+        self.standalone = standalone
         self._include_stack: set[Path] = set()
         self.directives = DirectiveRegistry()
 
@@ -105,13 +108,19 @@ class Compiler:
         # Build complete HTML document
         full_html = self.htmlDocument_build(html_content)
 
+        if self.standalone:
+            source_map = compiler_assets.assets_sourceMap_build(
+                cast(compiler_assets.CompilerAssets, self)
+            )
+            full_html = compiler_assets.html_inline(full_html, source_map)
+            LOG("Standalone mode: assets inlined, skipping copy", level=2)
+        else:
+            self.assets_copy()
+
         # Write output file
         output_file = self.output_dir / "index.html"
         output_file.write_text(full_html, encoding="utf-8")
         LOG(f"Wrote {output_file}", level=2)
-
-        # Copy runtime assets
-        self.assets_copy()
 
         LOG("HTML document assembled", level=2)
 

@@ -1,4 +1,4 @@
-"""Tests for live-reload (--watch) and multi-file include (.include{}) features."""
+"""Tests for --watch, --standalone, and .include{} features."""
 
 from __future__ import annotations
 
@@ -15,7 +15,13 @@ from slidedown.lib.parser import Parser
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _compile(source: str, tmpdir: str, watch: bool = False) -> str:
+def _compile(
+    source: str,
+    tmpdir: str,
+    watch: bool = False,
+    standalone: bool = False,
+    theme: str = "default",
+) -> str:
     """Compile source string to HTML and return the result."""
     parser = Parser(source, debug=False)
     ast = parser.parse()
@@ -27,9 +33,10 @@ def _compile(source: str, tmpdir: str, watch: bool = False) -> str:
         verbosity=0,
         protected_code_blocks=parser.protected_code_blocks,
         escaped_sequences=parser.escaped_sequences,
-        theme_name="default",
+        theme_name=theme,
         input_dir=tmpdir,
         watch=watch,
+        standalone=standalone,
     )
     compiler.compile()
     return (Path(tmpdir) / "index.html").read_text()
@@ -62,6 +69,75 @@ class TestWatchSSEInjection:
             html = _compile(source, tmpdir, watch=True)
         assert "event: reload" in html or "reload" in html
         assert "location.reload" in html
+
+
+# ---------------------------------------------------------------------------
+# Standalone mode
+# ---------------------------------------------------------------------------
+
+class TestStandaloneMode:
+    """--standalone inlines local assets and produces a single file."""
+
+    _SOURCE = ".slide{\n  .title{A}\n  .body{B}\n}\n"
+
+    def test_slidedown_css_inlined(self) -> None:
+        """slidedown.css content appears inline, not as a <link>."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            html = _compile(self._SOURCE, tmpdir, standalone=True)
+        # The local CSS link should be gone
+        assert 'href="css/slidedown.css"' not in html
+        # Its content should be present (sentinel from slidedown.css)
+        assert "<style>" in html
+
+    def test_theme_css_inlined(self) -> None:
+        """Theme CSS is inlined as a <style> block."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            html = _compile(self._SOURCE, tmpdir, standalone=True)
+        assert 'href="css/theme.css"' not in html
+
+    def test_slidedown_js_inlined(self) -> None:
+        """slidedown.js is inlined as a <script> block."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            html = _compile(self._SOURCE, tmpdir, standalone=True)
+        assert 'src="js/slidedown.js"' not in html
+
+    def test_no_asset_subdirs_written(self) -> None:
+        """In standalone mode no css/ or js/ subdirectories are created."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            _compile(self._SOURCE, tmpdir, standalone=True)
+            assert not (Path(tmpdir) / "css").exists()
+            assert not (Path(tmpdir) / "js").exists()
+
+    def test_only_index_html_written(self) -> None:
+        """Standalone output directory contains only index.html."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            _compile(self._SOURCE, tmpdir, standalone=True)
+            files = list(Path(tmpdir).iterdir())
+        assert len(files) == 1
+        assert files[0].name == "index.html"
+
+    def test_cdn_links_preserved(self) -> None:
+        """External CDN <link> and <script> tags are left untouched."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            html = _compile(self._SOURCE, tmpdir, standalone=True)
+        # jQuery is loaded from CDN — must survive standalone processing
+        assert "jquery" in html.lower()
+
+    def test_normal_mode_still_copies_assets(self) -> None:
+        """Without --standalone, asset directories are still created."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            _compile(self._SOURCE, tmpdir, standalone=False)
+            assert (Path(tmpdir) / "css").exists()
+            assert (Path(tmpdir) / "js").exists()
+
+    def test_standalone_lcars_scripts_inlined(self) -> None:
+        """LCARS theme: lcars-scripts.js and cascade.js are inlined."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            html = _compile(
+                self._SOURCE, tmpdir, standalone=True, theme="lcars-lower-decks"
+            )
+        assert 'src="js/lcars-scripts.js"' not in html
+        assert 'src="js/slidedown-lcars-cascade.js"' not in html
 
 
 # ---------------------------------------------------------------------------

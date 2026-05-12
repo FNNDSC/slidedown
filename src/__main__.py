@@ -100,6 +100,17 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--standalone",
+    action="store_true",
+    default=False,
+    help=(
+        "Inline all local CSS and JS into a single self-contained "
+        "index.html. No asset subdirectories are written. "
+        "External CDN links (jQuery, fonts) still require internet."
+    ),
+)
+
+parser.add_argument(
     "--watch",
     action="store_true",
     default=False,
@@ -287,6 +298,7 @@ def html_compile(inputstate: ProgramState) -> ProgramState:
             theme_name=state.themeName,
             input_dir=str(state.inputdir),
             watch=state.watch,
+            standalone=state.standalone,
         )
         state.compileResult = compiler.compile()
         LOG(
@@ -332,6 +344,8 @@ def results_report(inputstate: ProgramState) -> ProgramState:
         LOG("\n✓ Compilation successful!", level=1)
         LOG(f"  Output: {state.compileResult['output_file']}", level=1)
         LOG(f"  Slides: {state.compileResult['slide_count']}", level=1)
+        if state.standalone:
+            LOG("  Mode:   standalone (assets inlined)", level=1)
         if not state.watch:
             LOG("\nTo view:", level=1)
             LOG(f"  cd {state.htmlOutputdir}", level=1)
