@@ -1,0 +1,572 @@
+= Slidedown Type System
+Rudolph Pienaar <rudolph.pienaar@gmail.com>
+:toc: left
+:toclevels: 3
+:sectnums:
+:source-highlighter: pygments
+:icons: font
+:doctype: book
+
+== Overview
+
+Slidedown's type system lives entirely in `src/models/`. It is split across
+four modules, each with a distinct responsibility:
+
+[cols="1,2,3"]
+|===
+|Module |Source |Purpose
+
+|`models/compiler.py`
+|`src/models/compiler.py`
+|Primitive aliases, configuration TypedDicts, and the `ThemeLike` protocol
+
+|`models/parser.py`
+|`src/models/parser.py`
+|Parser-internal dataclasses and the `Modifiers` alias
+
+|`models/handlers.py`
+|`src/models/handlers.py`
+|Directive handler protocols (`DirectiveNode`, `CompilerContext`,
+`DirectiveHandler`)
+
+|`models/directives.py`
+|`src/models/directives.py`
+|Directive registry structures (`DirectiveSpec`, `DirectiveCategory`)
+|===
+
+Types flow in one direction through the pipeline:
+
+----
+Parser → ASTNode
+          ↓
+     DirectiveRegistry (DirectiveSpec / DirectiveHandler)
+          ↓
+     Compiler (CompilerContext) → CompileResult
+          ↓
+     Renderer (ThemeLike, PresentationMetaConfig, …)
+----
+
+== Primitive Aliases
+
+Defined in `src/models/compiler.py`.
+
+=== ConfigPrimitive
+
+[source,python]
+----
+ConfigPrimitive: TypeAlias = str | int | float | bool | None
+----
+
+A scalar value that can appear anywhere in a YAML configuration tree —
+theme files, `.meta{}` blocks, and CSS overrides.
+
+=== ConfigValue
+
+[source,python]
+----
+ConfigValue: TypeAlias = (
+    ConfigPrimitive | list["ConfigValue"] | dict[str, "ConfigValue"]
+)
+----
+
+A recursive union covering any value that can appear in a YAML document.
+Used as the value type wherever configuration data is passed around
+without a more specific type.
+
+=== CSSConfig
+
+[source,python]
+----
+CSSConfig: TypeAlias = dict[str, ConfigValue]
+----
+
+A flat or nested CSS configuration block from a theme YAML file or
+`.meta{css: …}`. Keys are either CSS property names (`font-size`) or
+CSS selector strings (`.container`).
+
+=== CSSPropertyMap
+
+[source,python]
+----
+CSSPropertyMap: TypeAlias = dict[str, str]
+----
+
+Maps a _config key name_ to its _CSS property name_. Used in style-building
+helpers inside `compiler_rendering.py` to translate structured config into
+inline CSS strings.
+
+.Example
+----
+{"background": "background-color", "color": "color"}
+----
+
+=== PlaceholderMap
+
+[source,python]
+----
+PlaceholderMap: TypeAlias = dict[int, str]
+----
+
+An integer ID → raw string lookup table. The parser uses two of these:
+
+* `protected_code_blocks` — stores raw `.code{}` content keyed by the
+  `\x00CODE_N\x00` placeholder ID embedded in the AST
+* `escaped_sequences` — stores backslash-escaped text keyed by the
+  `\x00ESCAPE_N\x00` placeholder ID
+
+The compiler expands both maps during the rendering pass.
+
+=== SlideCounters
+
+[source,python]
+----
+SlideCounters: TypeAlias = dict[int, int]
+----
+
+Maps a _slide number_ to a _per-slide event count_. Two counters of this
+type are maintained by `Compiler`:
+
+* `snippet_counters` — counts `.o{}` progressive-reveal items per slide
+* `typewriter_counters` — counts `.typewriter{}` animations per slide
+
+=== Modifiers
+
+Defined in `src/models/parser.py`.
+
+[source,python]
+----
+Modifiers: TypeAlias = dict[str, str]
+----
+
+Modifier directives extracted from an AST node's content. Keys are the
+modifier names (`style`, `class`) and values are their raw content strings.
+
+.Example
+----
+{"style": "color: red; font-weight: bold", "class": "highlight"}
+----
+
+== Parser Models
+
+Defined in `src/models/parser.py`. These dataclasses are internal to the
+parsing phase and are not passed into the compiler.
+
+=== DirectiveMatch
+
+[source,python]
+----
+@dataclass
+class DirectiveMatch:
+    name: str      # e.g. "slide", "font-doom"
+    position: int  # character offset in source string
+----
+
+Returned by `Parser.directive_find()` when the scanner locates a
+`.directive{` pattern. Carries just enough information to start recursive
+content extraction.
+
+=== ProcessedContent
+
+[source,python]
+----
+@dataclass
+class ProcessedContent:
+    content: str             # raw text with \x00CHILD_N\x00 placeholders
+    children: list[ASTNode]  # indexed to match placeholder IDs
+    modifiers: Modifiers     # extracted .style{} / .class{} values
+----
+
+Returned by `Parser.content_processRecursive()` after a directive's content
+has been recursively parsed. Nested directives are replaced by
+`\x00CHILD_N\x00` placeholders so the compiler can substitute compiled HTML
+in inside-out order.
+
+=== ExtractedModifiers
+
+[source,python]
+----
+@dataclass
+class ExtractedModifiers:
+    modifiers: Modifiers  # modifier name → value
+    remaining: str        # content with modifiers removed
+----
+
+Returned by `Parser.modifiers_extract()` after scanning the _start_ of a
+directive's content for `.style{}` and `.class{}` modifier directives.
+Whitespace is preserved in `remaining` when no modifiers are found.
+
+== Compiler Configuration Models
+
+Defined in `src/models/compiler.py`. All are `TypedDict` with
+`total=False` (all keys optional) unless noted.
+
+=== CompileResult
+
+[source,python]
+----
+class CompileResult(TypedDict):  # total=True — all keys always present
+    status: bool        # True on success
+    output_file: str    # absolute path to written index.html
+    slide_count: int    # number of .slide{} nodes compiled
+----
+
+Returned by `Compiler.compile()`.
+
+=== BuildInfo
+
+[source,python]
+----
+class BuildInfo(TypedDict):  # total=True
+    version: str    # package version from pyproject.toml
+    git_hash: str   # first five chars of HEAD commit hash
+    label: str      # combined display string, e.g. "1.3.0 (abc12)"
+----
+
+Injected into generated HTML as a hidden metadata element.
+
+=== WatermarkConfig
+
+[source,python]
+----
+class WatermarkConfig(TypedDict, total=False):
+    image: str                            # path relative to inputdir
+    position: str                         # "bottom-right", "center", …
+    opacity: float | int | str            # 0.0–1.0 or CSS value
+    size: str                             # CSS value, e.g. "15%"
+    offset: str | list[...] | tuple[...]  # CSS offset(s)
+----
+
+One entry in the `watermarks` list of `PresentationMetaConfig` or
+`SlideMasterConfig`.
+
+=== SlideMasterConfig
+
+[source,python]
+----
+class SlideMasterConfig(TypedDict, total=False):
+    watermarks: list[WatermarkConfig]
+----
+
+Deck-wide slide master settings. Applied to every slide.
+
+=== FooterConfig
+
+[source,python]
+----
+class FooterConfig(TypedDict, total=False):
+    left: str   # left footer text or HTML
+    right: str  # right footer text or HTML
+----
+
+=== ProgressConfig
+
+[source,python]
+----
+class ProgressConfig(TypedDict, total=False):
+    show: bool          # whether to render the progress bar
+    background: str     # CSS color for the bar track
+    height: str         # CSS height value
+    color: str          # CSS color for the filled portion
+----
+
+Nested inside `NavbarConfig`.
+
+=== NavbarContainerConfig
+
+[source,python]
+----
+NavbarContainerConfig = TypedDict("NavbarContainerConfig", {
+    "background": str,
+    "border": str,
+    "border-bottom": str,
+    "padding": str,
+    "box-shadow": str,
+}, total=False)
+----
+
+CSS properties applied to the navbar `<nav>` container element.
+Uses the functional `TypedDict` form because the keys contain hyphens.
+
+=== NavbarItemConfig
+
+[source,python]
+----
+NavbarItemConfig = TypedDict("NavbarItemConfig", {
+    "color": str, "background": str, "border": str,
+    "box-shadow": str, "margin": str, "margin-right": str,
+    "size": str, "shape": str, "icon": str,
+    "tooltip": str, "format": str, "font-size": str,
+}, total=False)
+----
+
+Per-item configuration for buttons, counters, and the slide title in the
+navbar. Also uses the functional form for hyphenated keys.
+
+=== NavbarZoneItem
+
+[source,python]
+----
+NavbarZoneItem: TypeAlias = str | dict[str, NavbarItemConfig]
+----
+
+One entry in a navbar zone list (`left`, `center`, `right`). A bare string
+names a built-in item (e.g. `"slide_counter"`); a dict form provides a
+name key plus `NavbarItemConfig` overrides.
+
+=== NavbarConfig
+
+[source,python]
+----
+class NavbarConfig(TypedDict, total=False):
+    show: bool
+    progress: ProgressConfig
+    container: NavbarContainerConfig
+    left: list[NavbarZoneItem]
+    center: list[NavbarZoneItem]
+    right: list[NavbarZoneItem]
+----
+
+Top-level navbar configuration block within `.meta{}`.
+
+=== LCARSConfig
+
+[source,python]
+----
+class LCARSConfig(TypedDict, total=False):
+    data_cascades: bool  # show cascade numbers in the LCARS topbar
+----
+
+LCARS-theme-specific settings within `.meta{lcars: …}`.
+
+=== TypographyConfig
+
+[source,python]
+----
+class TypographyConfig(TypedDict, total=False):
+    baseline: str              # "compact" | "normal" | "large" | "xlarge" | "presentation"
+    scale: str | int | float   # explicit multiplier; overrides baseline
+----
+
+Controls the deck-wide font scale. `baseline` maps to a predefined
+multiplier in `compiler_rendering.TYPOGRAPHY_BASELINES`; `scale` overrides
+it with an explicit numeric value.
+
+=== SnippetsConfig
+
+[source,python]
+----
+class SnippetsConfig(TypedDict, total=False):
+    marker: str  # CSS content value shown before each .o{} bullet
+----
+
+=== PresentationMetaConfig
+
+[source,python]
+----
+class PresentationMetaConfig(TypedDict, total=False):
+    title: str
+    css: CSSConfig
+    watermarks: list[WatermarkConfig]
+    slide_master: SlideMasterConfig
+    footer: FooterConfig
+    navbar: NavbarConfig
+    lcars: LCARSConfig
+    typography: TypographyConfig
+    snippets: SnippetsConfig
+----
+
+The top-level model for everything parsed out of a `.meta{}` block.
+Populated by the `meta_handler` in `DirectiveRegistry` and stored on the
+`Compiler` instance as `meta_config`. The renderer merges this with theme
+defaults via `config_getMerged()`.
+
+== Handler Protocols
+
+Defined in `src/models/handlers.py`. Protocols describe the subset of
+`Compiler` that directive handlers and rendering helpers are allowed to
+depend on.
+
+=== DirectiveNode
+
+[source,python]
+----
+class DirectiveNode(Protocol):
+    directive: str           # e.g. "slide", "bf", "font-doom"
+    modifiers: Modifiers     # extracted .style{} / .class{} values
+    content: str             # compiled child HTML already substituted
+    children: Sequence[DirectiveNode]
+    line_number: int
+----
+
+The view of an AST node seen by a directive handler at compile time.
+Content has already had child placeholders substituted (inside-out
+compilation).
+
+=== CompilerContext
+
+[source,python]
+----
+class CompilerContext(Protocol):
+    input_dir: Path
+    meta_config: PresentationMetaConfig
+    protected_code_blocks: PlaceholderMap
+    escaped_sequences: PlaceholderMap
+    slide_count: int
+    snippet_counters: SlideCounters
+    theme: ThemeLike
+    typewriter_counters: SlideCounters
+
+    def ast_compile(self, nodes: list) -> str: ...
+    def config_getMerged(self, key: str, default: ConfigValue = None) -> ConfigValue: ...
+    def watermarks_generate(self) -> str: ...
+----
+
+The view of `Compiler` seen by directive handlers. Structural directives
+(`.slide{}`, `.include{}`) call `ast_compile()` to recursively compile
+sub-trees. Configuration directives read merged theme+meta config via
+`config_getMerged()`.
+
+=== DirectiveHandler
+
+[source,python]
+----
+DirectiveHandler: TypeAlias = Callable[[DirectiveNode, CompilerContext], str]
+----
+
+The function signature every directive handler must satisfy. Takes a node
+and compiler context; returns an HTML string.
+
+== Directive Registry Models
+
+Defined in `src/models/directives.py`.
+
+=== DirectiveCategory
+
+[source,python]
+----
+class DirectiveCategory(Enum):
+    STRUCTURAL = "structural"   # .slide{}, .title{}, .body{}, .include{}
+    FORMATTING = "formatting"   # .bf{}, .em{}, .tt{}, .code{}
+    LAYOUT     = "layout"       # .column{} (extensible)
+    EFFECT     = "effect"       # .typewriter{}, .o{}
+    TRANSFORM  = "transform"    # .font-*, .cowpy-*
+    MODIFIER   = "modifier"     # .style{}, .class{} (parser-reserved)
+    METADATA   = "metadata"     # .meta{}, .comment{}
+----
+
+=== DirectiveSpec
+
+[source,python]
+----
+@dataclass
+class DirectiveSpec:
+    name: str                    # directive name without leading dot
+    category: DirectiveCategory
+    description: str             # human-readable summary
+    handler: DirectiveHandler    # compilation function
+    requires_children: bool = False
+    allows_nesting: bool = True
+    is_wildcard: bool = False    # True for font-*, cowpy-*
+    examples: list[str] = []
+    aliases: list[str] = []
+----
+
+One entry in `DirectiveRegistry.specs`. The `matches()` method handles
+exact name, alias lookup, and prefix-wildcard expansion (e.g. `font-*`
+matches `font-doom`).
+
+=== RESERVED_DIRECTIVES
+
+[source,python]
+----
+RESERVED_DIRECTIVES: set[str] = {"style", "class", "syntax"}
+----
+
+Directives consumed by the parser as modifiers before the AST is built.
+They never reach `DirectiveRegistry` and have no `DirectiveSpec`.
+
+== ThemeLike Protocol
+
+Defined in `src/models/compiler.py`.
+
+[source,python]
+----
+class ThemeLike(Protocol):
+    name: str
+
+    def assetsDir_get(self) -> Path | None: ...
+    def config_get(self, key: str, default: ConfigValue = None) -> ConfigValue: ...
+    def cssPath_get(self) -> Path | None: ...
+    def lcars_is(self) -> bool: ...
+    def pygmentsStyle_get(self) -> str: ...
+    def templatePath_get(self, template_name: str) -> Path: ...
+----
+
+The interface the compiler and renderer depend on from the concrete `Theme`
+class. Allows theme implementations to be swapped without changing
+compiler code, and allows rendering helpers to be tested against a mock
+that satisfies the protocol.
+
+== Internal Aliases
+
+These are used within a single module and not exported from `models/`.
+
+=== _NavbarButtonDefs
+
+[source,python]
+----
+_NavbarButtonDefs: TypeAlias = dict[str, dict[str, str]]
+----
+
+Return type of `_navbarButtonDefs_get()` in `compiler_rendering.py`.
+Maps a button type string (e.g. `"slide_previous"`) to a flat dict of
+HTML/CSS properties (`id`, `onclick`, `icon`, `class`, `tooltip`).
+
+== How the Types Fit Together
+
+The following diagram shows the ownership chain for the two most important
+runtime structures:
+
+----
+PresentationMetaConfig          (parsed from .meta{} blocks)
+  ├── css: CSSConfig
+  ├── watermarks: list[WatermarkConfig]
+  ├── footer: FooterConfig
+  ├── navbar: NavbarConfig
+  │     ├── progress: ProgressConfig
+  │     ├── container: NavbarContainerConfig
+  │     └── left/center/right: list[NavbarZoneItem]
+  ├── lcars: LCARSConfig
+  ├── typography: TypographyConfig
+  ├── snippets: SnippetsConfig
+  └── slide_master: SlideMasterConfig
+        └── watermarks: list[WatermarkConfig]
+
+Compiler (CompilerContext)
+  ├── meta_config: PresentationMetaConfig
+  ├── theme: ThemeLike
+  ├── protected_code_blocks: PlaceholderMap   (int → raw code string)
+  ├── escaped_sequences: PlaceholderMap       (int → escaped literal)
+  ├── snippet_counters: SlideCounters         (slide# → snippet count)
+  └── typewriter_counters: SlideCounters      (slide# → anim count)
+----
+
+== Adding a New Type
+
+Follow this checklist when introducing a new structured type:
+
+. **Is it a configuration block from `.meta{}` or theme YAML?**
+  Add a `TypedDict` with `total=False` to `models/compiler.py` and add
+  a field for it in `PresentationMetaConfig`.
+
+. **Is it a parser internal (scan result, extraction result)?**
+  Add a `@dataclass` to `models/parser.py`.
+
+. **Is it a simple `dict` used in more than one place?**
+  Add a `TypeAlias` to whichever models module owns the concept.
+  If it crosses module boundaries, put it in `models/compiler.py`.
+
+. **Is it only used inside one module?**
+  Prefix with `_` and keep it local (like `_NavbarButtonDefs`).
+
+. **Export from `models/__init__.py`** if external code needs it.

@@ -177,6 +177,7 @@ Supported density classes are `hero`, `roomy`, `dense`, and `compact`.
 - Complete guide: [`docs/sd-guide.adoc`](docs/sd-guide.adoc)
 - Tips and patterns: [`docs/tips-n-tricks.adoc`](docs/tips-n-tricks.adoc)
 - LCARS theme guide: [`docs/lcars.adoc`](docs/lcars.adoc)
+- Type system reference: [`docs/types.adoc`](docs/types.adoc)
 - Examples: [`examples/`](examples/)
 - README presentation source:
   [`docs/readme-presentation.sd`](docs/readme-presentation.sd)
