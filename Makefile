@@ -45,6 +45,7 @@ endif
 
 .PHONY: help venv dev install test lint format typecheck clean purge shell
 .PHONY: compile serve presentation readme-presentation
+.PHONY: build publish publish-test
 
 help:
 	@echo "Slidedown development targets:"
@@ -78,6 +79,11 @@ help:
 	@echo "  make lint       - Run ruff linter"
 	@echo "  make format     - Run black formatter"
 	@echo "  make typecheck  - Run mypy type checker"
+	@echo ""
+	@echo "Publishing:"
+	@echo "  make build        - Build sdist + wheel into dist/"
+	@echo "  make publish-test - Upload to TestPyPI (dry-run)"
+	@echo "  make publish      - Upload to PyPI (requires ~/.pypirc or TWINE_* env vars)"
 	@echo ""
 	@echo "Cleanup:"
 	@echo "  make clean      - Remove build artifacts"
@@ -172,6 +178,26 @@ readme-presentation:
 	@echo "✓ README presentation updated in docs/readme-presentation/"
 	@echo "  View locally: open docs/readme-presentation/index.html"
 	@echo "  Or commit and push to update GitHub Pages"
+
+build:
+	@echo "Building source distribution and wheel..."
+	$(VENV_BIN)/pip install --quiet build
+	$(VENV_BIN)/python -m build
+	@echo "Artifacts in dist/:"
+	@ls -lh dist/
+
+publish-test: build
+	@echo "Uploading to TestPyPI (https://test.pypi.org)..."
+	$(VENV_BIN)/pip install --quiet twine
+	$(VENV_BIN)/twine upload --repository testpypi dist/*
+	@echo "Install from TestPyPI with:"
+	@echo "  pip install --index-url https://test.pypi.org/simple/ slidedown"
+
+publish: build
+	@echo "Uploading to PyPI..."
+	$(VENV_BIN)/pip install --quiet twine
+	$(VENV_BIN)/twine upload dist/*
+	@echo "Install with: pip install slidedown"
 
 clean:
 	rm -rf build/ dist/ *.egg-info .mypy_cache .pytest_cache
