@@ -582,10 +582,11 @@ class DirectiveRegistry:
             try:
                 f: Figlet = Figlet(font=font_name)
                 ascii_art: str = f.renderText(node.content)
-                return f"<pre>{ascii_art}</pre>"
+                return f'<pre class="figlet-art">{ascii_art}</pre>'
             except Exception:
                 return (
-                    f'<pre>ERROR: Figlet font "{font_name}" not found\n'
+                    f'<pre class="figlet-art">'
+                    f'ERROR: Figlet font "{font_name}" not found\n'
                     f"{node.content}</pre>"
                 )
 

@@ -2023,6 +2023,19 @@ body {
     line-height: 1.35 !important;
 }
 
+/* ASCII art (figlet) must render in monospace for correct alignment */
+.formLayout .figlet-art,
+.figlet-art {
+    font-family: 'Courier New', Courier, monospace !important;
+    line-height: 1.2 !important;
+    white-space: pre !important;
+    color: var(--h1-color, #fc9) !important;
+    font-size: calc(
+        0.9rem * var(--deck-typography-scale, 1) *
+        var(--slide-density-scale)
+    ) !important;
+}
+
 /* Style slidedown's snippet (progressive reveal) items */
 .formLayout .snippet {
     color: var(--font-color, #f91) !important;
