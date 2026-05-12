@@ -6,14 +6,21 @@ from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Protocol, TypeAlias
 
-from .compiler import ConfigValue, PresentationMetaConfig, ThemeLike
+from .compiler import (
+    ConfigValue,
+    PlaceholderMap,
+    PresentationMetaConfig,
+    SlideCounters,
+    ThemeLike,
+)
+from .parser import Modifiers
 
 
 class DirectiveNode(Protocol):
     """AST node attributes consumed by directive handlers."""
 
     directive: str
-    modifiers: dict[str, str]
+    modifiers: Modifiers
     content: str
     children: Sequence[DirectiveNode]
     line_number: int
@@ -24,12 +31,12 @@ class CompilerContext(Protocol):
 
     input_dir: Path
     meta_config: PresentationMetaConfig
-    protected_code_blocks: dict[int, str]
-    escaped_sequences: dict[int, str]
+    protected_code_blocks: PlaceholderMap
+    escaped_sequences: PlaceholderMap
     slide_count: int
-    snippet_counters: dict[int, int]
+    snippet_counters: SlideCounters
     theme: ThemeLike
-    typewriter_counters: dict[int, int]
+    typewriter_counters: SlideCounters
 
     def ast_compile(self, nodes: list) -> str: ...
 

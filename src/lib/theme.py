@@ -13,7 +13,7 @@ from pathlib import Path
 
 import yaml
 
-from ..models.compiler import ConfigValue
+from ..models.compiler import CSSConfig, ConfigValue
 
 
 class ThemeError(Exception):
@@ -57,7 +57,7 @@ class Theme:
         if not self.config_path.exists():
             raise ThemeError(f"Theme '{theme_name}' missing theme.yaml")
 
-        self.config: dict[str, ConfigValue] = self._config_load()
+        self.config: CSSConfig = self._config_load()
         self.css_path: Path = self.theme_dir / "theme.css"
         self.assets_dir: Path = self.theme_dir / "assets"
 
@@ -91,7 +91,7 @@ class Theme:
 
         return requested_path
 
-    def _config_load(self) -> dict[str, ConfigValue]:
+    def _config_load(self) -> CSSConfig:
         """Load and parse the selected theme configuration.
 
         Returns:

@@ -11,6 +11,20 @@ ConfigValue: TypeAlias = (
 )
 CSSConfig: TypeAlias = dict[str, ConfigValue]
 
+# Placeholder maps: parser assigns integer IDs to protected code blocks and
+# backslash-escaped sequences; the compiler expands them back during rendering.
+PlaceholderMap: TypeAlias = dict[int, str]
+
+# Per-slide counters (slide_number → count) for snippets and typewriters.
+SlideCounters: TypeAlias = dict[int, int]
+
+# Maps a config-key name to its CSS property name, used in style-building
+# helpers (e.g. {"background": "background-color"}).
+CSSPropertyMap: TypeAlias = dict[str, str]
+
+# Internal navbar button definition map: button-type → CSS/HTML property dict.
+_NavbarButtonDefs: TypeAlias = dict[str, dict[str, str]]
+
 
 class CompileResult(TypedDict):
     """Result returned by Compiler.compile()."""

@@ -13,7 +13,9 @@ from typing import cast
 from ..models.compiler import (
     CompileResult,
     ConfigValue,
+    PlaceholderMap,
     PresentationMetaConfig,
+    SlideCounters,
 )
 from ..models.handlers import CompilerContext, DirectiveNode
 from . import compiler_assets, compiler_rendering
@@ -41,8 +43,8 @@ class Compiler:
         output_dir: str,
         assets_dir: str,
         verbosity: int = 1,
-        protected_code_blocks: dict[int, str] | None = None,
-        escaped_sequences: dict[int, str] | None = None,
+        protected_code_blocks: PlaceholderMap | None = None,
+        escaped_sequences: PlaceholderMap | None = None,
         theme_name: str = "default",
         input_dir: str = ".",
         watch: bool = False,
@@ -77,10 +79,8 @@ class Compiler:
         LOG(f"Loaded theme: {self.theme.name}", level=2)
 
         self.slide_count = 0
-        self.snippet_counters: dict[int, int] = (
-            {}
-        )  # slide_num -> snippet_count
-        self.typewriter_counters: dict[int, int] = (
+        self.snippet_counters: SlideCounters = {}  # slide_num -> snippet_count
+        self.typewriter_counters: SlideCounters = (
             {}
         )  # slide_num -> typewriter_count
         self.meta_config: PresentationMetaConfig = (

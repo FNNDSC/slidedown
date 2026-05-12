@@ -19,7 +19,7 @@ from pygments.lexer import Lexer
 from pygments.lexers import TextLexer, get_lexer_by_name
 from pygments.util import ClassNotFound
 
-from ..models.compiler import PresentationMetaConfig
+from ..models.compiler import PlaceholderMap, PresentationMetaConfig
 from ..models.directives import DirectiveCategory, DirectiveSpec
 from ..models.handlers import CompilerContext, DirectiveNode
 from . import directive_groups
@@ -959,7 +959,7 @@ class DirectiveRegistry:
                 ]
 
                 # Rebase code-block placeholder IDs to avoid collisions
-                parent_blocks: dict[int, str] = getattr(
+                parent_blocks: PlaceholderMap = getattr(
                     compiler, "protected_code_blocks", {}
                 )
                 id_offset = (
@@ -971,7 +971,7 @@ class DirectiveRegistry:
                         parent_blocks[k + id_offset] = v
 
                 # Rebase escape-sequence placeholder IDs similarly
-                parent_escapes: dict[int, str] = getattr(
+                parent_escapes: PlaceholderMap = getattr(
                     compiler, "escaped_sequences", {}
                 )
                 esc_offset = (

@@ -28,9 +28,11 @@ import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from ..models.compiler import PlaceholderMap
 from ..models.parser import (
     DirectiveMatch,
     ExtractedModifiers,
+    Modifiers,
     ProcessedContent,
 )
 
@@ -71,7 +73,7 @@ class ASTNode:
     """
 
     directive: str
-    modifiers: dict[str, str]
+    modifiers: Modifiers
     content: str
     children: list[ASTNode]
     line_number: int
@@ -118,8 +120,8 @@ class Parser:
         self.position = 0
         self.line_number = 1
         self.ast: list[ASTNode] = []
-        self.protected_code_blocks: dict[int, str] = {}
-        self.escaped_sequences: dict[int, str] = {}
+        self.protected_code_blocks: PlaceholderMap = {}
+        self.escaped_sequences: PlaceholderMap = {}
 
         # Import and create registry if not provided
         if registry is None:
@@ -506,7 +508,7 @@ class Parser:
 
         # Extract modifiers first
         extracted: ExtractedModifiers = self.modifiers_extract(content)
-        modifiers: dict[str, str] = extracted.modifiers
+        modifiers: Modifiers = extracted.modifiers
         remaining_content: str = extracted.remaining
 
         # Find and replace nested directives with placeholders
@@ -617,7 +619,7 @@ class Parser:
             Input: "  Plain text"
             Output: ExtractedModifiers(modifiers={}, remaining="  Plain text")
         """
-        modifiers: dict[str, str] = {}
+        modifiers: Modifiers = {}
         pos = 0
 
         # Skip leading whitespace to find modifiers

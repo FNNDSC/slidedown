@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, TypeVar
 if TYPE_CHECKING:
     from ..lib.parser import ASTNode
 
-from .compiler import CompileResult
+from .compiler import CompileResult, PlaceholderMap
 
 PS = TypeVar("PS", bound="ProgramState")
 
@@ -68,10 +68,10 @@ class ProgramState:
     assetsInputdir: Path = field(default=Path("/"))
     htmlOutputdir: Path = field(default=Path("/"))
     parsedSource: list["ASTNode"] | None = field(default=None)
-    protectedCodeBlocks: dict[int, str] = field(
+    protectedCodeBlocks: PlaceholderMap = field(
         default_factory=dict
     )  # Protected .code{} blocks
-    escapedSequences: dict[int, str] = field(
+    escapedSequences: PlaceholderMap = field(
         default_factory=dict
     )  # Backslash-escaped sequences
     compileResult: CompileResult | None = field(default=None)

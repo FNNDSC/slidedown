@@ -14,6 +14,7 @@ from ..models.compiler import (
     BuildInfo,
     ConfigValue,
     CSSConfig,
+    CSSPropertyMap,
     FooterConfig,
     LCARSConfig,
     NavbarConfig,
@@ -26,6 +27,7 @@ from ..models.compiler import (
     ThemeLike,
     TypographyConfig,
     WatermarkConfig,
+    _NavbarButtonDefs,
 )
 from .log import LOG
 
@@ -740,11 +742,11 @@ def _navbarItem_generate(
 def _navbarButton_generate(
     button_type: str, config: NavbarItemConfig | None = None
 ) -> str:
-    button_defs: dict[str, dict[str, str]] = _navbarButtonDefs_get()
+    button_defs: _NavbarButtonDefs = _navbarButtonDefs_get()
     if button_type not in button_defs:
         return ""
 
-    defaults: dict[str, str] = button_defs[button_type]
+    defaults: dict[str, str] = button_defs[button_type]  # inner dict
     config = config or {}
     style_attr: str = _navbarButtonStyle_get(config)
     icon: str = config.get("icon", defaults["icon"])
@@ -826,7 +828,7 @@ def _textStyleAttr_build(config: NavbarItemConfig) -> str:
 
 def _styleAttr_build(
     config: Mapping[str, ConfigValue],
-    css_map: dict[str, str],
+    css_map: CSSPropertyMap,
 ) -> str:
     style_parts: list[str] = _styleParts_build(config, css_map)
     return f' style="{"; ".join(style_parts)}"' if style_parts else ""
@@ -834,7 +836,7 @@ def _styleAttr_build(
 
 def _styleParts_build(
     config: Mapping[str, ConfigValue],
-    css_map: dict[str, str],
+    css_map: CSSPropertyMap,
 ) -> list[str]:
     return [
         f"{css_property}: {config[config_key]}"
@@ -843,7 +845,7 @@ def _styleParts_build(
     ]
 
 
-def _navbarButtonDefs_get() -> dict[str, dict[str, str]]:
+def _navbarButtonDefs_get() -> _NavbarButtonDefs:
     return {
         "slide_first": {
             "id": "first",

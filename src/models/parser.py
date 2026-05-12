@@ -5,10 +5,14 @@ Type-safe structures for parser operations and return values.
 """
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeAlias
 
 if TYPE_CHECKING:
     from ..lib.parser import ASTNode
+
+# Directive modifier dict: maps modifier name → value
+# e.g. {"style": "color: red", "class": "highlight"}
+Modifiers: TypeAlias = dict[str, str]
 
 
 @dataclass
@@ -59,7 +63,7 @@ class ProcessedContent:
 
     content: str
     children: list["ASTNode"]  # Forward reference for type checking
-    modifiers: dict[str, str]
+    modifiers: Modifiers
 
 
 @dataclass
@@ -90,5 +94,5 @@ class ExtractedModifiers:
         )
     """
 
-    modifiers: dict[str, str]
+    modifiers: Modifiers
     remaining: str
