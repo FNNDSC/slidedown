@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Callable
-from typing import cast
+from typing import Any, cast
 
 import cowsay as cowsay_module
 from pyfiglet import Figlet
@@ -29,7 +29,7 @@ from .log import LOG
 CLASS_TOKEN_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_-]*$")
 
 
-def _ast_rebaseCodeIDs(nodes: list, offset: int) -> None:
+def _ast_rebaseCodeIDs(nodes: list[Any], offset: int) -> None:
     """Rewrite CODE placeholder IDs in AST content strings by offset.
 
     Args:
@@ -45,7 +45,7 @@ def _ast_rebaseCodeIDs(nodes: list, offset: int) -> None:
         _ast_rebaseCodeIDs(list(node.children), offset)
 
 
-def _ast_rebaseEscapeIDs(nodes: list, offset: int) -> None:
+def _ast_rebaseEscapeIDs(nodes: list[Any], offset: int) -> None:
     """Rewrite ESCAPE placeholder IDs in AST content strings by offset.
 
     Args:

@@ -6,8 +6,8 @@ to reload.
 
 Usage (from __main__.py after initial compile):
 
-    from .lib.watcher import watch_and_serve
-    watch_and_serve(state)
+    from .lib.watcher import watcher_serve
+    watcher_serve(state)
 """
 
 from __future__ import annotations
@@ -61,7 +61,7 @@ class SSEBroadcaster:
         with self._lock:
             self._generation += 1
 
-    def current(self) -> int:
+    def generation_current(self) -> int:
         """Return the current generation counter."""
         with self._lock:
             return self._generation
@@ -80,7 +80,7 @@ class _ThreadedHTTPServer(socketserver.ThreadingMixIn, HTTPServer):
 class SlidedownHTTPHandler(BaseHTTPRequestHandler):
     """Serve static files from output_dir and SSE events at /events.
 
-    Class attributes are set by watch_and_serve() before the server starts.
+    Class attributes are set by watcher_serve() before the server starts.
     Using class attributes (rather than instance or closure) avoids the need
     for a handler factory and keeps the code straightforward.
     """
@@ -89,14 +89,15 @@ class SlidedownHTTPHandler(BaseHTTPRequestHandler):
     output_dir: Path
 
     def do_GET(self) -> None:
+        """Route GET requests to the SSE or static file handler."""
         if self.path == "/events" or self.path.startswith("/events?"):
-            self._handle_sse()
+            self.sse_handle()
         else:
-            self._handle_static()
+            self.static_handle()
 
-    def _handle_sse(self) -> None:
+    def sse_handle(self) -> None:
         """Long-poll SSE endpoint. Sends one reload event then closes."""
-        seen = self.broadcaster.current()
+        seen = self.broadcaster.generation_current()
         try:
             self.send_response(200)
             self.send_header("Content-Type", "text/event-stream")
@@ -107,7 +108,7 @@ class SlidedownHTTPHandler(BaseHTTPRequestHandler):
 
             deadline = time.monotonic() + _SSE_TIMEOUT
             while time.monotonic() < deadline:
-                current = self.broadcaster.current()
+                current = self.broadcaster.generation_current()
                 if current != seen:
                     self.wfile.write(b"event: reload\ndata: \n\n")
                     self.wfile.flush()
@@ -120,7 +121,7 @@ class SlidedownHTTPHandler(BaseHTTPRequestHandler):
         except (BrokenPipeError, ConnectionResetError):
             pass
 
-    def _handle_static(self) -> None:
+    def static_handle(self) -> None:
         """Serve a static file from output_dir."""
         raw_path = urllib.parse.unquote(self.path.split("?", 1)[0])
         clean = posixpath.normpath(raw_path).lstrip("/")
@@ -134,7 +135,9 @@ class SlidedownHTTPHandler(BaseHTTPRequestHandler):
             return
 
         data = full.read_bytes()
-        content_type = _MIME.get(full.suffix.lower(), "application/octet-stream")
+        content_type = _MIME.get(
+            full.suffix.lower(), "application/octet-stream"
+        )
         self.send_response(200)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(data)))
@@ -145,8 +148,15 @@ class SlidedownHTTPHandler(BaseHTTPRequestHandler):
         pass  # Suppress per-request noise; watcher prints its own messages
 
 
-def _find_free_port(start: int) -> int:
-    """Return start if free, else the next free port above it."""
+def port_findFree(start: int) -> int:
+    """Return start if free, else the next free port above it.
+
+    Args:
+        start: Port number to try first.
+
+    Returns:
+        First available port number >= start.
+    """
     import socket
 
     port = start
@@ -160,7 +170,7 @@ def _find_free_port(start: int) -> int:
                 port += 1
 
 
-def watch_and_serve(state: ProgramState) -> None:
+def watcher_serve(state: ProgramState) -> None:
     """Start HTTP server and watch source file; block until Ctrl-C.
 
     Recompiles the deck on every detected change to the source .sd file
@@ -181,12 +191,14 @@ def watch_and_serve(state: ProgramState) -> None:
     SlidedownHTTPHandler.broadcaster = broadcaster
     SlidedownHTTPHandler.output_dir = output_dir
 
-    port = _find_free_port(state.port)
+    port = port_findFree(state.port)
     if port != state.port:
         print(f"[watch] Port {state.port} in use, using {port} instead.")
 
     server = _ThreadedHTTPServer(("", port), SlidedownHTTPHandler)
-    server_thread = threading.Thread(target=server.serve_forever, daemon=True)
+    server_thread = threading.Thread(
+        target=server.serve_forever, daemon=True
+    )
     server_thread.start()
 
     print(f"[watch] Serving on http://localhost:{port}/")
@@ -208,7 +220,8 @@ def watch_and_serve(state: ProgramState) -> None:
 
             last_mtime = current_mtime
             print(
-                f"[watch] Change detected — recompiling {source_file.name}..."
+                f"[watch] Change detected — recompiling "
+                f"{source_file.name}..."
             )
 
             try:

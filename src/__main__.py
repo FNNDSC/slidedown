@@ -384,9 +384,9 @@ def main(options: Namespace, inputdir: Path, outputdir: Path) -> None:
 
     # Watch mode: start live-reload server (blocks until Ctrl-C)
     if final_state.watch:
-        from .lib.watcher import watch_and_serve
+        from .lib.watcher import watcher_serve
 
-        watch_and_serve(final_state)
+        watcher_serve(final_state)
 
 
 if __name__ == "__main__":
