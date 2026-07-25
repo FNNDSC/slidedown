@@ -16,6 +16,7 @@ from ..models.compiler import (
     CSSConfig,
     CSSPropertyMap,
     FooterConfig,
+    JumpRefs,
     LCARSConfig,
     NavbarConfig,
     NavbarContainerConfig,
@@ -23,12 +24,14 @@ from ..models.compiler import (
     NavbarZoneItem,
     PresentationMetaConfig,
     ProgressConfig,
+    SlideAddresses,
     SnippetsConfig,
     ThemeLike,
     TypographyConfig,
     WatermarkConfig,
     _NavbarButtonDefs,
 )
+from . import nexus
 from .log import LOG
 
 PACKAGE_NAME = "slidedown"
@@ -46,7 +49,9 @@ class CompilerRenderer(Protocol):
     """Compiler attributes and methods required by rendering helpers."""
 
     input_dir: Path
+    jump_refs: JumpRefs
     meta_config: PresentationMetaConfig
+    slide_addresses: SlideAddresses
     slide_count: int
     standalone: bool
     theme: ThemeLike
@@ -191,6 +196,11 @@ def htmlDocument_build(compiler: CompilerRenderer, content: str) -> str:
                 '    <div class="presentation-viewport">',
                 _metadata_html("numberOfSlides", str(compiler.slide_count)),
                 _metadata_html("slideIDprefix", "slide-"),
+                nexus.navigationGraph_htmlEmit(
+                    compiler.slide_addresses,
+                    compiler.jump_refs,
+                    compiler.slide_count,
+                ),
                 "",
                 compiler.lcarsFrame_generate(form_layout, navbar_html),
                 "    </div>",
@@ -202,6 +212,11 @@ def htmlDocument_build(compiler: CompilerRenderer, content: str) -> str:
                 '    <div class="presentation-viewport">',
                 _metadata_html("numberOfSlides", str(compiler.slide_count)),
                 _metadata_html("slideIDprefix", "slide-"),
+                nexus.navigationGraph_htmlEmit(
+                    compiler.slide_addresses,
+                    compiler.jump_refs,
+                    compiler.slide_count,
+                ),
                 "",
                 f"        {navbar_html}",
                 "",

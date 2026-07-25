@@ -22,6 +22,12 @@ SlideCounters: TypeAlias = dict[int, int]
 # come from an explicit .id{} or are slugified from .title{}.
 SlideAddresses: TypeAlias = dict[str, int]
 
+# .jump{} references recorded during the compile walk as
+# (target_address, slide_number_the_jump_appears_on). Targets are resolved
+# after the walk, when every slide address is known, so a jump may point
+# forward to a slide that has not been compiled yet.
+JumpRefs: TypeAlias = list[tuple[str, int]]
+
 # Maps a config-key name to its CSS property name, used in style-building
 # helpers (e.g. {"background": "background-color"}).
 CSSPropertyMap: TypeAlias = dict[str, str]

@@ -309,6 +309,64 @@ class DirectiveRegistry:
                 "</div>\n"
             )
 
+        def target_handler(
+            node: DirectiveNode, compiler: CompilerContext
+        ) -> str:
+            """Compile a jump target reference.
+
+            Args:
+                node: Parsed ``.target{}`` AST node.
+                compiler: Active compiler instance.
+
+            Returns:
+                Empty string; jump_handler reads the target off the node.
+            """
+            return ""
+
+        def jump_handler(
+            node: DirectiveNode, compiler: CompilerContext
+        ) -> str:
+            """Compile a jump to another slide.
+
+            Renders a real anchor so that focus order, screen readers, and
+            touch behaviour come from the browser. The existing click
+            handler already ignores clicks on ``A`` elements, so a jump
+            does not also advance the deck.
+
+            The target is emitted as an address, not a slide number: a jump
+            may point forward to a slide that has not compiled yet.
+            Resolution and validation happen after the walk.
+
+            Args:
+                node: Parsed ``.jump{}`` AST node.
+                compiler: Active compiler instance.
+
+            Returns:
+                Anchor element for the jump, or an empty string when no
+                target was supplied.
+            """
+            target: str = ""
+            for child in node.children:
+                if child.directive == "target":
+                    target = child.content.strip()
+                    break
+
+            if not target:
+                LOG(".jump{} without a .target{} — skipping", level=1)
+                return ""
+
+            address: str = nexus.titleSlug_make(target)
+            compiler.jump_refs.append((address, compiler.slide_count))
+
+            label: str = node.content.strip() or address
+
+            # href works without JavaScript: the runtime accepts an address
+            # in the slide parameter, so an un-scripted click still lands.
+            return (
+                f'<a class="sd-jump" data-jump="{address}" '
+                f'href="?slide={address}">{label}</a>'
+            )
+
         def id_handler(
             node: DirectiveNode, compiler: CompilerContext
         ) -> str:
@@ -463,6 +521,26 @@ class DirectiveRegistry:
                 description="Explicit slide address for nexus navigation",
                 handler=id_handler,
                 examples=[".slide{.id{rerun} .title{Re-Run} .body{...}}"],
+            )
+        )
+
+        self.register(
+            DirectiveSpec(
+                name="target",
+                category=DirectiveCategory.STRUCTURAL,
+                description="Destination address of a .jump{} (metadata)",
+                handler=target_handler,
+                examples=[".target{rerun}"],
+            )
+        )
+
+        self.register(
+            DirectiveSpec(
+                name="jump",
+                category=DirectiveCategory.STRUCTURAL,
+                description="Link to another slide by address",
+                handler=jump_handler,
+                examples=[".jump{.target{rerun} Does it survive a re-run?}"],
             )
         )
 

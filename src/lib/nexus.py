@@ -16,13 +16,27 @@ See ``docs/nexus-navigation.adoc`` for the full design.
 
 from __future__ import annotations
 
+import json
 import re
 
-from ..models.compiler import SlideAddresses
+from ..models.compiler import JumpRefs, SlideAddresses
+
+# Schema version for the emitted navigation graph. The runtime reads this
+# and refuses graphs it does not understand rather than guessing.
+GRAPH_VERSION = 1
+
+GRAPH_ELEMENT_ID = "nexusGraph"
 
 
 class SlideAddressCollision(ValueError):
     """Two slides resolved to the same address."""
+
+
+class UnresolvedJumpTarget(ValueError):
+    """A .jump{} names a slide address that no slide claims."""
+
+
+
 
 
 def titleSlug_make(title: str) -> str:
@@ -93,3 +107,97 @@ def slideAddress_register(
         )
 
     addresses[address] = slide_num
+
+
+def jumpRefs_validate(
+    jump_refs: JumpRefs, addresses: SlideAddresses
+) -> None:
+    """
+    Reject jumps whose target address no slide claims.
+
+    Runs after the compile walk, when every address is known, so a jump may
+    legitimately point forward to a slide compiled later than itself.
+
+    Args:
+        jump_refs: Recorded (target_address, source_slide) pairs.
+        addresses: Completed address map.
+
+    Raises:
+        UnresolvedJumpTarget: A jump names an address that does not exist.
+    """
+    for target, source_slide in jump_refs:
+        if target in addresses:
+            continue
+
+        known: str = ", ".join(sorted(addresses)) or "(none)"
+        raise UnresolvedJumpTarget(
+            f".jump{{}} on slide {source_slide} targets '{target}', which "
+            f"no slide claims. Known addresses: {known}"
+        )
+
+
+def navigationGraph_build(
+    addresses: SlideAddresses,
+    jump_refs: JumpRefs,
+    slide_count: int,
+) -> dict[str, object]:
+    """
+    Assemble the navigation graph consumed by the runtime.
+
+    The graph is deliberately explicit rather than compact: every fact the
+    runtime needs is stated here, where the compiler's tests can assert it,
+    rather than derived in JavaScript where nothing covers it.
+
+    Args:
+        addresses: Completed address map.
+        jump_refs: Recorded (target_address, source_slide) pairs.
+        slide_count: Total slides in the deck.
+
+    Returns:
+        JSON-serialisable graph description.
+    """
+    return {
+        "version": GRAPH_VERSION,
+        "slideCount": slide_count,
+        "slides": dict(addresses),
+        "jumps": [
+            {"target": target, "targetSlide": addresses[target], "from": src}
+            for target, src in jump_refs
+        ],
+    }
+
+
+def navigationGraph_htmlEmit(
+    addresses: SlideAddresses,
+    jump_refs: JumpRefs,
+    slide_count: int,
+) -> str:
+    """
+    Render the navigation graph as an inert JSON script element.
+
+    Uses ``type="application/json"`` so the browser does not execute it;
+    the runtime parses it at startup.
+
+    Args:
+        addresses: Completed address map.
+        jump_refs: Recorded (target_address, source_slide) pairs.
+        slide_count: Total slides in the deck.
+
+    Returns:
+        HTML for the graph element, or an empty string when the deck has
+        no addresses at all.
+    """
+    if not addresses:
+        return ""
+
+    graph = navigationGraph_build(addresses, jump_refs, slide_count)
+    payload: str = json.dumps(graph, separators=(",", ":"), sort_keys=True)
+
+    # A script element has a raw-text content model: the browser will not
+    # decode HTML entities inside it, so escaping "<" as an entity would
+    # corrupt the payload. Escaping it as < is valid JSON, decodes
+    # back to "<", and makes "</script>" unrepresentable.
+    return (
+        f'    <script type="application/json" id="{GRAPH_ELEMENT_ID}">'
+        f'{payload.replace("<", chr(92) + "u003c")}</script>'
+    )

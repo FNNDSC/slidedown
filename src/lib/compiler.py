@@ -14,12 +14,13 @@ from ..models.compiler import (
     CompileResult,
     ConfigValue,
     PlaceholderMap,
+    JumpRefs,
     PresentationMetaConfig,
     SlideAddresses,
     SlideCounters,
 )
 from ..models.handlers import CompilerContext, DirectiveNode
-from . import compiler_assets, compiler_rendering
+from . import compiler_assets, compiler_rendering, nexus
 from .directives import DirectiveRegistry
 from .log import LOG
 from .parser import ASTNode
@@ -86,6 +87,9 @@ class Compiler:
         # Nexus addressing: address -> slide_num. Populated by slide_handler
         # as slides compile; consumed by jump resolution (see lib/nexus.py).
         self.slide_addresses: SlideAddresses = {}
+        # .jump{} references, resolved after the walk so that a jump may
+        # legitimately point forward to a slide compiled later.
+        self.jump_refs: JumpRefs = []
         self.snippet_counters: SlideCounters = {}  # slide_num -> snippet_count
         self.typewriter_counters: SlideCounters = (
             {}
@@ -108,6 +112,11 @@ class Compiler:
 
         # Process AST
         html_content = self.ast_compile(self.ast)
+
+        # Every slide address is known only now, so jump targets are
+        # resolved here rather than during the walk. An unresolved target
+        # fails the build: a dead jump must not be discovered at a lectern.
+        nexus.jumpRefs_validate(self.jump_refs, self.slide_addresses)
 
         # Build complete HTML document
         full_html = self.htmlDocument_build(html_content)

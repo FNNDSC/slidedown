@@ -8,6 +8,7 @@ from typing import Protocol, TypeAlias
 
 from .compiler import (
     ConfigValue,
+    JumpRefs,
     PlaceholderMap,
     PresentationMetaConfig,
     SlideAddresses,
@@ -31,6 +32,7 @@ class CompilerContext(Protocol):
     """Compiler attributes consumed by directive handlers."""
 
     input_dir: Path
+    jump_refs: JumpRefs
     meta_config: PresentationMetaConfig
     protected_code_blocks: PlaceholderMap
     escaped_sequences: PlaceholderMap
