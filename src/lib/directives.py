@@ -332,6 +332,28 @@ class DirectiveRegistry:
                 result: list[str] = []
                 i: int = 0
                 while i < len(content):
+                    # Explicit .columns{} groups own their child columns.
+                    # Skip their entire block so the legacy adjacency scanner
+                    # below does not re-wrap inner .column{} elements.
+                    if content[i:].startswith('<div class="columns'):
+                        depth: int = 0
+                        j: int = i
+                        while j < len(content):
+                            if content[j : j + 4] == "<div":
+                                depth += 1
+                            elif content[j : j + 6] == "</div>":
+                                depth -= 1
+                                if depth == 0:
+                                    col_group_end: int = j + 6
+                                    result.append(content[i:col_group_end])
+                                    i = col_group_end
+                                    break
+                            j += 1
+                        else:
+                            result.append(content[i])
+                            i += 1
+                        continue
+
                     # Look for start of column
                     if content[i:].startswith('<div class="column"'):
                         # Collect all consecutive column blocks.
@@ -537,6 +559,57 @@ class DirectiveRegistry:
                 description="Progressive reveal bullet (snippet)",
                 handler=snippet_handler,
                 examples=[".o{First bullet}", ".o{Second bullet}"],
+            )
+        )
+
+        def columns_handler(
+            node: DirectiveNode, compiler: CompilerContext
+        ) -> str:
+            """Compile an explicit column group wrapper.
+
+            Args:
+                node: Parsed ``.columns{}`` AST node.
+                compiler: Active compiler instance.
+
+            Returns:
+                Flex container HTML holding one or more ``.column{}``
+                children. This avoids the legacy body-level adjacency
+                heuristic, where blank lines can split columns into stacked
+                single-column rows.
+            """
+            styles: list[str] = ["display: flex", "gap: 1rem"]
+
+            if "style" in node.modifiers:
+                styles.append(node.modifiers["style"])
+
+            style_attr: str = f' style="{"; ".join(styles)}"'
+
+            user_classes: list[str] = classNames_normalize(
+                node.modifiers.get("class", "")
+            )
+            class_names: str = "columns"
+            if user_classes:
+                class_names += f" {' '.join(user_classes)}"
+
+            return (
+                f'<div class="{class_names}"{style_attr}>'
+                f"{node.content}</div>"
+            )
+
+        self.register(
+            DirectiveSpec(
+                name="columns",
+                category=DirectiveCategory.EFFECT,
+                description="Explicit column layout group",
+                handler=columns_handler,
+                examples=[
+                    (
+                        ".columns{\n"
+                        "    .column{.style{width=50%} Left}\n\n"
+                        "    .column{.style{width=50%} Right}\n"
+                        "}"
+                    )
+                ],
             )
         )
 

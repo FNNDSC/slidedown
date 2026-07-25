@@ -273,6 +273,47 @@ class TestBasicSlideCompilation:
             html = (Path(tmpdir) / "index.html").read_text()
             assert 'class="container slide dense"' in html
 
+    def test_explicit_columns_group_survives_blank_lines(self) -> None:
+        """Compile .columns{} as one row even with blank lines between columns."""
+        source = """
+.slide{
+  .title{Columns}
+  .body{
+    .columns{
+      .column{.style{width=50%; align=center}
+        Left
+      }
+
+      .column{.style{width=50%; align=center}
+        Right
+      }
+    }
+  }
+}
+"""
+        parser = Parser(source)
+        ast = parser.parse()
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            package_root = Path(__file__).parent.parent
+            assets_dir = package_root / "assets"
+
+            compiler = Compiler(
+                ast=ast,
+                output_dir=tmpdir,
+                assets_dir=str(assets_dir),
+                verbosity=0,
+            )
+            result = compiler.compile()
+
+            assert result["status"] is True
+
+            html = (Path(tmpdir) / "index.html").read_text()
+            assert 'class="columns"' in html
+            assert html.count('class="column"') == 2
+            assert 'class="columns" style="display: flex; gap: 1rem">' in html
+            assert '<div style="display: flex;">\n<div class="column"' not in html
+
     def test_slide_class_modifier_rejects_unsafe_tokens(self) -> None:
         """Drop invalid class tokens from slide class modifiers."""
         source = """

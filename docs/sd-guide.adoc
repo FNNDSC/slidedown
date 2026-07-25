@@ -355,46 +355,58 @@ Progressive reveal bullet point (snippet). Each `.o{}` appears on the next click
 .o{.typewriter{This bullet types out!}}
 ----
 
-==== .column{}
+==== .columns{} and .column{}
 
-Column layout container for side-by-side content.
+Explicit column-group and column containers for side-by-side content.
 
 [source,slidedown]
 ----
-.column{.style{width=50%; align=left}
-  Left column content
-}
+.columns{
+  .column{.style{width=50%; align=left}
+    Left column content
+  }
 
-.column{.style{width=50%; align=right}
-  Right column content
+  .column{.style{width=50%; align=right}
+    Right column content
+  }
 }
 ----
 
 *Properties:*
 
+* Use `.columns{}` as the explicit flex row wrapper.
 * Use `.style{width=X%}` to set column width
 * Use `.style{align=left|center|right}` for text alignment
 * Default: `flex: 1` (equal width columns)
-* Multiple columns automatically arrange side-by-side
+* Blank lines inside `.columns{}` do not split the row
+
+[NOTE]
+====
+Legacy adjacent `.column{}` blocks still compile side-by-side when no content
+appears between them, but `.columns{}` is preferred because its layout contract
+is explicit and robust to ordinary authoring whitespace.
+====
 
 *Three-column example:*
 
 [source,slidedown]
 ----
 .body{
-  .column{.style{width=33%}
-    .h3{Column 1}
-    .o{Point A}
-  }
+  .columns{
+    .column{.style{width=33%}
+      .h3{Column 1}
+      .o{Point A}
+    }
 
-  .column{.style{width=33%}
-    .h3{Column 2}
-    .o{Point B}
-  }
+    .column{.style{width=33%}
+      .h3{Column 2}
+      .o{Point B}
+    }
 
-  .column{.style{width=34%}
-    .h3{Column 3}
-    .o{Point C}
+    .column{.style{width=34%}
+      .h3{Column 3}
+      .o{Point C}
+    }
   }
 }
 ----
@@ -938,6 +950,7 @@ Theme settings can be overridden per-presentation using `.meta{}`.
 
 | `.typewriter{}` | Effect | `<pre id="typewriter-X-Y">` | Typing animation
 | `.o{}` | Effect | `<div class="snippet">` | Progressive reveal
+| `.columns{}` | Effect | `<div class="columns">` | Explicit column group
 | `.column{}` | Effect | `<div class="column">` | Column layout
 
 | `.font-*{}` | Transform | `<pre>` | ASCII art (Figlet)
