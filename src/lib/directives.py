@@ -22,7 +22,7 @@ from pygments.util import ClassNotFound
 from ..models.compiler import PlaceholderMap, PresentationMetaConfig
 from ..models.directives import DirectiveCategory, DirectiveSpec
 from ..models.handlers import CompilerContext, DirectiveNode
-from . import directive_groups
+from . import directive_groups, nexus
 from .lexer import SlidedownLexer
 from .log import LOG
 
@@ -253,13 +253,26 @@ class DirectiveRegistry:
             # node.content already has placeholders substituted by compiler
             content: str = node.content
 
-            # Extract title content before title_handler returns empty.
-            # Find title child node and get its content
+            # Extract title and id content before their handlers return
+            # empty. Both are metadata-only children of .slide{}.
             title_content: str = ""
+            id_content: str = ""
             for child in node.children:
-                if child.directive == "title":
+                if child.directive == "title" and not title_content:
                     title_content = child.content
-                    break
+                elif child.directive == "id" and not id_content:
+                    id_content = child.content
+
+            # Nexus addressing: explicit .id{} wins, else slugified title.
+            # Collisions raise, so a deck cannot ship with two slides
+            # answering to the same name.
+            address: str = nexus.slideAddress_resolve(
+                id_content, title_content
+            )
+            nexus.slideAddress_register(
+                compiler.slide_addresses, address, slide_num
+            )
+            address_attr: str = f' data-address="{address}"' if address else ""
 
             # Build CSS classes - add alignment class if specified
             css_classes: str = "container slide"
@@ -290,11 +303,25 @@ class DirectiveRegistry:
                 f"    {title_content}\n"
                 "</div>\n"
                 f'<div class="{css_classes}" id="slide-{slide_num}" '
-                f'name="slide-{slide_num}" {style_attr}>\n'
+                f'name="slide-{slide_num}"{address_attr} {style_attr}>\n'
                 f"    {watermarks_html}\n"
                 f"    {content}\n"
                 "</div>\n"
             )
+
+        def id_handler(
+            node: DirectiveNode, compiler: CompilerContext
+        ) -> str:
+            """Compile an explicit slide address.
+
+            Args:
+                node: Parsed ``.id{}`` AST node.
+                compiler: Active compiler instance.
+
+            Returns:
+                Empty string; slide_handler reads the address off the node.
+            """
+            return ""
 
         def title_handler(
             node: DirectiveNode, compiler: CompilerContext
@@ -426,6 +453,16 @@ class DirectiveRegistry:
                 description="Slide title (metadata)",
                 handler=title_handler,
                 examples=[".title{My Slide Title}"],
+            )
+        )
+
+        self.register(
+            DirectiveSpec(
+                name="id",
+                category=DirectiveCategory.STRUCTURAL,
+                description="Explicit slide address for nexus navigation",
+                handler=id_handler,
+                examples=[".slide{.id{rerun} .title{Re-Run} .body{...}}"],
             )
         )
 

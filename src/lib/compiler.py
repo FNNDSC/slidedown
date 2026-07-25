@@ -15,6 +15,7 @@ from ..models.compiler import (
     ConfigValue,
     PlaceholderMap,
     PresentationMetaConfig,
+    SlideAddresses,
     SlideCounters,
 )
 from ..models.handlers import CompilerContext, DirectiveNode
@@ -82,6 +83,9 @@ class Compiler:
         LOG(f"Loaded theme: {self.theme.name}", level=2)
 
         self.slide_count = 0
+        # Nexus addressing: address -> slide_num. Populated by slide_handler
+        # as slides compile; consumed by jump resolution (see lib/nexus.py).
+        self.slide_addresses: SlideAddresses = {}
         self.snippet_counters: SlideCounters = {}  # slide_num -> snippet_count
         self.typewriter_counters: SlideCounters = (
             {}

@@ -10,6 +10,7 @@ from .compiler import (
     ConfigValue,
     PlaceholderMap,
     PresentationMetaConfig,
+    SlideAddresses,
     SlideCounters,
     ThemeLike,
 )
@@ -33,6 +34,7 @@ class CompilerContext(Protocol):
     meta_config: PresentationMetaConfig
     protected_code_blocks: PlaceholderMap
     escaped_sequences: PlaceholderMap
+    slide_addresses: SlideAddresses
     slide_count: int
     snippet_counters: SlideCounters
     theme: ThemeLike

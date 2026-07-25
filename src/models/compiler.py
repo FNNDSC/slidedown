@@ -18,6 +18,10 @@ PlaceholderMap: TypeAlias = dict[int, str]
 # Per-slide counters (slide_number → count) for snippets and typewriters.
 SlideCounters: TypeAlias = dict[int, int]
 
+# Slide addresses (address → slide_number) for nexus navigation. Addresses
+# come from an explicit .id{} or are slugified from .title{}.
+SlideAddresses: TypeAlias = dict[str, int]
+
 # Maps a config-key name to its CSS property name, used in style-building
 # helpers (e.g. {"background": "background-color"}).
 CSSPropertyMap: TypeAlias = dict[str, str]
