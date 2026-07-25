@@ -210,6 +210,53 @@ def jumpAddresses_extract(body_html: str) -> list[str]:
     return ordered
 
 
+def spokes_compute(
+    addresses: SlideAddresses,
+    jump_refs: JumpRefs,
+    placements: NexusPlacements,
+    slide_count: int,
+) -> list[dict[str, object]]:
+    """
+    Determine the extent of every spoke in the deck.
+
+    A spoke begins at a slide that some jump targets, and ends immediately
+    before the next slide that is itself a jump target or a nexus
+    placement. Single-slide spokes — the common case — fall out of the
+    rule naturally.
+
+    This is load-bearing rather than bookkeeping: the runtime needs to know
+    when advancing has reached the end of a spoke, because that is the
+    moment a jumped-into spoke returns to the nexus it came from.
+
+    Args:
+        addresses: Completed address map.
+        jump_refs: Recorded (target_address, source_slide) pairs.
+        placements: Nexus placements.
+        slide_count: Total slides in the deck.
+
+    Returns:
+        Spoke descriptions, ordered by starting slide.
+    """
+    target_slides: dict[int, str] = {}
+    for target, _source in jump_refs:
+        slide = addresses.get(target)
+        if slide is not None:
+            target_slides.setdefault(slide, target)
+
+    placement_slides: set[int] = {slide for _id, slide, _j in placements}
+    boundaries: list[int] = sorted(set(target_slides) | placement_slides)
+
+    spokes: list[dict[str, object]] = []
+    for start in sorted(target_slides):
+        later = [b for b in boundaries if b > start]
+        end: int = (later[0] - 1) if later else slide_count
+        spokes.append(
+            {"address": target_slides[start], "start": start, "end": end}
+        )
+
+    return spokes
+
+
 def navigationGraph_build(
     addresses: SlideAddresses,
     jump_refs: JumpRefs,
@@ -250,6 +297,9 @@ def navigationGraph_build(
             {"id": nexus_id, "slide": slide, "jumps": list(jumps)}
             for nexus_id, slide, jumps in nexus_placements
         ],
+        "spokes": spokes_compute(
+            addresses, jump_refs, nexus_placements, slide_count
+        ),
     }
 
 

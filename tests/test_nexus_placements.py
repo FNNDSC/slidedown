@@ -158,6 +158,96 @@ class TestSecondPlacement:
             html_compile(source)
 
 
+class TestSpokeExtents:
+    """Where a spoke ends, which is what the mirror rule turns on"""
+
+    def test_single_slide_spokes_are_the_common_case(self) -> None:
+        html, _ = html_compile(SANDWICH_DECK)
+        graph = graph_extract(html)
+
+        assert graph["spokes"] == [
+            {"address": "depth", "start": 2, "end": 2},
+            {"address": "registry", "start": 3, "end": 3},
+        ]
+
+    def test_spoke_runs_until_the_next_boundary(self) -> None:
+        source = """
+.slide{
+  .title{Menu}
+  .body{.nexus{.id{menu} .jump{.target{first} First}}}
+}
+
+.slide{
+  .id{first}
+  .title{First Spoke Slide}
+  .body{One.}
+}
+
+.slide{
+  .title{Still In The First Spoke}
+  .body{Two.}
+}
+
+.slide{
+  .title{Also In The First Spoke}
+  .body{Three.}
+}
+"""
+        html, _ = html_compile(source)
+        graph = graph_extract(html)
+
+        # Nothing else is a target or a placement, so the spoke runs to
+        # the end of the deck.
+        assert graph["spokes"] == [
+            {"address": "first", "start": 2, "end": 4}
+        ]
+
+    def test_next_target_bounds_the_previous_spoke(self) -> None:
+        source = """
+.slide{
+  .title{Menu}
+  .body{
+    .nexus{.id{menu}
+      .jump{.target{a} A}
+      .jump{.target{b} B}
+    }
+  }
+}
+
+.slide{
+  .id{a}
+  .title{Spoke A}
+  .body{One.}
+}
+
+.slide{
+  .title{Continues A}
+  .body{Two.}
+}
+
+.slide{
+  .id{b}
+  .title{Spoke B}
+  .body{Three.}
+}
+"""
+        html, _ = html_compile(source)
+        graph = graph_extract(html)
+
+        assert graph["spokes"] == [
+            {"address": "a", "start": 2, "end": 3},
+            {"address": "b", "start": 4, "end": 4},
+        ]
+
+    def test_closing_nexus_bounds_the_last_spoke(self) -> None:
+        html, _ = html_compile(SANDWICH_DECK)
+        graph = graph_extract(html)
+
+        # The registry spoke stops at slide 3 because slide 4 places a
+        # nexus, rather than running to the end of the deck.
+        assert graph["spokes"][-1]["end"] == 3
+
+
 class TestBodyRebase:
     """Unit-level id rewriting"""
 

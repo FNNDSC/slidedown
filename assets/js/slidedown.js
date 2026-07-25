@@ -642,6 +642,34 @@ NexusGraph.prototype = {
         return this.isLoaded() && this.graph.isNexusDeck === true;
     },
 
+    spokeFor:           function(a_slideIndex) {
+        let str_help = `
+            The spoke containing a slide, or null.
+        `;
+
+        if (!this.isLoaded() || !this.graph.spokes) {
+            return null;
+        }
+
+        for (let i = 0; i < this.graph.spokes.length; i++) {
+            let spoke = this.graph.spokes[i];
+            if (a_slideIndex >= spoke.start && a_slideIndex <= spoke.end) {
+                return spoke;
+            }
+        }
+        return null;
+    },
+
+    spokeEndsAt:        function(a_slideIndex) {
+        let str_help = `
+            Whether a slide is the last slide of its spoke. This is the
+            moment a jumped-into spoke hands back to its nexus.
+        `;
+
+        let spoke = this.spokeFor(a_slideIndex);
+        return spoke !== null && spoke.end === a_slideIndex;
+    },
+
     placementFor:       function(a_slideIndex) {
         let str_help = `
             The nexus placement sitting on a given slide, or null.
@@ -661,6 +689,26 @@ NexusGraph.prototype = {
             }
         }
         return null;
+    },
+
+    placementBefore:    function(a_slideIndex) {
+        let str_help = `
+            The nearest nexus placement at or before a slide, as a slide
+            number, or 0. Used when a deep link left no return history.
+        `;
+
+        if (!this.isLoaded() || !this.graph.nexuses) {
+            return 0;
+        }
+
+        let index_best = 0;
+        for (let i = 0; i < this.graph.nexuses.length; i++) {
+            let slide = this.graph.nexuses[i].slide;
+            if (slide <= a_slideIndex && slide > index_best) {
+                index_best = slide;
+            }
+        }
+        return index_best;
     },
 
     slideFor:           function(astr_address) {
@@ -692,6 +740,9 @@ function Page() {
 
     this.currentSlide               = 1;
     this.nexus                      = new NexusGraph();
+    // Where a jump departed from, so a spoke can hand back to the exact
+    // nexus placement it was entered from — not merely to that nexus.
+    this.l_returnStack              = [];
     document.onkeydown              = this.checkForArrowKeyPress;
     document.onclick                = this.checkForMouseClick;
 
@@ -880,6 +931,31 @@ Page.prototype = {
         return false;
     },
 
+    snippets_restoreTo:                 function(a_slideIndex, a_count) {
+        let str_help = `
+            Reveal the first N snippets of a slide and set its counter to
+            match.
+
+            Note that allSnippets_displaySet() zeroes the ON counter
+            regardless of the state it applied, so the counter has to be
+            set here rather than trusted.
+        `;
+
+        let snippets    = this.l_snippetsPerSlide[a_slideIndex - 1] || 0;
+        let count       = Math.min(a_count, snippets);
+
+        for(let snippet = 1; snippet <= count; snippet++) {
+            let DOMsnippet = document.getElementById(
+                'order-' + a_slideIndex + '-' + snippet
+            );
+            if (DOMsnippet) {
+                DOMsnippet.classList.remove('sl-hidden');
+            }
+        }
+
+        this.l_snippetPerSlideON[a_slideIndex - 1] = count;
+    },
+
     allSnippets_displaySet:             function(astr_state, a_slideIndex) {
         let snippets = this.l_snippetsPerSlide[a_slideIndex-1];
         for(let snippet=1; snippet <= snippets; snippet++) {
@@ -949,6 +1025,57 @@ Page.prototype = {
         return this.nexus.slideFor(str_requested) || 1;
     },
 
+    return_push:                        function() {
+        let str_help = `
+            Record the current slide as a departure point, if it is a
+            nexus placement.
+
+            The revealed-snippet count travels with it: coming back must
+            restore the menu as the presenter left it, not replay a build
+            the room already watched, and not reveal options that had not
+            been announced when the jump was taken.
+        `;
+
+        if (!this.nexus.placementFor(this.currentSlide)) {
+            return false;
+        }
+
+        this.l_returnStack.push({
+            slide:      this.currentSlide,
+            revealed:   this.l_snippetPerSlideON[this.currentSlide - 1] || 0
+        });
+        return true;
+    },
+
+    return_process:                     function() {
+        let str_help = `
+            Hand back to the nexus placement this spoke was entered from.
+
+            With nothing on the stack — a deep link dropped the viewer
+            straight into a spoke — fall back to the nearest preceding
+            placement. A return that silently does nothing reads as
+            broken.
+        `;
+
+        let departure = this.l_returnStack.pop();
+
+        if (!departure) {
+            let index_fallback = this.nexus.placementBefore(this.currentSlide);
+            if (!index_fallback) {
+                return false;
+            }
+            departure = { slide: index_fallback, revealed: 0 };
+        }
+
+        let index_currentSlide      = this.currentSlide;
+        this.currentSlide           = departure.slide;
+        this.slide_transition(index_currentSlide, departure.slide, {
+            restoreSnippets: departure.revealed,
+            isReturn:        true
+        });
+        return true;
+    },
+
     jump_isRevealed:                    function(a_anchor) {
         let str_help = `
             Whether a jump anchor is currently visible.
@@ -1004,6 +1131,7 @@ Page.prototype = {
             return false;
         }
 
+        this.return_push();
         this.slide_goto(index);
         return true;
     },
@@ -1052,6 +1180,7 @@ Page.prototype = {
 
         let index = page.nexus.slideFor(anchor.getAttribute('data-jump'));
         if (index) {
+            page.return_push();
             page.slide_goto(index);
         }
         return true;
@@ -1162,13 +1291,21 @@ Page.prototype = {
     },
 
     slide_transition:                   function(index_currentSlide,
-                                                 index_followingSlide) {
+                                                 index_followingSlide,
+                                                 options) {
         let str_help = `
             Do the actual transition from one slide to another,
             as well as update the running slide counter in the footer.
 
             Also, on the next slide, process any typewriter effects.
+
+            'options' is optional and defaults to the historical
+            behaviour, in which entering a slide resets its reveals. Only
+            a nexus return passes options.restoreSnippets, so every
+            existing deck transitions exactly as it always has.
         `;
+
+        let d_options = options || {};
 
         let DOMID_currentSlide      = document.getElementById(
                                             this.str_slideIDprefix + index_currentSlide
@@ -1191,6 +1328,13 @@ Page.prototype = {
 
         // Hide all snippets and reset counter
         this.allSnippets_displaySet('none', index_followingSlide);
+
+        // Returning to a nexus restores it as the presenter left it.
+        if (d_options.restoreSnippets > 0) {
+            this.snippets_restoreTo(
+                index_followingSlide, d_options.restoreSnippets
+            );
+        }
 
         // Start any typewriters that are directly on the slide (not in snippets)
         this.startNonSnippetTypewriters(index_followingSlide);
@@ -1280,10 +1424,24 @@ Page.prototype = {
 
             Call the next slide.
 
+            The mirror rule: advancing past the end of a spoke that was
+            entered by a jump hands back to the nexus it came from.
+            A spoke walked into linearly falls through as normal, so a
+            deck read start to finish behaves like an ordinary deck and
+            no author-facing flag is needed.
+
         `;
 
-        if(this.advance_overSnippets())
-            this.advance_toNext();
+        if(!this.advance_overSnippets())
+            return;
+
+        if(this.l_returnStack.length &&
+           this.nexus.spokeEndsAt(this.currentSlide)) {
+            this.return_process();
+            return;
+        }
+
+        this.advance_toNext();
     },
 
     // Page
@@ -1362,6 +1520,17 @@ Page.prototype = {
 
         if (page.nexusDigit_keyHandle(e)) {
             return;
+        }
+
+        // Esc goes home from anywhere in a spoke, not only from its end.
+        // A presenter who reads the room three slides into a topic should
+        // not have to walk to the end of it first. This is the affordance
+        // that separates a menu from a deck with shortcuts.
+        if (e.key === 'Escape' && page.nexus.isNexusDeck()) {
+            if (page.nexus.spokeFor(page.currentSlide)) {
+                page.return_process();
+                return;
+            }
         }
 
         if (e.keyCode == '38') {

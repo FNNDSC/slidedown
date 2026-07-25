@@ -484,6 +484,150 @@ test('clicking blank space off a nexus slide still advances', () => {
 });
 
 
+/* --- return semantics ------------------------------------------------- */
+
+// Menu at 1, spokes at 2 and 3, closing menu at 4.
+const SANDWICH = {
+    version: 1,
+    slideCount: 4,
+    slides: { 'the-menu': 1, depth: 2, registry: 3, back: 4 },
+    jumps: [],
+    isNexusDeck: true,
+    nexuses: [
+        { id: 'menu', slide: 1, jumps: ['depth', 'registry'] },
+        { id: 'menu', slide: 4, jumps: ['depth', 'registry'] }
+    ],
+    spokes: [
+        { address: 'depth', start: 2, end: 2 },
+        { address: 'registry', start: 3, end: 3 }
+    ]
+};
+
+/**
+ * A sandwich context with both jumps revealed on both menus.
+ * @returns {object} sandbox
+ */
+function sandwich_make() {
+    return context_make({
+        graph: SANDWICH,
+        slideCount: 4,
+        anchors: {
+            1: { depth: true, registry: true },
+            4: { depth: true, registry: true }
+        }
+    });
+}
+
+test('spokeFor locates the spoke containing a slide', () => {
+    const ctx = sandwich_make();
+    assert.strictEqual(ctx.page.nexus.spokeFor(2).address, 'depth');
+    assert.strictEqual(ctx.page.nexus.spokeFor(1), null);
+});
+
+test('spokeEndsAt marks the last slide of a spoke', () => {
+    const ctx = sandwich_make();
+    assert.strictEqual(ctx.page.nexus.spokeEndsAt(2), true);
+    assert.strictEqual(ctx.page.nexus.spokeEndsAt(1), false);
+});
+
+test('jumping records a return point', () => {
+    const ctx = sandwich_make();
+    ctx.page.nexusDigit_process(1);
+
+    assert.strictEqual(ctx.page.l_returnStack.length, 1);
+    assert.strictEqual(ctx.page.l_returnStack[0].slide, 1);
+});
+
+test('advancing off the end of a jumped-into spoke returns', () => {
+    const ctx = sandwich_make();
+    ctx.page.nexusDigit_process(1);         // menu(1) -> depth(2)
+    ctx.transitions.length = 0;
+
+    ctx.page.rightArrow_process();
+
+    // Back to the menu it came from, not onward to slide 3.
+    assert.strictEqual(ctx.page.currentSlide, 1);
+    assert.deepStrictEqual(ctx.transitions, [[2, 1]]);
+});
+
+test('a spoke walked into linearly falls through instead', () => {
+    const ctx = sandwich_make();
+    ctx.page.currentSlide = 2;              // arrived by walking
+    ctx.transitions.length = 0;
+
+    ctx.page.rightArrow_process();
+
+    // The mirror rule: no jump, so no return.
+    assert.strictEqual(ctx.page.currentSlide, 3);
+});
+
+test('return restores the departure reveal count', () => {
+    const ctx = sandwich_make();
+    ctx.page.l_snippetPerSlideON[0] = 1;    // one of two entries shown
+    ctx.page.nexusDigit_process(1);
+
+    assert.strictEqual(ctx.page.l_returnStack[0].revealed, 1);
+});
+
+test('returning empties the stack', () => {
+    const ctx = sandwich_make();
+    ctx.page.nexusDigit_process(1);
+    ctx.page.return_process();
+
+    assert.strictEqual(ctx.page.l_returnStack.length, 0);
+});
+
+test('return goes to the placement departed from, not the definition', () => {
+    const ctx = sandwich_make();
+    ctx.page.currentSlide = 4;              // the closing menu
+    ctx.page.nexusDigit_process(1);         // -> depth(2)
+    ctx.page.return_process();
+
+    // Back to placement 4, not to placement 1.
+    assert.strictEqual(ctx.page.currentSlide, 4);
+});
+
+test('escape returns from mid-spoke, not only from its end', () => {
+    const wide = JSON.parse(JSON.stringify(SANDWICH));
+    wide.spokes[0].end = 3;                 // depth spans slides 2-3
+
+    const ctx = context_make({
+        graph: wide,
+        slideCount: 4,
+        anchors: { 1: { depth: true, registry: true } }
+    });
+
+    ctx.page.nexusDigit_process(1);         // -> slide 2
+    ctx.page.slide_goto(3);                 // still inside the spoke
+    ctx.page.return_process();
+
+    assert.strictEqual(ctx.page.currentSlide, 1);
+});
+
+test('return with no history falls back to the preceding nexus', () => {
+    const ctx = sandwich_make();
+    ctx.page.currentSlide = 3;              // deep-linked straight in
+    assert.strictEqual(ctx.page.l_returnStack.length, 0);
+
+    assert.strictEqual(ctx.page.return_process(), true);
+    assert.strictEqual(ctx.page.currentSlide, 1);
+});
+
+test('return outside any nexus deck does nothing', () => {
+    const ctx = context_make({ graph: GRAPH, slideCount: 3 });
+
+    assert.strictEqual(ctx.page.return_process(), false);
+});
+
+test('jumping from a non-nexus slide records no return point', () => {
+    const ctx = sandwich_make();
+    ctx.page.currentSlide = 2;              // a spoke, not a menu
+
+    assert.strictEqual(ctx.page.return_push(), false);
+    assert.strictEqual(ctx.page.l_returnStack.length, 0);
+});
+
+
 /* --- runner ----------------------------------------------------------- */
 
 let passed = 0;

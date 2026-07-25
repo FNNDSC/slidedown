@@ -270,6 +270,8 @@ class TestNavigationGraph:
             "jumps": [{"target": "spoke", "targetSlide": 2, "from": 1}],
             "isNexusDeck": False,
             "nexuses": [],
+            # No nexus, so the spoke runs to the end of the deck.
+            "spokes": [{"address": "spoke", "start": 2, "end": 2}],
         }
 
     def test_jumps_alone_do_not_make_a_nexus_deck(self) -> None:
