@@ -1,0 +1,198 @@
+= Slidedown Design: .meta{} Validation
+v0.1, July 2026
+
+[IMPORTANT]
+====
+*Status: Proposed. Not implemented.*
+
+This document describes a design, not current behavior.
+====
+
+== Current behavior
+
+`.meta{}` handling lives in `src/lib/directives.py` (approximately lines
+905–947). The sequence is:
+
+. Take the directive body as raw text.
+. `yaml.safe_load()` it. On failure, dedent and retry once — the parser strips
+  leading whitespace from the first line but can leave it on later lines.
+. `compiler.meta_config.update(meta_config)`.
+
+That is the whole of it. Whatever keys YAML produced are merged wholesale.
+
+Two properties follow, both currently unintended:
+
+*There is no schema enforcement at runtime.* The `PresentationMetaConfig`
+annotation at the parse site looks like a schema, but it is a `TypedDict`
+(`src/models/compiler.py:161`) — a static hint, erased at runtime. The
+accompanying `cast()` performs no check; it asserts to the type checker that the
+value is trustworthy. mypy validates this schema against *slidedown's* code. It
+never sees the user's deck.
+
+*Malformed YAML is not fatal either.* A `yaml.YAMLError` is logged at level 1
+and the handler returns an empty string. Compilation continues with no metadata
+applied.
+
+== The failure mode
+
+[source,slidedown]
+----
+.meta{
+  them: "lcars-lower-decks"
+  typography:
+    baseline: presentaton
+}
+----
+
+Both lines are wrong. Neither produces an error. The keys land in
+`meta_config`, no consumer reads them, the build reports success, and the deck
+renders in the default theme at default scale — discovered when it goes up on
+the projector.
+
+This is the same class of defect as an unresolved jump target in
+`nexus-navigation.adoc`: a silent misconfiguration whose natural discovery point
+is a live audience. The same principle applies — a compiler that has the
+information to reject this at build time should do so.
+
+== What validation means here
+
+Three separable jobs, in descending order of value:
+
+Unknown keys::
+Reject or warn on keys not in the schema, with a suggestion. This is most of the
+value: a typo is the realistic authoring error, and it is precisely the case
+that fails silently today.
+
+Types and enumerations::
+`typography.baseline` is one of `compact`, `normal`, `large`, `xlarge`,
+`presentation`. `typography.scale` is a positive number. `theme` names an
+installed theme. `navigation.show_buttons` is a boolean. Cheap to check, and
+catches the second most common error.
+
+Diagnostics::
+"Unknown key `them` — did you mean `theme`?" is the difference between a check
+that helps and a check that annoys. Ideally with a line number, though the
+directive parser does not currently carry source positions into the handler (see
+<<open>>).
+
+Note that this is *content* validation. Directive-name validation is a separate
+concern with its own unused settings flag (`validate_directives`).
+
+== The schema already exists
+
+`src/models/compiler.py` already declares the full shape as TypedDicts:
+`PresentationMetaConfig` and its members `CSSConfig`, `WatermarkConfig`,
+`SlideMasterConfig`, `FooterConfig`, `NavbarConfig`, `LCARSConfig`,
+`TypographyConfig`, `SnippetsConfig`.
+
+The work is not writing a schema. It is making the schema that exists
+load-bearing at runtime.
+
+== Proposed approach
+
+Walk the parsed `.meta{}` mapping against the TypedDicts, using
+`typing.get_type_hints()` to recover the legal key set and declared types at
+runtime, and `difflib.get_close_matches()` to suggest corrections for unknown
+keys.
+
+Properties worth having:
+
+* *Single source of truth.* The TypedDicts serve both mypy and the runtime
+  check. A key added to the schema is enforced without a second edit, which is
+  the failure mode of any hand-maintained key list.
+* *Stdlib only.* No new dependency. See <<pydantic>>.
+* *Recursive by construction.* Nested TypedDicts are walked the same way, so
+  `typography`, `snippets`, `lcars` and friends validate without special cases.
+
+`CSSConfig` is the exception and should be treated as an open mapping —
+arbitrary selectors mapping to arbitrary property names is the point of that
+feature, so key validation there is limited to shape (mapping of mapping of
+scalar), not membership.
+
+== Error policy
+
+The `strict_mode` setting already exists in `src/config/settings.py` and has no
+readers. This is its natural first use:
+
+* Default: unknown keys and type errors are warnings; the build completes.
+* `strict_mode`: warnings become errors; the build fails.
+
+Malformed YAML should arguably become fatal in both modes. A `.meta{}` block
+that does not parse is unambiguously a mistake, and silently proceeding without
+metadata is never what the author wanted.
+
+== Scope
+
+In scope:: `.meta{}` blocks in the deck being compiled.
+
+Also worth covering:: `theme.yaml` files, loaded via `yaml.safe_load()` in
+`src/lib/theme.py:105` with the same absence of checking. Themes are authored
+less often but their errors are equally silent, and a shared validator serves
+both.
+
+Out of scope:: `.meta{}` in included files. The compiler already strips
+top-level `.meta{}` nodes from includes — the parent deck is authoritative — so
+they never reach the merge.
+
+[[pydantic]]
+== Related: the pydantic dependency
+
+This design deliberately does not use pydantic, despite pydantic being a
+declared dependency. The reasoning is worth recording, because the obvious move
+is to reach for it.
+
+An audit of current usage:
+
+[cols="3,2"]
+|===
+|Files importing pydantic |1 — `src/config/settings.py`
+|Symbols used |`Field`, `BaseSettings`, `SettingsConfigDict`
+|Settings fields declared |8
+|Fields read anywhere else |0
+|Helper methods |2
+|Call sites in `src/` and `tests/` |2, both `placeHolder_make()`
+|===
+
+The two call sites are `src/lib/compiler.py:317` and `src/lib/parser.py:574`.
+`childIndex_extract()` has no callers. No other runtime dependency
+(`chris_plugin`, `pyfiglet`, `loguru`, `pygments`) pulls pydantic transitively.
+
+So the entire dependency currently exists to make two placeholder constants
+overridable by environment variable — constants that are null-byte-delimited
+specifically so they cannot collide with user content, and which overriding can
+only break.
+
+The cost is not theoretical. `pydantic-core` is a Rust crate, and PyPI's aarch64
+wheels are manylinux-tagged, so they never match on Termux/Bionic. Every Python
+minor-version bump invalidates the cached `cpXY` wheels and triggers a full
+cargo build — observed at over fifteen minutes on-device.
+
+`.meta{}` validation would be the case that justifies the dependency, if
+anything did. It does not: the schema is shallow, closed, and already declared.
+Pydantic earns its place on deep, polymorphic, coercion-heavy input from
+untrusted sources. This is a flat map of known keys.
+
+*Recommendation:* implement validation as above, replace
+`src/config/settings.py` with a stdlib module exposing the same
+`appsettings.placeHolder_make()` interface — a `@dataclass` preserves the shape
+and leaves room for the unused-but-intended flags — and drop `pydantic` and
+`pydantic-settings` from `pyproject.toml`. Both existing call sites are
+unchanged.
+
+[[open]]
+== Open questions
+
+. *Source positions.* Good diagnostics want a line number, and the directive
+  handler receives body text without position information. Is threading
+  positions through the parser worth it for this alone, or is
+  "in the `.meta{}` block, key `them`" sufficient? The latter is adequate while
+  decks have one `.meta{}` block, which is the current convention.
+
+. *Unknown top-level keys as forward compatibility.* A deck authored against a
+  newer slidedown, compiled with an older one, will trip unknown-key warnings
+  for legitimate keys. Acceptable, or does that argue for warn-never-fail on
+  unknown keys at the top level while typed values still error?
+
+. *Theme name validation timing.* Checking that `theme` names an installed theme
+  requires the theme search path, which may not be resolved at `.meta{}` parse
+  time. May need to defer to a later compilation phase than the rest.
