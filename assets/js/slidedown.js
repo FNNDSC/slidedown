@@ -743,6 +743,8 @@ function Page() {
     // Where a jump departed from, so a spoke can hand back to the exact
     // nexus placement it was entered from — not merely to that nexus.
     this.l_returnStack              = [];
+    // Spokes already covered, keyed by target address.
+    this.d_visited                  = {};
     document.onkeydown              = this.checkForArrowKeyPress;
     document.onclick                = this.checkForMouseClick;
 
@@ -758,6 +760,7 @@ function Page() {
     this.l_snippetPerSlideON    = [];   // Running count of ON snippets
     this.str_slideIDprefix      = "";
     this.init();
+    this.visited_load();
 
     // DOM obj elements --  Each object has a specific list of page key
     //                      elements that it process to provide page
@@ -1025,6 +1028,80 @@ Page.prototype = {
         return this.nexus.slideFor(str_requested) || 1;
     },
 
+    visited_storageKey:                 function() {
+        return 'slidedown:visited:' + window.location.pathname;
+    },
+
+    visited_load:                       function() {
+        let str_help = `
+            Restore which spokes have been visited.
+
+            Kept in sessionStorage because a browser dying mid-talk is a
+            real failure mode, and coming back to a menu that has
+            forgotten what you already covered is worse than useless.
+        `;
+
+        try {
+            let raw = window.sessionStorage.getItem(this.visited_storageKey());
+            this.d_visited = raw ? JSON.parse(raw) : {};
+        } catch (err) {
+            // Private browsing, or storage disabled. Visited marking is a
+            // convenience; losing it must not break navigation.
+            this.d_visited = {};
+        }
+    },
+
+    visited_mark:                       function(astr_address) {
+        let str_help = `
+            Record a spoke as covered.
+
+            Keyed on the target, not on the placement it was reached
+            from: "I have spent time on this topic" is a fact about the
+            topic, so both menus in a sandwich agree.
+        `;
+
+        if (!astr_address) {
+            return false;
+        }
+
+        this.d_visited[astr_address] = true;
+
+        try {
+            window.sessionStorage.setItem(
+                this.visited_storageKey(), JSON.stringify(this.d_visited)
+            );
+        } catch (err) {
+            // See visited_load().
+        }
+        return true;
+    },
+
+    visited_apply:                      function(a_slideIndex) {
+        let str_help = `
+            Reflect visited state onto the jumps of a slide.
+        `;
+
+        let slideEl = document.getElementById(
+            this.str_slideIDprefix + a_slideIndex
+        );
+        if (!slideEl || !slideEl.querySelectorAll) {
+            return 0;
+        }
+
+        let anchors = slideEl.querySelectorAll('.sd-jump');
+        let count   = 0;
+        for (let i = 0; i < anchors.length; i++) {
+            let str_address = anchors[i].getAttribute('data-jump');
+            if (this.d_visited[str_address]) {
+                anchors[i].classList.add('sd-jump--visited');
+                count++;
+            } else {
+                anchors[i].classList.remove('sd-jump--visited');
+            }
+        }
+        return count;
+    },
+
     return_push:                        function() {
         let str_help = `
             Record the current slide as a departure point, if it is a
@@ -1132,6 +1209,7 @@ Page.prototype = {
         }
 
         this.return_push();
+        this.visited_mark(str_address);
         this.slide_goto(index);
         return true;
     },
@@ -1178,9 +1256,11 @@ Page.prototype = {
 
         e.preventDefault();
 
-        let index = page.nexus.slideFor(anchor.getAttribute('data-jump'));
+        let str_address = anchor.getAttribute('data-jump');
+        let index = page.nexus.slideFor(str_address);
         if (index) {
             page.return_push();
+            page.visited_mark(str_address);
             page.slide_goto(index);
         }
         return true;
@@ -1335,6 +1415,9 @@ Page.prototype = {
                 index_followingSlide, d_options.restoreSnippets
             );
         }
+
+        // A menu should answer "what is left?" at a glance.
+        this.visited_apply(index_followingSlide);
 
         // Start any typewriters that are directly on the slide (not in snippets)
         this.startNonSnippetTypewriters(index_followingSlide);

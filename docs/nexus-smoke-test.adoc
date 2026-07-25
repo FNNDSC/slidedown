@@ -1,0 +1,114 @@
+= Nexus Navigation: Manual Smoke Test
+v1.0, July 2026
+
+The automated suites cover the compiler (`tests/test_nexus_*.py`) and the
+runtime dispatcher (`tests/js/nexus.test.js`, run under a DOM stub). What
+neither covers is the browser itself: real clicks, real focus, real
+transitions, real CSS.
+
+This is the short list to run in a browser before presenting a nexus deck.
+Half a page, two minutes.
+
+== Fixture
+
+[source,bash]
+----
+make test-all          # compiler + runtime suites must be green first
+slidedown examples/nexus examples/nexus/out --inputFile nexus-demo.sd
+cd examples/nexus/out && python3 -m http.server 8000
+----
+
+`examples/nexus/nexus-demo.sd` is shaped for these checks: a menu, three
+spokes of which one runs to two slides, and a second placement of the same
+nexus at the end.
+
+....
+1  menu           (nexus, three jumps)
+2  addressing     (single-slide spoke)
+3  returning      (spoke continues...)
+4  returning      (...to here)
+5  keys           (single-slide spoke)
+6  menu again     (.ref of the same nexus)
+....
+
+The two-slide spoke matters: it is the only way to check that `Esc`
+returns from *mid*-spoke rather than only from a spoke's end.
+
+== Checks
+
+[cols="1,4,3"]
+|===
+|# |Do this |Expect
+
+|1
+|Load the deck.
+|Menu slide. *No slide counter, no progress bar* — nexus decks carry no
+linear position readout.
+
+|2
+|Click a jump.
+|Lands on that spoke. The click must not *also* advance a slide.
+
+|3
+|Press `Right` at the end of the spoke.
+|Returns to the menu you left. Not onward to the next spoke.
+
+|4
+|Note which entries were revealed before jumping, then return.
+|The menu comes back *as you left it* — same entries revealed, no replay
+of the build, and no entries revealed that were not showing when you left.
+
+|5
+|Jump into a spoke, then press `Esc` before reaching its end.
+|Returns to the menu immediately.
+
+|6
+|Press `2` on the menu.
+|Jumps to the second entry. Do this without touching the mouse — this is
+the mechanism you will actually use at a lectern.
+
+|7
+|On a menu with unrevealed entries, press the digit of an unrevealed one.
+|Nothing happens. An unannounced topic must not be reachable.
+
+|8
+|Click blank space on the menu, left and right halves.
+|Nothing happens. Click-to-advance is off on nexus slides.
+
+|9
+|Click blank space on a spoke slide.
+|Advances normally. Suppression is per-slide, not deck-wide.
+
+|10
+|Walk the whole deck with `Right` from slide 1, never jumping.
+|Behaves like an ordinary linear deck end to end. The mirror rule only
+returns from spokes that were *entered by a jump*.
+
+|11
+|Jump from the *closing* menu (slide 4), then return.
+|Comes back to slide 4, not slide 1. Return resolves to the placement you
+departed from.
+
+|12
+|Open `?slide=spoke-address` directly, then press `Esc`.
+|Returns to the nearest preceding nexus. `Esc` must never silently
+no-op.
+
+|13
+|Tab through the menu.
+|Each jump takes focus in document order and shows a visible focus ring.
+
+|14
+|Load with JavaScript disabled, click a jump.
+|Navigates via the `href`. Degraded, but not broken.
+|===
+
+== Browser support
+
+`.tuibox`-style `:has()` selectors are a deck concern, not an engine one,
+but the runtime itself needs only `Element.closest()` and
+`URLSearchParams` — both available everywhere current.
+
+Run at least once in whatever browser will be connected to the projector.
+The failure that matters is not a wrong jump; it is a jump that does
+nothing while a room watches.

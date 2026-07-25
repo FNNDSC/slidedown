@@ -1,0 +1,384 @@
+= Slidedown Design: Nexus Navigation
+v0.1, July 2026
+
+[IMPORTANT]
+====
+*Status: Implemented on branch `feat/nexus-navigation`.*
+
+All five stages are built and covered by `tests/test_nexus_addressing.py`,
+`tests/test_nexus_jumps.py`, `tests/test_nexus_placements.py` and
+`tests/js/nexus.test.js` (178 and 54 tests respectively). Manual browser
+checks are in `nexus-smoke-test.adoc`, with a fixture at
+`examples/nexus/nexus-demo.sd`.
+
+Theming ships a base skin in `assets/css/slidedown.css` plus per-theme
+treatments for `lcars-lower-decks` and `terminal`. `conventional-light`,
+`retro-terminal` and `default` inherit the base skin, which is legible and
+operable but undecorated.
+
+Three things differ from the design as first written; each is corrected in
+place below and noted here:
+
+* *No pre-pass is needed.* Jump targets are recorded during the compile
+  walk and resolved afterwards in `compile()`, where every address is
+  known. Forward references work without restructuring the compiler.
+* *Restore is to departure state, not to complete.* Reading
+  `slide_transition()` showed that reveal state is destroyed on entry, and
+  that restoring everything would expose menu entries that were never
+  announced.
+* *The click conflict was already solved.* `checkForMouseClick()` ignores
+  clicks on anchors, so rendering jumps as anchors was sufficient — though
+  it did expose a real bug, since the guard tested `e.target` rather than
+  `closest()`.
+====
+
+== Motivation
+
+Slidedown decks are linear arrays. Navigation is Right/Left for next/previous
+(with snippet reveal folded in), Up/Down for first/last slide, and a `slide` URL
+parameter for direct access (`assets/js/slidedown.js`, `Page.l_urlParamsBasic`).
+
+That model does not serve a *hub-and-spokes* deck: one menu slide listing N
+topics, each topic backed by its own short run of slides, where the presenter
+chooses live which topics to open and in what order. Today the only way to
+author one is to place the spokes in menu order and press Right the appropriate
+number of times, which works but is visibly mechanical from the floor.
+
+The motivating case is a short talk built as a menu of six topics, voted on by
+the audience, of which only two get opened — with a second copy of the menu at
+the end so the linear walk still terminates sensibly.
+
+The goal is that such a deck *feels like a menu*: you leave the hub
+deliberately, you come back deliberately, and you can bail out of a topic at any
+point without walking to its end.
+
+== Concepts
+
+jump:: The primitive. A labelled reference from anywhere in a deck to a named
+slide. Available inline, including inside `.o{}` snippets and body prose.
+
+nexus:: A slide containing a set of jumps presented as the slide's primary
+content. A nexus is a *mode*, not just a layout: its presence changes deck
+behavior (see <<deck-mode>>).
+
+spoke:: The run of slides entered by a jump. Extent is implicit — see
+<<spoke-extent>>.
+
+The distinction matters: a deck may contain jumps used as ordinary
+cross-references without becoming a nexus deck.
+
+== Grammar
+
+Both directives follow the existing modifier convention, where modifiers appear
+as the first child of the directive they qualify (as `.class{}` does on
+`.slide{}` and `.style{}` does on `.column{}`).
+
+.Slide anchor
+[source,slidedown]
+----
+.slide{.id{rerun}
+  .title{Does It Survive a Re-Run?}
+  .body{
+    ...
+  }
+}
+----
+
+.Jump
+[source,slidedown]
+----
+.jump{.target{rerun} Does the demo survive a re-run?}
+----
+
+.Nexus
+[source,slidedown]
+----
+.slide{
+  .title{The Menu}
+  .body{
+    .h1{Six Things I Judge On}
+
+    .nexus{.id{menu}
+      .o{.jump{.target{rerun} Does the demo survive a re-run?}}
+      .o{.jump{.target{act} Should your agent be allowed to act?}}
+      ...
+    }
+  }
+}
+----
+
+.Second placement of the same nexus
+[source,slidedown]
+----
+.slide{
+  .title{The Menu, Again}
+  .body{
+    .nexus{.ref{menu}}
+  }
+}
+----
+
+Wrapping jumps in `.o{}` is optional and opts the nexus into progressive reveal
+— appropriate when the presenter reads the options aloud one at a time. A nexus
+whose jumps are bare renders fully revealed.
+
+=== Naming
+
+`.pill{}` is deliberately *not* part of the grammar. A pill is LCARS's idiom;
+the same construct is a link in `conventional-light` and a bracketed index in
+`terminal`. The grammar stays semantic and each theme supplies the skin. See
+<<theming>>.
+
+== Addressing
+
+Targets are names, never indices. Slide numbers break the moment a slide is
+inserted, and a deck under active authoring is exactly when that happens.
+
+Resolution order for a slide's address:
+
+. An explicit `.id{}` modifier on `.slide{}`.
+. Otherwise, a slug derived from the slide's `.title{}` content — lowercased,
+  non-alphanumerics collapsed to hyphens.
+
+Explicit ids win. They exist for titles that are prose, that collide, or that
+are expected to be reworded.
+
+=== Compile-time validation
+
+*An unresolved jump target is a build error.* Not a warning, not a dead element
+discovered at the lectern. The compiler already walks every slide to extract
+`.title{}` metadata; target resolution is the same pass.
+
+Duplicate addresses (two slides slugging to the same name, no explicit `.id{}`)
+are also a build error.
+
+[[deck-mode]]
+== Deck mode
+
+A deck is a *nexus deck* if it contains at least one nexus slide. It is not a
+nexus deck merely because it contains a jump.
+
+This matters because nexus mode changes behavior that ordinary decks depend on.
+An author who adds one inline "see also" cross-reference to a conventional talk
+should not silently lose that deck's progress indicator.
+
+In nexus decks:
+
+* The slide progress indicator is suppressed entirely. "Slide 4 of 9" is a false
+  statement about a deck that is being driven as a graph. Theme
+  `navigation.show_progress` is overridden, not respected.
+* Click-to-advance is disabled *on nexus slides only* (see <<click>>).
+* `Esc` is bound (see <<return>>).
+
+Spoke-local progress ("2 of 4 in this spoke") is explicitly *deferred*, not
+rejected — see <<deferred>>.
+
+[[spoke-extent]]
+== Spoke extent
+
+A spoke begins at a jump target and ends immediately before the next slide that
+is itself either a jump target or a nexus placement.
+
+This rule is load-bearing for the return semantics below — the engine has to
+know where a spoke ends in order to know when advancing should return. It is not
+merely bookkeeping for a progress readout.
+
+Single-slide spokes are the common case and fall out of the rule naturally: a
+target immediately followed by another target is a spoke of length one.
+
+[[return]]
+== Navigation semantics
+
+=== Entry
+
+A jump sets the current slide to its target and pushes the *departure
+placement* onto a return stack.
+
+The target arrives with zero snippets revealed, so the spoke presents normally
+from the top.
+
+=== Return: the mirror rule
+
+*The return path mirrors the entry path.*
+
+* Advancing (Right) past the last slide of a spoke that was *entered by a jump*
+  returns to the nexus placement it was entered from.
+* Advancing past the last slide of a spoke that was *walked into linearly* falls
+  through to the next slide, exactly as today.
+
+One rule, no author-facing flag: the deck behaves as a menu when it is being
+driven as one, and as an ordinary linear deck when someone reads it end to end.
+
+=== Return: Esc
+
+`Esc` returns to the departure nexus *from anywhere in a spoke*, not only from
+its last slide.
+
+This is the affordance that most distinguishes a menu from a deck with
+shortcuts. A presenter who reads the room three slides into a topic and decides
+to move on should not have to walk to the end of that topic first.
+
+`Esc` with an empty return stack — the case where a deep link dropped the viewer
+straight into a spoke — falls back to the *nearest preceding nexus placement* in
+document order. `Esc` that silently does nothing reads as broken.
+
+=== Return: state on arrival
+
+The nexus is restored to its *departure state*: the snippets that were revealed
+when the jump was taken are revealed again, and no more. No replay of a
+progressive build the audience has already watched, and no premature reveal of
+options that had not yet been announced — since unrevealed jumps are inert, a
+jump taken from the third of six pills means pills four through six were never
+shown, and restoring them would spoil the vote.
+
+This requires a change to `Page.slide_transition()`, which currently calls
+`allSnippets_displaySet('none', …)` and `resetAllTypewritersOnSlide()`
+unconditionally on every transition in both directions — entry destroys reveal
+state, so today there is nothing to restore. The transition gains an options
+argument defaulting to the present reset behavior; only nexus returns pass the
+restore flag. Existing decks are unaffected.
+
+Note also that `allSnippets_displaySet()` sets `l_snippetPerSlideON` to zero
+regardless of the state argument, so the `'block'` path already reports a
+desynchronised count. Any restore path must set the counter to the number
+actually revealed.
+
+The jump just returned from is marked *visited* and rendered accordingly. For a
+menu talk this is the substantive payoff — a glance at the hub answers "what
+have I already spent time on?" without the presenter tracking it in their head.
+
+Visited state should survive a reload (a browser dying mid-talk is a real
+failure mode), which argues for `sessionStorage` keyed by deck.
+
+=== Placement identity
+
+Return resolves to the *placement* departed from, not to the nexus definition.
+A nexus placed at both ends of a deck is two placements; returning to the wrong
+one is disorienting in a way that is hard to attribute after the fact.
+
+=== Landing on a nexus
+
+A nexus is reached only by jump-return, by `Esc`, or by a deliberate walk. Never
+as a side effect of anything else.
+
+[[click]]
+== Input handling
+
+=== The click conflict
+
+`document.onclick` currently advances the deck on right-half clicks
+(`Page.checkForMouseClick`). A jump activated by click must stop propagation, or
+every jump both navigates and advances.
+
+Beyond that, click-to-advance should be *disabled on nexus slides*. A near-miss
+on a jump would otherwise skip silently into the following slide — the worst
+possible failure on the one slide the presenter is parked on. Arrow keys
+continue to work there.
+
+=== Number keys
+
+`1`–`9` jump to the corresponding jump on the current nexus. At a lectern with a
+clicker, the presenter is not touching the screen; this is the mechanism that
+gets used in practice, and clicking is the fallback.
+
+Constraints:
+
+* Digits are currently unbound, but `0`, `+`/`=` and `-`/`_` are taken by the
+  typography scale handler (`typographyScale_keyHandle`). Cap at `1`–`9`.
+* No multi-digit buffer. A nexus with more than nine options is a design problem
+  in the deck, not a gap in the engine.
+* Number keys are inert on non-nexus slides.
+
+=== Unrevealed jumps are inert
+
+In a nexus using `.o{}` reveal, a jump that has not yet been revealed is neither
+clickable nor reachable by number key. Jumping to a topic the audience has not
+seen listed is never intended.
+
+== Motion
+
+Entry and return must not animate identically. Return should reverse the entry
+transition.
+
+This is a small amount of CSS and it is most of the perceptual difference
+between an audience tracking the structure of the talk and an audience quietly
+losing the thread. Themes that define no transition are unaffected.
+
+[[theming]]
+== Theming
+
+The compiler emits semantic markup; themes skin it. Expected treatments:
+
+`lcars-lower-decks`:: Pill — the theme's native idiom for a menu of choices.
+`conventional-light`:: Link styling, underline on hover/focus.
+`terminal`, `retro-terminal`:: Bracketed index, e.g. `[3] Does it survive a re-run?`
+`default`:: Link styling.
+
+Visited and unrevealed are theme-visible states and need a defined treatment in
+each.
+
+== Accessibility
+
+Jumps render as real anchors or buttons, not styled `div`s. This buys correct
+tab order, focus states, screen reader semantics, and native touch behavior for
+free — the last of which matters on Android/Termux, where the left/right tap
+zones contend with jump targets far more aggressively than a mouse pointer does.
+
+== Deep linking
+
+Named addressing extends the existing `slide` URL parameter:
+`?slide=rerun` alongside the current `?slide=5`.
+
+Two consequences worth having on purpose: a single topic can be linked and
+shared directly, and a browser that dies mid-talk reloads to the current slide
+rather than to slide one.
+
+Numeric `?slide=N` remains supported.
+
+[[deferred]]
+== Deferred
+
+Spoke-local progress:: "2 of 4 in this spoke." Deferred because single-slide
+spokes — the common case, and the shape of the motivating deck — render it as
+"1 of 1". It starts earning its place at spoke lengths of three or four, and by
+then real use will have shown whether it is wanted. Suppression is a decision
+that can be revisited cheaply; the spoke-extent model it would need is already
+defined above.
+
+Multi-digit jump targets:: See above.
+
+Nested nexuses:: A spoke containing its own nexus. No motivating case yet, and
+the return stack semantics would need to be specified rather than assumed.
+
+== Open questions
+
+. Should a nexus placement be walkable *into* from the preceding slide in a deck
+  whose spokes all precede it? The sandwich shape makes this common and it is
+  currently allowed, but it means the closing nexus is reachable both by return
+  and by fall-through from the last spoke — which are perceptually different
+  arrivals at the same slide.
+
+. Does `Left` from the first slide of a jump-entered spoke return to the nexus,
+  or go to the preceding slide in document order? The mirror rule covers
+  forward motion only. Symmetry argues for return; muscle memory argues for
+  document order.
+
+. Should `.jump{}` outside a nexus (an inline cross-reference) push a return
+  stack entry at all? If it does, `Esc` becomes meaningful in ordinary decks,
+  which contradicts <<deck-mode>>.
+
+== Impact on existing code
+
+Areas that assume a linear array and will need attention:
+
+* `Page` (`assets/js/slidedown.js`) — `currentSlide`, `l_slide`,
+  `l_snippetsPerSlide`, `l_snippetPerSlideON`; the return stack is new state on
+  this object.
+* `Page.checkForMouseClick` — propagation and nexus-slide suppression.
+* `Page.checkForArrowKeyPress` — `Esc`, digits, spoke-end interception on Right.
+* URL parameter parsing — named targets.
+* Progress indicator rendering — suppression in nexus decks; note the
+  `numberOfSlides` element and the `{current}`/`{total}` placeholders.
+* Compiler slide walk — address assignment, target resolution, validation,
+  spoke-extent computation, nexus placement identity.
+* Theme stylesheets — jump, visited, unrevealed, focus states.

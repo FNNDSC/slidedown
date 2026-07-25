@@ -476,3 +476,48 @@ pre[id^="typewriter-"] {
   left: 50%;
   transform: translate(-50%, -50%);
 }
+
+/* -------------------------------------- */
+/* Nexus navigation                       */
+/* -------------------------------------- */
+
+/* The bracketed index is generated, not authored, so the number shown
+   is always the digit key that triggers it. Renumbering a menu is
+   therefore impossible to get wrong. */
+.sd-nexus {
+  counter-reset: sd-jump;
+  display: block;
+}
+
+.sd-jump {
+  color: #d4d4d4;
+  text-decoration: none;
+  border-bottom: 1px dashed transparent;
+  transition: color 0.15s ease, border-color 0.15s ease, opacity 0.2s ease;
+}
+
+.sd-jump::before {
+  counter-increment: sd-jump;
+  content: "[" counter(sd-jump) "] ";
+  color: #dcdcaa;
+  font-weight: bold;
+}
+
+.sd-jump:hover {
+  color: #4ec9b0;
+  border-bottom-color: #4ec9b0;
+  text-decoration: none;
+}
+
+.sd-jump:focus-visible {
+  outline: 1px solid #4ec9b0;
+  outline-offset: 4px;
+}
+
+.sd-jump--visited {
+  opacity: 0.45;
+}
+
+.sd-jump--visited::before {
+  color: #6a9955;
+}

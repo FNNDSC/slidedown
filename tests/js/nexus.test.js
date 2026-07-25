@@ -19,6 +19,48 @@ const vm = require('vm');
 const SOURCE = path.join(__dirname, '..', '..', 'assets', 'js', 'slidedown.js');
 
 /**
+ * Minimal sessionStorage stub.
+ *
+ * @param {boolean} throws  When true, every operation throws, as in
+ *                          private-browsing modes.
+ * @returns {object} Storage-like object.
+ */
+function storage_make(throws) {
+    const data = {};
+    return {
+        data,
+        getItem(k) {
+            if (throws) { throw new Error('storage disabled'); }
+            return Object.prototype.hasOwnProperty.call(data, k)
+                ? data[k] : null;
+        },
+        setItem(k, v) {
+            if (throws) { throw new Error('storage disabled'); }
+            data[k] = String(v);
+        }
+    };
+}
+
+/**
+ * Build a stub anchor element carrying a jump address.
+ *
+ * @param {string} address  data-jump value.
+ * @returns {object} Anchor stub with a recording classList.
+ */
+function anchorElement_make(address) {
+    const classes = new Set();
+    return {
+        classes,
+        getAttribute: (n) => (n === 'data-jump' ? address : null),
+        classList: {
+            add: (c) => classes.add(c),
+            remove: (c) => classes.delete(c),
+            contains: (c) => classes.has(c)
+        }
+    };
+}
+
+/**
  * Find a stub anchor for a slide matching a querySelector expression.
  *
  * @param {object} anchors   Map of slide number -> {address: revealed}.
@@ -76,12 +118,18 @@ function context_make(options) {
         elements.numberOfSlides = { innerHTML: String(opts.slideCount) };
         elements.slideIDprefix = { innerHTML: 'slide-' };
         for (let i = 1; i <= opts.slideCount; i++) {
+            const slideAnchors = Object.keys(
+                (opts.anchors && opts.anchors[i]) || {}
+            ).map(anchorElement_make);
+
             elements['slide-' + i] = {
                 style: {},
                 getElementsByClassName: () => [],
                 // Anchors declared per slide via options.anchors, so tests
                 // can control whether a jump is revealed.
-                querySelector: (sel) => anchor_find(opts.anchors, i, sel)
+                querySelector: (sel) => anchor_find(opts.anchors, i, sel),
+                querySelectorAll: () => slideAnchors,
+                anchors: slideAnchors
             };
             elements['slide-' + i + '-title'] = { innerHTML: 'Slide ' + i };
         }
@@ -109,10 +157,13 @@ function context_make(options) {
             innerWidth: 2560,
             innerHeight: 1440,
             onload: null,
+            sessionStorage: opts.storage || storage_make()
         },
         $: () => ({})
     };
     sandbox.globalThis = sandbox;
+
+    sandbox.elements = elements;
 
     vm.createContext(sandbox);
     vm.runInContext(fs.readFileSync(SOURCE, 'utf8'), sandbox, {
@@ -625,6 +676,77 @@ test('jumping from a non-nexus slide records no return point', () => {
 
     assert.strictEqual(ctx.page.return_push(), false);
     assert.strictEqual(ctx.page.l_returnStack.length, 0);
+});
+
+
+/* --- visited marking -------------------------------------------------- */
+
+test('jumping marks the target visited', () => {
+    const ctx = sandwich_make();
+    ctx.page.nexusDigit_process(1);
+
+    assert.strictEqual(ctx.page.d_visited.depth, true);
+    assert.strictEqual(ctx.page.d_visited.registry, undefined);
+});
+
+test('visited state is keyed on the target, not the placement', () => {
+    const ctx = sandwich_make();
+    ctx.page.nexusDigit_process(1);         // from the opening menu
+
+    // The closing menu is a different placement of the same nexus and
+    // must agree that this topic has been covered.
+    ctx.page.visited_apply(4);
+    const anchor = ctx.elements['slide-4'].anchors
+        .find((a) => a.getAttribute('data-jump') === 'depth');
+
+    assert.strictEqual(anchor.classList.contains('sd-jump--visited'), true);
+});
+
+test('unvisited jumps carry no visited class', () => {
+    const ctx = sandwich_make();
+    ctx.page.nexusDigit_process(1);
+    ctx.page.visited_apply(4);
+
+    const anchor = ctx.elements['slide-4'].anchors
+        .find((a) => a.getAttribute('data-jump') === 'registry');
+
+    assert.strictEqual(anchor.classList.contains('sd-jump--visited'), false);
+});
+
+test('visited state survives a reload', () => {
+    const storage = storage_make();
+
+    const first = context_make({
+        graph: SANDWICH, slideCount: 4, storage,
+        anchors: { 1: { depth: true, registry: true } }
+    });
+    first.page.nexusDigit_process(1);
+
+    // Same storage, fresh page: the browser died and came back.
+    const second = context_make({
+        graph: SANDWICH, slideCount: 4, storage,
+        anchors: { 1: { depth: true, registry: true } }
+    });
+
+    assert.strictEqual(second.page.d_visited.depth, true);
+});
+
+test('disabled storage does not break navigation', () => {
+    const ctx = context_make({
+        graph: SANDWICH,
+        slideCount: 4,
+        storage: storage_make(true),
+        anchors: { 1: { depth: true, registry: true } }
+    });
+
+    // Private browsing: marking must degrade, not throw.
+    assert.strictEqual(ctx.page.nexusDigit_process(1), true);
+    assert.strictEqual(ctx.page.currentSlide, 2);
+});
+
+test('marking an empty address is refused', () => {
+    const ctx = sandwich_make();
+    assert.strictEqual(ctx.page.visited_mark(''), false);
 });
 
 

@@ -1,0 +1,84 @@
+.meta{
+  title: "Nexus Navigation Demo"
+  theme: "terminal"
+  typography:
+    baseline: presentation
+  snippets:
+    marker: "▸ "
+}
+
+.slide{
+  .id{menu}
+  .title{Pick a Topic}
+  .body{
+    .h1{Nexus Demo}
+    .h2{Click an entry, or press its number}
+
+    .nexus{.id{topics}
+      .o{.jump{.target{addressing} How slides get names}}
+      .o{.jump{.target{returning} How returning works}}
+      .o{.jump{.target{keys} What the keyboard does}}
+    }
+  }
+}
+
+.slide{
+  .id{addressing}
+  .title{Addressing}
+  .body{
+    .h1{Slides Have Names}
+
+    .o{An explicit .code{.id{}} wins.}
+    .o{Otherwise the title is slugified.}
+    .o{Duplicate addresses fail the build.}
+
+    .div{.class{prompt} Press Right at the end of this spoke to go back.}
+  }
+}
+
+.slide{
+  .id{returning}
+  .title{Returning}
+  .body{
+    .h1{The Mirror Rule}
+
+    .o{Jump in, and advancing off the end brings you home.}
+    .o{Walk in linearly, and it falls through as normal.}
+    .o{Esc returns from anywhere in a spoke.}
+
+    .div{.class{prompt} This spoke runs two slides. Press Right.}
+  }
+}
+
+.slide{
+  .title{Returning, Continued}
+  .body{
+    .h1{Still In The Spoke}
+
+    .o{This slide is part of the previous spoke.}
+    .o{Advancing from here returns to the menu.}
+  }
+}
+
+.slide{
+  .id{keys}
+  .title{Keys}
+  .body{
+    .h1{Keyboard}
+
+    .o{.bf{1-9} jump to the nth entry of the current nexus.}
+    .o{.bf{Esc} returns to the menu you came from.}
+    .o{.bf{Left/Right} walk the deck in document order.}
+    .o{Unrevealed entries are inert -- nothing to jump to yet.}
+  }
+}
+
+.slide{
+  .title{Back to the Menu}
+  .body{
+    .h1{The Same Menu, Again}
+    .h2{Placed a second time -- note which entries are dimmed}
+
+    .nexus{.ref{topics}}
+  }
+}
