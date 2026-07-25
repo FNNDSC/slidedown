@@ -139,6 +139,16 @@ install: venv
 test:
 	$(VENV_BIN)/pytest -v
 
+# Runtime (JavaScript) tests. Uses node's built-in assert and a DOM stub,
+# so there is no npm toolchain to install. Skipped with a notice when node
+# is unavailable rather than failing the target.
+test-js:
+	@command -v node >/dev/null 2>&1 \
+		&& node tests/js/nexus.test.js \
+		|| echo "node not found - skipping runtime tests"
+
+test-all: test test-js
+
 lint:
 	$(VENV_BIN)/ruff check .
 

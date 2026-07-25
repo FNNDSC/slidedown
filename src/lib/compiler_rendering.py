@@ -22,6 +22,7 @@ from ..models.compiler import (
     NavbarContainerConfig,
     NavbarItemConfig,
     NavbarZoneItem,
+    NexusPlacements,
     PresentationMetaConfig,
     ProgressConfig,
     SlideAddresses,
@@ -51,6 +52,7 @@ class CompilerRenderer(Protocol):
     input_dir: Path
     jump_refs: JumpRefs
     meta_config: PresentationMetaConfig
+    nexus_placements: NexusPlacements
     slide_addresses: SlideAddresses
     slide_count: int
     standalone: bool
@@ -200,6 +202,7 @@ def htmlDocument_build(compiler: CompilerRenderer, content: str) -> str:
                     compiler.slide_addresses,
                     compiler.jump_refs,
                     compiler.slide_count,
+                    compiler.nexus_placements,
                 ),
                 "",
                 compiler.lcarsFrame_generate(form_layout, navbar_html),
@@ -216,6 +219,7 @@ def htmlDocument_build(compiler: CompilerRenderer, content: str) -> str:
                     compiler.slide_addresses,
                     compiler.jump_refs,
                     compiler.slide_count,
+                    compiler.nexus_placements,
                 ),
                 "",
                 f"        {navbar_html}",

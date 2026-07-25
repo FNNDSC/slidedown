@@ -15,6 +15,8 @@ from ..models.compiler import (
     ConfigValue,
     PlaceholderMap,
     JumpRefs,
+    NexusBodies,
+    NexusPlacements,
     PresentationMetaConfig,
     SlideAddresses,
     SlideCounters,
@@ -90,6 +92,10 @@ class Compiler:
         # .jump{} references, resolved after the walk so that a jump may
         # legitimately point forward to a slide compiled later.
         self.jump_refs: JumpRefs = []
+        # Nexus placements in document order, and the compiled bodies that
+        # .ref{} copies from.
+        self.nexus_placements: NexusPlacements = []
+        self.nexus_bodies: NexusBodies = {}
         self.snippet_counters: SlideCounters = {}  # slide_num -> snippet_count
         self.typewriter_counters: SlideCounters = (
             {}

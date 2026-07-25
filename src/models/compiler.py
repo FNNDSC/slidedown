@@ -28,6 +28,15 @@ SlideAddresses: TypeAlias = dict[str, int]
 # forward to a slide that has not been compiled yet.
 JumpRefs: TypeAlias = list[tuple[str, int]]
 
+# Nexus placements in document order, as (nexus_id, slide_number,
+# ordered_jump_addresses). The same nexus may be placed more than once —
+# each placement is a distinct entry, since return resolves to the
+# placement departed from rather than to the definition.
+NexusPlacements: TypeAlias = list[tuple[str, int, list[str]]]
+
+# Compiled nexus bodies keyed by nexus id, so .ref{} can place a copy.
+NexusBodies: TypeAlias = dict[str, str]
+
 # Maps a config-key name to its CSS property name, used in style-building
 # helpers (e.g. {"background": "background-color"}).
 CSSPropertyMap: TypeAlias = dict[str, str]

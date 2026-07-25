@@ -567,6 +567,118 @@ function typographyScale_initialize() {
 ///////// logical perspective.
 /////////
 
+/////////
+///////// Nexus navigation: the compiled navigation graph.
+/////////
+
+function NexusGraph() {
+    let str_help = `
+
+        Reads the navigation graph the compiler emitted into an inert
+        <script type="application/json"> element.
+
+        This object derives nothing. Every fact it answers was computed
+        at compile time, where the test suite can assert it. If a
+        question cannot be answered from the graph, the answer is "no"
+        rather than a guess.
+
+    `;
+
+    this.graph              = null;
+    this.d_slideForAddress  = {};
+    this.parse();
+}
+
+NexusGraph.prototype = {
+    constructor:        NexusGraph,
+
+    // Graph schemas this runtime understands. A deck compiled by a newer
+    // slidedown is ignored rather than half-interpreted.
+    SUPPORTED_VERSION:  1,
+
+    parse:              function() {
+        let str_help = `
+            Load and validate the graph. Returns true when a usable
+            graph was found.
+        `;
+
+        let el = document.getElementById('nexusGraph');
+        if (!el) {
+            return false;
+        }
+
+        try {
+            this.graph = JSON.parse(el.textContent);
+        } catch (err) {
+            console.warn('nexus: navigation graph is not valid JSON', err);
+            this.graph = null;
+            return false;
+        }
+
+        if (!this.graph || this.graph.version !== this.SUPPORTED_VERSION) {
+            console.warn(
+                'nexus: unsupported graph version',
+                this.graph ? this.graph.version : '(none)'
+            );
+            this.graph = null;
+            return false;
+        }
+
+        this.d_slideForAddress = this.graph.slides || {};
+        return true;
+    },
+
+    isLoaded:           function() {
+        return this.graph !== null;
+    },
+
+    isNexusDeck:        function() {
+        let str_help = `
+            True when the deck places at least one nexus. A deck holding
+            only inline cross-references is not a nexus deck and keeps
+            its ordinary navigation behaviour.
+        `;
+
+        return this.isLoaded() && this.graph.isNexusDeck === true;
+    },
+
+    placementFor:       function(a_slideIndex) {
+        let str_help = `
+            The nexus placement sitting on a given slide, or null.
+
+            Placements are distinct even when they share a nexus id: the
+            same menu placed at both ends of a deck is two placements,
+            and returning to the wrong one is disorienting.
+        `;
+
+        if (!this.isLoaded() || !this.graph.nexuses) {
+            return null;
+        }
+
+        for (let i = 0; i < this.graph.nexuses.length; i++) {
+            if (this.graph.nexuses[i].slide === a_slideIndex) {
+                return this.graph.nexuses[i];
+            }
+        }
+        return null;
+    },
+
+    slideFor:           function(astr_address) {
+        let str_help = `
+            Resolve a slide address to its 1-based slide number.
+            Returns 0 when the address is unknown.
+        `;
+
+        if (!astr_address) {
+            return 0;
+        }
+
+        let index = this.d_slideForAddress[astr_address];
+        return (typeof index === 'number') ? index : 0;
+    }
+}
+
+
 function Page() {
     let str_help = `
 
@@ -579,6 +691,7 @@ function Page() {
     `;
 
     this.currentSlide               = 1;
+    this.nexus                      = new NexusGraph();
     document.onkeydown              = this.checkForArrowKeyPress;
     document.onclick                = this.checkForMouseClick;
 
@@ -782,6 +895,168 @@ Page.prototype = {
         this.l_snippetPerSlideON[a_slideIndex-1] = 0;
     },
 
+    slide_goto:                         function(a_slideIndex) {
+        let str_help = `
+            Navigate directly to a 1-based slide index.
+
+            Returns true when the deck moved. Out-of-range indices and
+            navigation to the current slide are no-ops, so callers may
+            pass unvalidated input.
+        `;
+
+        if (typeof a_slideIndex !== 'number' || !isFinite(a_slideIndex)) {
+            return false;
+        }
+        if (a_slideIndex < 1 || a_slideIndex > this.l_slide.length) {
+            return false;
+        }
+        if (a_slideIndex === this.currentSlide) {
+            return false;
+        }
+
+        let index_currentSlide      = this.currentSlide;
+        this.currentSlide           = a_slideIndex;
+        this.slide_transition(index_currentSlide, a_slideIndex);
+        return true;
+    },
+
+    startSlide_fromURL:                 function() {
+        let str_help = `
+            Resolve the ?slide= parameter to a starting slide index.
+
+            Accepts either a slide number or a slide address, so a deck
+            can be deep-linked by name. Falls back to slide 1.
+        `;
+
+        let params = new URLSearchParams(window.location.search);
+        if (!params.has('slide')) {
+            return 1;
+        }
+
+        let str_requested = (params.get('slide') || '').trim();
+        if (!str_requested) {
+            return 1;
+        }
+
+        if (/^\d+$/.test(str_requested)) {
+            let index = parseInt(str_requested, 10);
+            if (index >= 1 && index <= this.l_slide.length) {
+                return index;
+            }
+            return 1;
+        }
+
+        return this.nexus.slideFor(str_requested) || 1;
+    },
+
+    jump_isRevealed:                    function(a_anchor) {
+        let str_help = `
+            Whether a jump anchor is currently visible.
+
+            A jump inside an unrevealed snippet is inert: sending the
+            room to a topic they have not seen listed is never intended.
+        `;
+
+        if (!a_anchor || !a_anchor.closest) {
+            return false;
+        }
+
+        let snippet = a_anchor.closest('.snippet');
+        if (!snippet) {
+            return true;
+        }
+
+        return !snippet.classList.contains('sl-hidden');
+    },
+
+    nexusDigit_process:                 function(a_digit) {
+        let str_help = `
+            Jump to the nth entry of the nexus on the current slide.
+
+            Returns true when the digit was consumed. At a lectern with a
+            clicker the presenter is not touching the screen, so this is
+            the mechanism that actually gets used; clicking is a fallback.
+        `;
+
+        let placement = this.nexus.placementFor(this.currentSlide);
+        if (!placement || !placement.jumps) {
+            return false;
+        }
+
+        let str_address = placement.jumps[a_digit - 1];
+        if (!str_address) {
+            return false;
+        }
+
+        let slideEl = document.getElementById(
+            this.str_slideIDprefix + this.currentSlide
+        );
+        let anchor = slideEl ? slideEl.querySelector(
+            '.sd-jump[data-jump="' + str_address + '"]'
+        ) : null;
+
+        if (anchor && !this.jump_isRevealed(anchor)) {
+            return false;
+        }
+
+        let index = this.nexus.slideFor(str_address);
+        if (!index) {
+            return false;
+        }
+
+        this.slide_goto(index);
+        return true;
+    },
+
+    nexusDigit_keyHandle:               function(e) {
+        let str_help = `
+            Route 1-9 to the current nexus.
+
+            Capped at nine: 0, +, = and - already belong to the
+            typography scale, and a nexus with more than nine entries is
+            a problem with the deck rather than a gap in the engine.
+        `;
+
+        if (e.ctrlKey || e.metaKey || e.altKey) {
+            return false;
+        }
+        if (activeElement_isTextEntry()) {
+            return false;
+        }
+        if (!/^[1-9]$/.test(e.key)) {
+            return false;
+        }
+
+        return page.nexusDigit_process(parseInt(e.key, 10));
+    },
+
+    jumpClick_process:                  function(e) {
+        let str_help = `
+            Handle a click on a .sd-jump anchor.
+
+            Returns true when the click was a jump and has been handled,
+            so the caller knows not to treat it as deck navigation.
+        `;
+
+        let target = e.target || e.srcElement;
+        if (!target || !target.closest) {
+            return false;
+        }
+
+        let anchor = target.closest('.sd-jump');
+        if (!anchor) {
+            return false;
+        }
+
+        e.preventDefault();
+
+        let index = page.nexus.slideFor(anchor.getAttribute('data-jump'));
+        if (index) {
+            page.slide_goto(index);
+        }
+        return true;
+    },
+
     advance_toFirst:                    function() {
         let str_help = `
             Advance to first slide...
@@ -925,18 +1200,27 @@ Page.prototype = {
             DOMID_pageTitle.innerHTML = " ";
         }
 
+        // "Slide 4 of 9" is a false statement about a deck being driven
+        // as a graph, so nexus decks carry no linear position readout.
+        let b_showProgress = !this.nexus.isNexusDeck();
+
         // Update slide counter (default behavior)
         if (DOMID_slideCounter) {
-            DOMID_slideCounter.innerHTML = "slide "                 +
-                                            this.currentSlide       +
-                                            " / " + this.l_slide.length;
+            DOMID_slideCounter.innerHTML = b_showProgress
+                ? ("slide " + this.currentSlide +
+                   " / " + this.l_slide.length)
+                : "";
         }
 
         // Update custom footer templates (if present)
         this.updateFooterTemplates();
 
-        progress = this.currentSlide / this.l_slide.length * 100;
-        DOMID_slideBar.style.width = progress + "%";
+        if (DOMID_slideBar) {
+            progress = b_showProgress
+                ? (this.currentSlide / this.l_slide.length * 100)
+                : 0;
+            DOMID_slideBar.style.width = progress + "%";
+        }
     },
 
     updateFooterTemplates:              function() {
@@ -1076,6 +1360,10 @@ Page.prototype = {
             return;
         }
 
+        if (page.nexusDigit_keyHandle(e)) {
+            return;
+        }
+
         if (e.keyCode == '38') {
             // up arrow
             console.log('up arrow')
@@ -1113,13 +1401,27 @@ Page.prototype = {
 
         e = e || window.event;
 
-        // Ignore clicks on buttons, links, and other interactive elements
+        // A jump is navigation in its own right; it must not also advance.
+        if (page.jumpClick_process(e)) {
+            return;
+        }
+
+        // Ignore clicks on buttons, links, and other interactive elements.
+        // Tested with closest() rather than on e.target directly: a click
+        // often lands on markup *inside* an anchor (a <strong> in a link
+        // label, say), where the target itself is not the interactive
+        // element but the click still belongs to it.
         let target = e.target || e.srcElement;
-        if (target.tagName === 'BUTTON' ||
-            target.tagName === 'INPUT' ||
-            target.tagName === 'A' ||
-            target.tagName === 'TEXTAREA' ||
-            target.tagName === 'SELECT') {
+        if (target && target.closest &&
+            target.closest('a, button, input, textarea, select')) {
+            return;
+        }
+
+        // A nexus is a slide you park on. Click-to-advance there would
+        // turn a near-miss on a jump into a silent skip into the next
+        // slide, which is the worst possible failure on the one slide
+        // the presenter is standing on. Arrow keys still work.
+        if (page.nexus.placementFor(page.currentSlide)) {
             return;
         }
 
@@ -1195,8 +1497,10 @@ window.onload = function() {
     // Scale presentation to fit viewport
     scalePresentation();
 
-    // Start on the first slide
-    page.advance_toFirst();
+    // Start where ?slide= asks, by number or by address; slide 1 otherwise.
+    let index_start             = page.startSlide_fromURL();
+    page.currentSlide           = index_start;
+    page.slide_transition(index_start, index_start);
 };
 
 // Rescale on window resize

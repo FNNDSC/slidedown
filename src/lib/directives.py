@@ -367,6 +367,79 @@ class DirectiveRegistry:
                 f'href="?slide={address}">{label}</a>'
             )
 
+        def ref_handler(
+            node: DirectiveNode, compiler: CompilerContext
+        ) -> str:
+            """Compile a nexus back-reference.
+
+            Args:
+                node: Parsed ``.ref{}`` AST node.
+                compiler: Active compiler instance.
+
+            Returns:
+                Empty string; nexus_handler reads the reference.
+            """
+            return ""
+
+        def nexus_handler(
+            node: DirectiveNode, compiler: CompilerContext
+        ) -> str:
+            """Compile a nexus: a menu of jumps that owns its slide.
+
+            A nexus may be defined inline (``.nexus{.id{menu} ...}``) or
+            placed again from an existing definition
+            (``.nexus{.ref{menu}}``). Placing a copy rebases its per-slide
+            element ids so the duplicate drives its own slide's reveals.
+
+            Args:
+                node: Parsed ``.nexus{}`` AST node.
+                compiler: Active compiler instance.
+
+            Returns:
+                ``nav`` element wrapping the nexus body.
+            """
+            nexus_id: str = ""
+            ref_id: str = ""
+            for child in node.children:
+                if child.directive == "id" and not nexus_id:
+                    nexus_id = child.content.strip()
+                elif child.directive == "ref" and not ref_id:
+                    ref_id = child.content.strip()
+
+            slide_num: int = compiler.slide_count
+
+            if ref_id:
+                address: str = nexus.titleSlug_make(ref_id)
+                stored: str | None = compiler.nexus_bodies.get(address)
+                if stored is None:
+                    known: str = (
+                        ", ".join(sorted(compiler.nexus_bodies)) or "(none)"
+                    )
+                    raise nexus.UnresolvedNexusRef(
+                        f".nexus{{.ref{{{ref_id}}}}} on slide {slide_num} "
+                        f"names a nexus that is not defined above it. "
+                        f"Defined so far: {known}"
+                    )
+
+                body: str = nexus.nexusBody_rebase(
+                    stored,
+                    slide_num,
+                    compiler.snippet_counters,
+                    compiler.typewriter_counters,
+                )
+            else:
+                address = nexus.titleSlug_make(nexus_id) or f"nexus-{slide_num}"
+                body = node.content
+                compiler.nexus_bodies[address] = body
+
+            compiler.nexus_placements.append(
+                (address, slide_num, nexus.jumpAddresses_extract(body))
+            )
+
+            return (
+                f'<nav class="sd-nexus" data-nexus="{address}">{body}</nav>'
+            )
+
         def id_handler(
             node: DirectiveNode, compiler: CompilerContext
         ) -> str:
@@ -541,6 +614,29 @@ class DirectiveRegistry:
                 description="Link to another slide by address",
                 handler=jump_handler,
                 examples=[".jump{.target{rerun} Does it survive a re-run?}"],
+            )
+        )
+
+        self.register(
+            DirectiveSpec(
+                name="ref",
+                category=DirectiveCategory.STRUCTURAL,
+                description="Place an already-defined nexus (metadata)",
+                handler=ref_handler,
+                examples=[".nexus{.ref{menu}}"],
+            )
+        )
+
+        self.register(
+            DirectiveSpec(
+                name="nexus",
+                category=DirectiveCategory.STRUCTURAL,
+                description="A menu of jumps that owns its slide",
+                handler=nexus_handler,
+                examples=[
+                    ".nexus{.id{menu} .o{.jump{.target{a} A}}}",
+                    ".nexus{.ref{menu}}",
+                ],
             )
         )
 

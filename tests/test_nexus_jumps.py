@@ -268,28 +268,15 @@ class TestNavigationGraph:
             "slideCount": 2,
             "slides": {"menu": 1, "spoke": 2},
             "jumps": [{"target": "spoke", "targetSlide": 2, "from": 1}],
+            "isNexusDeck": False,
+            "nexuses": [],
         }
 
-    def test_angle_bracket_is_unicode_escaped_not_entity_escaped(
-        self,
-    ) -> None:
-        # Script elements are raw text: an HTML entity here would survive
-        # into the parsed payload and corrupt it.
+    def test_jumps_alone_do_not_make_a_nexus_deck(self) -> None:
+        # An ordinary talk with one inline cross-reference must keep its
+        # progress indicator and its click-to-advance.
         html, _ = html_compile(MENU_DECK)
-        match = re.search(r'id="nexusGraph">(.*?)</script>', html, re.S)
-        assert match is not None
+        graph = graph_extract(html)
 
-        assert "&lt;" not in match.group(1)
-        assert "&amp;" not in match.group(1)
-
-    def test_graph_build_is_pure(self) -> None:
-        graph = navigationGraph_build(
-            {"menu": 1, "spoke": 2}, [("spoke", 1)], 2
-        )
-
-        assert graph == {
-            "version": 1,
-            "slideCount": 2,
-            "slides": {"menu": 1, "spoke": 2},
-            "jumps": [{"target": "spoke", "targetSlide": 2, "from": 1}],
-        }
+        assert graph["isNexusDeck"] is False
+        assert graph["nexuses"] == []

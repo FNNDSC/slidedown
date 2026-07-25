@@ -19,7 +19,12 @@ from __future__ import annotations
 import json
 import re
 
-from ..models.compiler import JumpRefs, SlideAddresses
+from ..models.compiler import (
+    JumpRefs,
+    NexusPlacements,
+    SlideAddresses,
+    SlideCounters,
+)
 
 # Schema version for the emitted navigation graph. The runtime reads this
 # and refuses graphs it does not understand rather than guessing.
@@ -36,7 +41,15 @@ class UnresolvedJumpTarget(ValueError):
     """A .jump{} names a slide address that no slide claims."""
 
 
+class UnresolvedNexusRef(ValueError):
+    """A .nexus{.ref{}} names a nexus that has not been defined."""
 
+
+# Per-slide element ids embedded in compiled HTML. A nexus placed a second
+# time carries its original slide's ids and must be rebased.
+SNIPPET_ID_PATTERN = re.compile(r'id="order-\d+-\d+"')
+TYPEWRITER_ID_PATTERN = re.compile(r'id="typewriter-\d+-\d+"')
+JUMP_ADDRESS_PATTERN = re.compile(r'data-jump="([^"]+)"')
 
 
 def titleSlug_make(title: str) -> str:
@@ -136,10 +149,72 @@ def jumpRefs_validate(
         )
 
 
+def nexusBody_rebase(
+    body_html: str,
+    to_slide: int,
+    snippet_counters: SlideCounters,
+    typewriter_counters: SlideCounters,
+) -> str:
+    """
+    Rewrite per-slide element ids so a re-placed nexus drives its own slide.
+
+    Snippet and typewriter ids encode the slide they were compiled on.
+    Copying a nexus verbatim onto a second slide would duplicate those ids
+    and point the reveal machinery at the original slide, so each id is
+    reissued against the destination slide's counters.
+
+    Args:
+        body_html: Compiled HTML of the nexus body.
+        to_slide: Slide number the copy is being placed on.
+        snippet_counters: Per-slide snippet counters, updated in place.
+        typewriter_counters: Per-slide typewriter counters, updated in place.
+
+    Returns:
+        Body HTML with ids rebased onto ``to_slide``.
+    """
+
+    def snippet_rewrite(_match: re.Match[str]) -> str:
+        snippet_counters[to_slide] = snippet_counters.get(to_slide, 0) + 1
+        return f'id="order-{to_slide}-{snippet_counters[to_slide]}"'
+
+    def typewriter_rewrite(_match: re.Match[str]) -> str:
+        typewriter_counters[to_slide] = (
+            typewriter_counters.get(to_slide, 0) + 1
+        )
+        return f'id="typewriter-{to_slide}-{typewriter_counters[to_slide]}"'
+
+    rebased: str = SNIPPET_ID_PATTERN.sub(snippet_rewrite, body_html)
+    return TYPEWRITER_ID_PATTERN.sub(typewriter_rewrite, rebased)
+
+
+def jumpAddresses_extract(body_html: str) -> list[str]:
+    """
+    Read the ordered jump addresses out of a compiled nexus body.
+
+    Order is document order, which is the order the author wrote them and
+    therefore the order the digit keys must follow.
+
+    Args:
+        body_html: Compiled HTML of the nexus body.
+
+    Returns:
+        Jump target addresses, in order, without duplicates.
+    """
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for address in JUMP_ADDRESS_PATTERN.findall(body_html):
+        if address not in seen:
+            seen.add(address)
+            ordered.append(address)
+
+    return ordered
+
+
 def navigationGraph_build(
     addresses: SlideAddresses,
     jump_refs: JumpRefs,
     slide_count: int,
+    placements: NexusPlacements | None = None,
 ) -> dict[str, object]:
     """
     Assemble the navigation graph consumed by the runtime.
@@ -152,10 +227,13 @@ def navigationGraph_build(
         addresses: Completed address map.
         jump_refs: Recorded (target_address, source_slide) pairs.
         slide_count: Total slides in the deck.
+        placements: Nexus placements, in document order.
 
     Returns:
         JSON-serialisable graph description.
     """
+    nexus_placements: NexusPlacements = placements or []
+
     return {
         "version": GRAPH_VERSION,
         "slideCount": slide_count,
@@ -164,6 +242,14 @@ def navigationGraph_build(
             {"target": target, "targetSlide": addresses[target], "from": src}
             for target, src in jump_refs
         ],
+        # A deck is a nexus deck when it places at least one nexus. A deck
+        # containing only inline cross-references is not, and keeps its
+        # ordinary navigation behaviour.
+        "isNexusDeck": bool(nexus_placements),
+        "nexuses": [
+            {"id": nexus_id, "slide": slide, "jumps": list(jumps)}
+            for nexus_id, slide, jumps in nexus_placements
+        ],
     }
 
 
@@ -171,6 +257,7 @@ def navigationGraph_htmlEmit(
     addresses: SlideAddresses,
     jump_refs: JumpRefs,
     slide_count: int,
+    placements: NexusPlacements | None = None,
 ) -> str:
     """
     Render the navigation graph as an inert JSON script element.
@@ -190,7 +277,9 @@ def navigationGraph_htmlEmit(
     if not addresses:
         return ""
 
-    graph = navigationGraph_build(addresses, jump_refs, slide_count)
+    graph = navigationGraph_build(
+        addresses, jump_refs, slide_count, placements
+    )
     payload: str = json.dumps(graph, separators=(",", ":"), sort_keys=True)
 
     # A script element has a raw-text content model: the browser will not
