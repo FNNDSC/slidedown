@@ -13,11 +13,12 @@
   .title{Start Here}
   .body{
     .h1{Nexus Demo}
-    .h2{Press 1, 2 or 3 -- or click}
+    .h2{Press a number, or Up/Down then Enter, or click}
 
     .nexus{.id{quick}
       .div{.jump{.target{addressing} How slides get names}}
       .div{.jump{.target{returning} How returning works}}
+      .div{.jump{.target{nesting} Spokes within spokes}}
       .div{.jump{.target{keys} What the keyboard does}}
     }
 
@@ -31,11 +32,12 @@ next slide reveals its entries one at a time instead.}
   .title{Pick a Topic}
   .body{
     .h1{The Same Topics, Revealed}
-    .h2{Press Right three times, then a number}
+    .h2{Press Right four times, then a number}
 
     .nexus{.id{topics}
       .o{.jump{.target{addressing} How slides get names}}
       .o{.jump{.target{returning} How returning works}}
+      .o{.jump{.target{nesting} Spokes within spokes}}
       .o{.jump{.target{keys} What the keyboard does}}
     }
   }
@@ -80,12 +82,71 @@ next slide reveals its entries one at a time instead.}
 }
 
 .slide{
+  .id{nesting}
+  .title{Spokes Within Spokes}
+  .body{
+    .h1{Spokes Within Spokes}
+
+    .o{A spoke may hold a menu of its own.}
+    .o{Its entries open spokes nested inside this one.}
+    .o{Returning unwinds one level at a time.}
+
+    .div{.class{prompt} This spoke runs two slides, and the menu is on the
+second one. Press Right.}
+  }
+}
+
+.slide{
+  .id{deeper}
+  .title{A Menu Inside A Spoke}
+  .body{
+    .h1{A Menu Inside A Spoke}
+    .h2{Still inside "Spokes within spokes"}
+
+    .nexus{.id{deeper}
+      .div{.jump{.target{one-level-down} One Level Down}}
+      .div{.jump{.target{two-levels-down} Two Levels Down}}
+    }
+
+    .div{.class{prompt} Esc from here goes back to the topic menu, not to
+the start. Esc from a slide below goes back to this menu.}
+  }
+}
+
+.slide{
+  .id{one-level-down}
+  .title{One Level Down}
+  .body{
+    .h1{One Level Down}
+
+    .o{This slide is a spoke of the menu on the previous slide.}
+    .o{Its entry and this heading read the same, so the carry is a morph
+rather than a cross-fade.}
+
+    .div{.class{prompt} Esc returns to the menu inside the spoke.}
+  }
+}
+
+.slide{
+  .id{two-levels-down}
+  .title{Two Levels Down}
+  .body{
+    .h1{Two Levels Down}
+
+    .o{Esc once for the menu inside the spoke.}
+    .o{Esc again for the topic menu you started from.}
+    .o{The return stack remembers both.}
+  }
+}
+
+.slide{
   .id{keys}
   .title{Keys}
   .body{
     .h1{Keyboard}
 
     .o{.bf{1-9} jump to the nth entry of the current nexus.}
+    .o{.bf{Up/Down} move a cursor; .bf{Enter} takes it. No nine-entry cap.}
     .o{.bf{Esc} returns to the menu you came from.}
     .o{.bf{Left/Right} walk the deck in document order.}
     .o{Unrevealed entries are inert -- nothing to jump to yet.}
