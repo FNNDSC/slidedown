@@ -979,3 +979,48 @@ mark {
     visibility: hidden !important;
     opacity: 0 !important;
 }
+
+/* ------------------------------------------------------------------ */
+/* Nexus navigation                                                   */
+/*                                                                    */
+/* Base skin only: legible and operable in every theme, with the      */
+/* actual look supplied per theme. Focus and visited states live here */
+/* rather than in the themes because they are affordances, not        */
+/* decoration -- a theme that forgets to style them would ship a menu */
+/* nobody can navigate by keyboard.                                   */
+/* ------------------------------------------------------------------ */
+
+.sd-nexus {
+    display: block;
+}
+
+.sd-jump {
+    color: inherit;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+    transition: opacity 0.2s ease;
+}
+
+.sd-jump:hover {
+    text-decoration-thickness: 2px;
+}
+
+/* Keyboard focus must be visible: the digit keys are the primary way
+   a presenter drives a nexus, and tabbing is the fallback. */
+.sd-jump:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+}
+
+/* Already covered. Dimmed rather than hidden: the menu should answer
+   "what is left?" without losing the shape of the whole list. */
+.sd-jump--visited {
+    opacity: 0.5;
+}
+
+/* A jump inside an unrevealed snippet is inert. The runtime enforces
+   this too; the rule here keeps a stray pointer from finding it. */
+.snippet.sl-hidden .sd-jump {
+    pointer-events: none;
+}

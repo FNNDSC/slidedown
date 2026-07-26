@@ -2251,3 +2251,45 @@ nav button.scale-btn:nth-of-type(6) {
     opacity: 0 !important;
 }
 /* -------------------------------------- */
+
+/* -------------------------------------- */
+/* Nexus navigation: jumps as LCARS pills  */
+/* -------------------------------------- */
+
+.sd-nexus {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 0.5rem;
+}
+
+.sd-jump {
+	display: inline-block;
+	background-color: var(--button-color, #f91);
+	color: black;
+	border-radius: 100vmax;
+	padding: 0.1em 1.1em;
+	text-decoration: none;
+	text-transform: uppercase;
+	font-weight: bold;
+	letter-spacing: 1px;
+	line-height: 1.35;
+}
+
+.sd-jump:hover {
+	filter: brightness(1.18);
+	text-decoration: none;
+}
+
+.sd-jump:focus-visible {
+	outline: 3px solid #9cf;
+	outline-offset: 3px;
+}
+
+/* A spent pill reads as inactive panel hardware rather than as a
+   faded button: LCARS has no vocabulary for translucency. */
+.sd-jump--visited {
+	opacity: 1;
+	background-color: #6a5433;
+	color: #d8c7ae;
+}
