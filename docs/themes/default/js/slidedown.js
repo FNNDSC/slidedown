@@ -439,6 +439,27 @@ let typographyScale_base = null;
 let typographyScale_current = null;
 let typographyScale_noticeTimer = null;
 
+// A beat between choosing and moving. With a clicker the room cannot see
+// which key was pressed, so the entry is marked and held long enough to
+// be noticed before anything starts travelling.
+const zoomTransition_HITMS = 160;
+
+// One flight, carrying one line of text. The pages behind it merely
+// cross over, so this is the only duration the eye is actually reading.
+const zoomTransition_FLIGHTMS = 300;
+// The handover to the real heading at the end. An entry and the heading
+// it becomes are rarely word for word the same, so the last moment is a
+// short cross-fade rather than a swap.
+const zoomTransition_CROSSMS = 120;
+
+// Standard ease: out of rest and back into it, which is what a thing
+// being carried somewhere does.
+const zoomTransition_EASE = 'cubic-bezier(0.4, 0.0, 0.2, 1.0)';
+
+// transitionend is not guaranteed — an element hidden mid-flight never
+// fires one — so every leg also carries a timer.
+const zoomTransition_SLACKMS = 60;
+
 function activeElement_isTextEntry() {
     const activeElement = document.activeElement;
     if (!activeElement) {
@@ -745,6 +766,12 @@ function Page() {
     this.l_returnStack              = [];
     // Spokes already covered, keyed by target address.
     this.d_visited                  = {};
+    // Transition named by .meta{}, read from the DOM in init().
+    this.str_transition             = "none";
+    // Finishers for zoom phases still in flight. A presenter working a
+    // clicker outruns any animation, so a new move snaps these rather
+    // than queueing behind them.
+    this.l_zoomPending              = [];
     document.onkeydown              = this.checkForArrowKeyPress;
     document.onclick                = this.checkForMouseClick;
 
@@ -794,6 +821,10 @@ Page.prototype = {
 
         let prefixEl = document.getElementById('slideIDprefix');
         this.str_slideIDprefix = prefixEl ? prefixEl.innerHTML.trim() : 'slide-';
+        let transitionEl = document.getElementById('slideTransition');
+        this.str_transition = transitionEl
+                                ? transitionEl.innerHTML.trim()
+                                : 'none';
         let countEl = document.getElementById('numberOfSlides');
         let numberOfSlides = countEl ? parseInt(countEl.innerHTML) : 0;
         for(let i=1; i<=numberOfSlides; i++) {
@@ -974,13 +1005,17 @@ Page.prototype = {
         this.l_snippetPerSlideON[a_slideIndex-1] = 0;
     },
 
-    slide_goto:                         function(a_slideIndex) {
+    slide_goto:                         function(a_slideIndex, options) {
         let str_help = `
             Navigate directly to a 1-based slide index.
 
             Returns true when the deck moved. Out-of-range indices and
             navigation to the current slide are no-ops, so callers may
             pass unvalidated input.
+
+            'options' is handed to the transition untouched; a jump names
+            the address it followed there, which is what the zoom needs
+            to know where on the slide to move about.
         `;
 
         if (typeof a_slideIndex !== 'number' || !isFinite(a_slideIndex)) {
@@ -995,7 +1030,7 @@ Page.prototype = {
 
         let index_currentSlide      = this.currentSlide;
         this.currentSlide           = a_slideIndex;
-        this.slide_transition(index_currentSlide, a_slideIndex);
+        this.slide_transition(index_currentSlide, a_slideIndex, options);
         return true;
     },
 
@@ -1102,7 +1137,7 @@ Page.prototype = {
         return count;
     },
 
-    return_push:                        function() {
+    return_push:                        function(astr_address) {
         let str_help = `
             Record the current slide as a departure point, if it is a
             nexus placement.
@@ -1111,6 +1146,11 @@ Page.prototype = {
             restore the menu as the presenter left it, not replay a build
             the room already watched, and not reveal options that had not
             been announced when the jump was taken.
+
+            The entry's box travels with it for a plainer reason. It can
+            only be measured while the nexus is on screen, and by the
+            time the return is taken the nexus is hidden and measures as
+            nothing.
         `;
 
         if (!this.nexus.placementFor(this.currentSlide)) {
@@ -1119,7 +1159,12 @@ Page.prototype = {
 
         this.l_returnStack.push({
             slide:      this.currentSlide,
-            revealed:   this.l_snippetPerSlideON[this.currentSlide - 1] || 0
+            revealed:   this.l_snippetPerSlideON[this.currentSlide - 1] || 0,
+            rect:       astr_address
+                            ? this.zoom_anchorRect(
+                                  this.currentSlide, astr_address
+                              )
+                            : null
         });
         return true;
     },
@@ -1141,14 +1186,15 @@ Page.prototype = {
             if (!index_fallback) {
                 return false;
             }
-            departure = { slide: index_fallback, revealed: 0 };
+            departure = { slide: index_fallback, revealed: 0, rect: null };
         }
 
         let index_currentSlide      = this.currentSlide;
         this.currentSlide           = departure.slide;
         this.slide_transition(index_currentSlide, departure.slide, {
             restoreSnippets: departure.revealed,
-            isReturn:        true
+            isReturn:        true,
+            rect:            departure.rect || null
         });
         return true;
     },
@@ -1208,9 +1254,9 @@ Page.prototype = {
             return false;
         }
 
-        this.return_push();
+        this.return_push(str_address);
         this.visited_mark(str_address);
-        this.slide_goto(index);
+        this.slide_goto(index, { jumpAddress: str_address });
         return true;
     },
 
@@ -1259,9 +1305,9 @@ Page.prototype = {
         let str_address = anchor.getAttribute('data-jump');
         let index = page.nexus.slideFor(str_address);
         if (index) {
-            page.return_push();
+            page.return_push(str_address);
             page.visited_mark(str_address);
-            page.slide_goto(index);
+            page.slide_goto(index, { jumpAddress: str_address });
         }
         return true;
     },
@@ -1370,9 +1416,10 @@ Page.prototype = {
         });
     },
 
-    slide_transition:                   function(index_currentSlide,
+    slide_commit:                       function(index_currentSlide,
                                                  index_followingSlide,
-                                                 options) {
+                                                 options,
+                                                 ab_deferTypewriters) {
         let str_help = `
             Do the actual transition from one slide to another,
             as well as update the running slide counter in the footer.
@@ -1383,6 +1430,10 @@ Page.prototype = {
             behaviour, in which entering a slide resets its reveals. Only
             a nexus return passes options.restoreSnippets, so every
             existing deck transitions exactly as it always has.
+
+            'ab_deferTypewriters' holds the typing back for a caller that
+            is still animating. Text racing a moving slide is legible as
+            neither.
         `;
 
         let d_options = options || {};
@@ -1420,7 +1471,9 @@ Page.prototype = {
         this.visited_apply(index_followingSlide);
 
         // Start any typewriters that are directly on the slide (not in snippets)
-        this.startNonSnippetTypewriters(index_followingSlide);
+        if (!ab_deferTypewriters) {
+            this.startNonSnippetTypewriters(index_followingSlide);
+        }
         if(DOMID_slideTitle !== null) {
             DOMID_pageTitle.innerHTML = DOMID_slideTitle.innerHTML.trim();
         } else {
@@ -1448,6 +1501,731 @@ Page.prototype = {
                 : 0;
             DOMID_slideBar.style.width = progress + "%";
         }
+    },
+
+    motion_isReduced:                   function() {
+        let str_help = `
+            Whether the viewer has asked for reduced motion.
+
+            Prezi's lasting lesson is that swooping movement makes some
+            of the room ill. The setting is honoured absolutely: it
+            returns the deck to the instant swap, not to a gentler zoom.
+        `;
+
+        if (typeof window === 'undefined' || !window.matchMedia) {
+            return false;
+        }
+
+        try {
+            return window.matchMedia(
+                '(prefers-reduced-motion: reduce)'
+            ).matches === true;
+        } catch (err) {
+            return false;
+        }
+    },
+
+    viewport_scaleGet:                  function() {
+        let str_help = `
+            The scale scalePresentation() has applied to the viewport.
+
+            Anchor geometry comes back from the browser in screen pixels,
+            but transform-origin is read in the element's own untransformed
+            pixels. Dividing by this converts between them.
+
+            Returns 0 when the viewport cannot be measured, which callers
+            treat as "do not animate".
+        `;
+
+        let el = document.querySelector
+                    ? document.querySelector('.presentation-viewport')
+                    : null;
+        if (!el || !el.getBoundingClientRect) {
+            return 0;
+        }
+
+        let width_layout = el.offsetWidth;
+        if (!width_layout) {
+            return 0;
+        }
+
+        let width_screen = el.getBoundingClientRect().width;
+        return width_screen ? (width_screen / width_layout) : 0;
+    },
+
+    zoom_anchorRect:                    function(a_slideIndex, astr_address) {
+        let str_help = `
+            The box on screen occupied by the jump to an address.
+
+            This is what the movement is anchored to. The spoke grows out
+            of this box and later shrinks back into it, which is the
+            claim the whole transition exists to make: the topic lives
+            here, inside the menu that lists it.
+
+            Returns null when the anchor cannot be measured, and the
+            caller then does not animate at all.
+        `;
+
+        let slideEl = document.getElementById(
+            this.str_slideIDprefix + a_slideIndex
+        );
+        if (!slideEl || !slideEl.querySelector) {
+            return null;
+        }
+
+        let anchor = slideEl.querySelector(
+            '.sd-jump[data-jump="' + astr_address + '"]'
+        );
+        if (!anchor || !anchor.getBoundingClientRect) {
+            return null;
+        }
+
+        // An unannounced option is not a place the room can be taken
+        // from, so there is nothing to grow out of later either.
+        if (!this.jump_isRevealed(anchor)) {
+            return null;
+        }
+
+        let rect = anchor.getBoundingClientRect();
+
+        // A hidden or unlaid-out element measures zero on both axes.
+        if (!rect.width || !rect.height) {
+            return null;
+        }
+
+        return {
+            left:   rect.left,
+            top:    rect.top,
+            width:  rect.width,
+            height: rect.height
+        };
+    },
+
+    zoom_rectResolve:                   function(a_fromSlide,
+                                                 a_toSlide,
+                                                 d_options) {
+        let str_help = `
+            The box this move should grow out of or shrink into, or null
+            for the instant swap.
+
+            Motion is confined to moves that assert containment: entering
+            a spoke from its nexus, and backing out again. A plain
+            advance is a step sideways, not a step inward, and animating
+            it would say something untrue about the deck.
+        `;
+
+        if (this.str_transition !== 'zoom') {
+            return null;
+        }
+        if (this.motion_isReduced()) {
+            return null;
+        }
+        if (!this.nexus.isNexusDeck()) {
+            return null;
+        }
+        if (a_fromSlide === a_toSlide) {
+            return null;
+        }
+
+        // A return reuses the box measured when the jump was taken: the
+        // nexus is hidden by now and would measure as nothing.
+        if (d_options.isReturn) {
+            return d_options.rect || null;
+        }
+
+        if (!d_options.jumpAddress) {
+            return null;
+        }
+
+        return this.zoom_anchorRect(a_fromSlide, d_options.jumpAddress);
+    },
+
+    zoom_cancel:                        function() {
+        let str_help = `
+            Snap every in-flight phase straight to its end state.
+
+            Finishing a phase can start the next one, which registers its
+            own finisher, so this drains rather than iterates. The deck
+            lands in exactly the state it would have reached anyway,
+            immediately.
+        `;
+
+        let guard = 0;
+        while (this.l_zoomPending.length && guard++ < 8) {
+            (this.l_zoomPending.shift())();
+        }
+    },
+
+    zoom_defer:                         function(a_el, a_ms, fn_done) {
+        let str_help = `
+            Run fn_done once the phase has finished, however it finishes.
+
+            Whichever of transitionend or the timer arrives first wins,
+            and the other is disarmed. The finisher is registered so that
+            a presenter moving faster than the animation can snap it.
+        `;
+
+        let self     = this;
+        let b_done   = false;
+        let timer    = null;
+
+        let finish = function() {
+            if (b_done) {
+                return;
+            }
+            b_done = true;
+            if (timer !== null) {
+                clearTimeout(timer);
+            }
+            if (a_el && a_el.removeEventListener) {
+                a_el.removeEventListener('transitionend', onEnd);
+            }
+            let index = self.l_zoomPending.indexOf(finish);
+            if (index >= 0) {
+                self.l_zoomPending.splice(index, 1);
+            }
+            fn_done();
+        };
+
+        let onEnd = function(e) {
+            if (!e || e.propertyName === 'transform') {
+                finish();
+            }
+        };
+
+        this.l_zoomPending.push(finish);
+
+        if (a_el && a_el.addEventListener) {
+            a_el.addEventListener('transitionend', onEnd);
+        }
+
+        // The slack covers a transitionend that never arrives. A plain
+        // wait with no element to listen to needs no such allowance.
+        timer = setTimeout(
+            finish, a_el ? (a_ms + zoomTransition_SLACKMS) : a_ms
+        );
+    },
+
+    hit_mark:                           function(a_slideIndex,
+                                                 astr_address) {
+        let str_help = `
+            Light up the entry that was chosen.
+
+            A presenter at a lectern presses a number and the room has no
+            way of knowing which. Without this the deck simply starts
+            moving, and the audience is left working out after the fact
+            where it went. The mark also gives the eye somewhere to be
+            when the movement begins, which is the place the movement
+            begins from.
+
+            Returns the anchor marked, or null.
+        `;
+
+        let anchor = this.jumpAnchor_find(a_slideIndex, astr_address);
+        if (!anchor || !anchor.classList) {
+            return null;
+        }
+
+        anchor.classList.add('sd-jump--selected');
+        return anchor;
+    },
+
+    hit_clear:                          function(a_anchor) {
+        let str_help = `
+            Put the chosen entry back to its ordinary state.
+        `;
+
+        if (a_anchor && a_anchor.classList) {
+            a_anchor.classList.remove('sd-jump--selected');
+        }
+    },
+
+    jumpAnchor_find:                    function(a_slideIndex,
+                                                 astr_address) {
+        let str_help = `
+            The anchor on a slide that jumps to an address, or null.
+        `;
+
+        let slideEl = document.getElementById(
+            this.str_slideIDprefix + a_slideIndex
+        );
+        if (!slideEl || !slideEl.querySelector) {
+            return null;
+        }
+
+        return slideEl.querySelector(
+            '.sd-jump[data-jump="' + astr_address + '"]'
+        );
+    },
+
+    heading_find:                       function(a_slideIndex) {
+        let str_help = `
+            The heading a spoke arrives as, or null.
+
+            This is the other end of the shared element. The entry in the
+            menu and the heading on the slide are the same thing said
+            twice, so the transition can carry one into the other rather
+            than replacing a picture of one with a picture of the other.
+        `;
+
+        let slideEl = document.getElementById(
+            this.str_slideIDprefix + a_slideIndex
+        );
+        if (!slideEl || !slideEl.querySelector) {
+            return null;
+        }
+
+        return slideEl.querySelector('h1');
+    },
+
+    rect_read:                          function(a_el) {
+        let str_help = `
+            An element's box, or null when it has none worth having.
+        `;
+
+        if (!a_el || !a_el.getBoundingClientRect) {
+            return null;
+        }
+
+        let rect = a_el.getBoundingClientRect();
+        if (!rect.width || !rect.height) {
+            return null;
+        }
+
+        return {
+            left:   rect.left,
+            top:    rect.top,
+            width:  rect.width,
+            height: rect.height
+        };
+    },
+
+    element_conceal:                    function(a_el) {
+        let str_help = `
+            Take an element out of sight while its stand-in flies.
+
+            Concealed rather than removed: it keeps its place in the
+            layout, so nothing around it moves while it is away.
+        `;
+
+        if (a_el && a_el.style) {
+            a_el.style.visibility = 'hidden';
+        }
+    },
+
+    element_reveal:                     function(a_el) {
+        let str_help = `
+            Put a concealed element back.
+        `;
+
+        if (a_el && a_el.style) {
+            a_el.style.visibility = '';
+        }
+    },
+
+    ghost_create:                       function(a_el, d_rect) {
+        let str_help = `
+            Build the flying copy of a single piece of text.
+
+            This is the whole of the transition's cargo. Flying a
+            miniature of the destination slide does not work: at the size
+            of a menu entry a slide is an illegible grey rectangle, and
+            it repaints as it lands. One line of text reads as text at
+            every size on the way, and there is nothing to repaint
+            because the real slide is what is underneath.
+
+            The copy is fixed to the screen, so it lives outside the
+            deck's layout and outside the scaled viewport. That last part
+            means its type has to be scaled by hand: the styles it
+            inherits are in the deck's baseline pixels, and on screen
+            everything is smaller by the viewport's scale.
+
+            Returns null when the copy cannot be made.
+        `;
+
+        if (!a_el || !a_el.cloneNode || !document.createElement) {
+            return null;
+        }
+
+        let scale = this.viewport_scaleGet();
+        if (!scale) {
+            return null;
+        }
+
+        let d_style = this.ghost_styleRead(a_el);
+        if (!d_style) {
+            return null;
+        }
+
+        let ghost = a_el.cloneNode(true);
+        if (!ghost.style) {
+            return null;
+        }
+
+        this.ghost_idsStrip(ghost);
+
+        ghost.className             = 'sd-ghost';
+        ghost.style.position        = 'fixed';
+        ghost.style.left            = d_rect.left + 'px';
+        ghost.style.top             = d_rect.top + 'px';
+        ghost.style.margin          = '0';
+        ghost.style.padding         = '0';
+        ghost.style.whiteSpace      = 'nowrap';
+        ghost.style.pointerEvents   = 'none';
+        ghost.style.zIndex          = '9999';
+        ghost.style.transformOrigin = 'left center';
+        ghost.style.willChange      = 'transform, opacity';
+
+        // Type in screen pixels rather than baseline pixels, since the
+        // copy is not inside the viewport that scales the deck.
+        ghost.style.fontFamily      = d_style.fontFamily;
+        ghost.style.fontWeight      = d_style.fontWeight;
+        ghost.style.fontStyle       = d_style.fontStyle;
+        ghost.style.color           = d_style.color;
+        ghost.style.textTransform   = d_style.textTransform;
+        ghost.style.fontSize        = (d_style.fontSize * scale) + 'px';
+        ghost.style.lineHeight      = d_rect.height + 'px';
+
+        document.body.appendChild(ghost);
+        return ghost;
+    },
+
+    ghost_styleRead:                    function(a_el) {
+        let str_help = `
+            The type an element is set in, as numbers where it matters.
+        `;
+
+        if (typeof window === 'undefined' || !window.getComputedStyle) {
+            return null;
+        }
+
+        try {
+            let computed = window.getComputedStyle(a_el);
+            return {
+                fontFamily:     computed.fontFamily,
+                fontWeight:     computed.fontWeight,
+                fontStyle:      computed.fontStyle,
+                color:          computed.color,
+                textTransform:  computed.textTransform,
+                fontSize:       parseFloat(computed.fontSize) || 16
+            };
+        } catch (err) {
+            return null;
+        }
+    },
+
+    ghost_idsStrip:                     function(a_el) {
+        let str_help = `
+            Remove every id from a cloned subtree.
+
+            Two elements answering to one id is the kind of fault that
+            surfaces later, somewhere else, as a slide driving the wrong
+            reveals.
+        `;
+
+        if (!a_el || !a_el.removeAttribute) {
+            return;
+        }
+
+        a_el.removeAttribute('id');
+        if (!a_el.querySelectorAll) {
+            return;
+        }
+
+        let l_withId = a_el.querySelectorAll('[id]');
+        for (let i = 0; i < l_withId.length; i++) {
+            l_withId[i].removeAttribute('id');
+        }
+    },
+
+    ghost_destroy:                      function(a_ghost) {
+        let str_help = `
+            Take the flying copy back out of the document.
+        `;
+
+        if (a_ghost && a_ghost.parentNode) {
+            a_ghost.parentNode.removeChild(a_ghost);
+        }
+    },
+
+    ghost_fly:                          function(a_ghost,
+                                                 d_from,
+                                                 d_to,
+                                                 fn_done) {
+        let str_help = `
+            Carry the copy from where it was written to where it is
+            written next.
+
+            Scaled by the ratio of the two heights rather than their
+            widths: these are two phrasings of one thing and rarely the
+            same length, but they are both a line of type, and it is the
+            type that has to match at the end.
+        `;
+
+        if (!a_ghost || !a_ghost.style) {
+            fn_done();
+            return;
+        }
+
+        let scale = d_to.height / d_from.height;
+        let x_shift = d_to.left - d_from.left;
+        let y_shift = (d_to.top + d_to.height / 2)
+                    - (d_from.top + d_from.height / 2);
+
+        a_ghost.style.transition = 'none';
+        a_ghost.style.transform  = 'translate(0px, 0px) scale(1)';
+
+        // Read a layout property so the browser treats the setting above
+        // as a start state rather than folding it into the end.
+        void a_ghost.offsetWidth;
+
+        a_ghost.style.transition = 'transform ' + zoomTransition_FLIGHTMS
+                                 + 'ms ' + zoomTransition_EASE;
+        a_ghost.style.transform  = 'translate(' + x_shift + 'px, '
+                                 + y_shift + 'px) scale(' + scale + ')';
+
+        this.zoom_defer(a_ghost, zoomTransition_FLIGHTMS, fn_done);
+    },
+
+    ghost_land:                         function(a_ghost, a_arriving,
+                                                 fn_done) {
+        let str_help = `
+            Hand the flight back to the real element.
+
+            An entry and the heading it becomes are usually not word for
+            word the same, so the last moment is a short cross-fade
+            rather than a swap. Where the two do read the same, there is
+            nothing to see.
+        `;
+
+        if (a_arriving && a_arriving.style) {
+            a_arriving.style.visibility = '';
+            a_arriving.style.opacity    = '0';
+            a_arriving.style.transition = 'opacity '
+                                        + zoomTransition_CROSSMS + 'ms linear';
+        }
+
+        if (!a_ghost || !a_ghost.style) {
+            fn_done();
+            return;
+        }
+
+        void a_ghost.offsetWidth;
+
+        if (a_arriving && a_arriving.style) {
+            a_arriving.style.opacity = '1';
+        }
+
+        a_ghost.style.transition += ', opacity ' + zoomTransition_CROSSMS
+                                  + 'ms linear';
+        a_ghost.style.opacity = '0';
+
+        this.zoom_defer(a_ghost, zoomTransition_CROSSMS, fn_done);
+    },
+
+    slide_detach:                       function(a_slideIndex) {
+        let str_help = `
+            Lift a slide out of the deck's flex flow without moving it.
+
+            Two slides cannot both be shown while they are flex children
+            of the viewport: they would sit one above the other. Pinning
+            the outgoing one to the box it already occupies takes it out
+            of the flow so the incoming one can lay out normally, and
+            leaves it exactly where it was on screen.
+        `;
+
+        let slideEl = document.getElementById(
+            this.str_slideIDprefix + a_slideIndex
+        );
+        if (!slideEl || !slideEl.style) {
+            return;
+        }
+
+        // Layout coordinates, so unaffected by the viewport's scale.
+        slideEl.style.left     = slideEl.offsetLeft + 'px';
+        slideEl.style.top      = slideEl.offsetTop + 'px';
+        slideEl.style.width    = slideEl.offsetWidth + 'px';
+        slideEl.style.height   = slideEl.offsetHeight + 'px';
+        slideEl.style.position = 'absolute';
+    },
+
+    slide_reattach:                     function(a_slideIndex) {
+        let str_help = `
+            Put a lifted slide back into the flow.
+        `;
+
+        let slideEl = document.getElementById(
+            this.str_slideIDprefix + a_slideIndex
+        );
+        if (!slideEl || !slideEl.style) {
+            return;
+        }
+
+        slideEl.style.position   = '';
+        slideEl.style.left       = '';
+        slideEl.style.top        = '';
+        slideEl.style.width      = '';
+        slideEl.style.height     = '';
+        slideEl.style.opacity    = '';
+        slideEl.style.transition = '';
+        slideEl.style.willChange = '';
+    },
+
+    slide_fade:                         function(a_slideIndex, ab_in) {
+        let str_help = `
+            Cross the two slides over underneath the flying text.
+
+            Opacity only. Everything the eye is meant to follow is
+            already being carried by the copy in flight; the pages behind
+            it should change without asking for attention.
+        `;
+
+        let slideEl = document.getElementById(
+            this.str_slideIDprefix + a_slideIndex
+        );
+        if (!slideEl || !slideEl.style) {
+            return;
+        }
+
+        slideEl.style.willChange = 'opacity';
+        slideEl.style.transition = 'none';
+        slideEl.style.opacity    = ab_in ? '0' : '1';
+
+        void slideEl.offsetWidth;
+
+        slideEl.style.transition = 'opacity ' + zoomTransition_FLIGHTMS
+                                 + 'ms ' + zoomTransition_EASE;
+        slideEl.style.opacity    = ab_in ? '1' : '0';
+    },
+
+    slide_transition:                   function(index_currentSlide,
+                                                 index_followingSlide,
+                                                 options) {
+        let str_help = `
+            Move the deck from one slide to another, carrying the chosen
+            entry across as the heading it becomes when the deck has
+            asked for it and the move is one that carry can describe.
+
+            Every path that cannot or should not animate falls through to
+            slide_commit unchanged, which is every path any existing deck
+            takes.
+        `;
+
+        let d_options = options || {};
+
+        // Measure nothing while a previous move is still in flight.
+        this.zoom_cancel();
+
+        let d_rect = this.zoom_rectResolve(
+            index_currentSlide, index_followingSlide, d_options
+        );
+
+        if (!d_rect) {
+            this.slide_commit(
+                index_currentSlide, index_followingSlide, d_options
+            );
+            return;
+        }
+
+        let self = this;
+
+        // The spoke is whichever end is not the nexus, and the heading is
+        // the spoke's. Going in the entry becomes the heading; coming
+        // back the heading becomes the entry again.
+        let b_isReturn  = d_options.isReturn === true;
+        let index_spoke = b_isReturn ? index_currentSlide
+                                     : index_followingSlide;
+        let index_nexus = b_isReturn ? index_followingSlide
+                                     : index_currentSlide;
+
+        let fly = function() {
+            // A return carries no address of its own; the spoke it is
+            // leaving names the entry it has to fly back into.
+            let str_address = d_options.jumpAddress
+                            || (self.nexus.spokeFor(index_spoke) || {}).address;
+
+            let anchor = self.jumpAnchor_find(index_nexus, str_address);
+
+            // Pin the outgoing slide out of the flex flow and swap before
+            // measuring anything. Both slides are flex children, so with
+            // the outgoing one still in the flow the incoming one lays
+            // out beneath it — and a heading measured there is half a
+            // page below where it will actually sit, which sends the
+            // carry downwards instead of up.
+            self.slide_detach(index_currentSlide);
+            self.slide_commit(
+                index_currentSlide, index_followingSlide, d_options, true
+            );
+
+            let leaving = document.getElementById(
+                self.str_slideIDprefix + index_currentSlide
+            );
+            if (leaving && leaving.style) {
+                leaving.style.display = 'block';
+            }
+
+            let heading = self.heading_find(index_spoke);
+            let d_rectHeading = self.rect_read(heading);
+
+            let d_from = b_isReturn ? d_rectHeading : d_rect;
+            let d_to   = b_isReturn ? d_rect : d_rectHeading;
+            let departing = b_isReturn ? heading : anchor;
+            let arriving  = b_isReturn ? anchor : heading;
+
+            let ghost = (heading && d_rectHeading && departing)
+                            ? self.ghost_create(departing, d_from)
+                            : null;
+
+            if (!ghost) {
+                // The swap has already happened; only the scaffolding
+                // for the carry has to be taken back down.
+                if (leaving && leaving.style) {
+                    leaving.style.display = 'none';
+                }
+                self.slide_reattach(index_currentSlide);
+                self.slide_reattach(index_followingSlide);
+                self.startNonSnippetTypewriters(index_followingSlide);
+                return;
+            }
+
+            // Both ends of the shared element step aside for the copy.
+            self.element_conceal(departing);
+            self.element_conceal(arriving);
+
+            self.slide_fade(index_currentSlide, false);
+            self.slide_fade(index_followingSlide, true);
+
+            self.ghost_fly(ghost, d_from, d_to, function() {
+                if (leaving && leaving.style) {
+                    leaving.style.display = 'none';
+                }
+                self.slide_reattach(index_currentSlide);
+                self.slide_reattach(index_followingSlide);
+                self.element_reveal(departing);
+
+                self.ghost_land(ghost, arriving, function() {
+                    if (arriving && arriving.style) {
+                        arriving.style.opacity    = '';
+                        arriving.style.transition = '';
+                    }
+                    self.ghost_destroy(ghost);
+                    self.startNonSnippetTypewriters(index_followingSlide);
+                });
+            });
+        };
+
+        if (b_isReturn) {
+            fly();
+            return;
+        }
+
+        // Going in, the room is shown what was chosen before anything
+        // moves. Returning needs no such beat: nothing was selected.
+        let anchor = this.hit_mark(index_nexus, d_options.jumpAddress);
+        this.zoom_defer(null, zoomTransition_HITMS, function() {
+            self.hit_clear(anchor);
+            fly();
+        });
     },
 
     updateFooterTemplates:              function() {
