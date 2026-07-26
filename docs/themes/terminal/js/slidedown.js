@@ -768,6 +768,9 @@ function Page() {
     this.d_visited                  = {};
     // Transition named by .meta{}, read from the DOM in init().
     this.str_transition             = "none";
+    // Position within the current menu's revealed entries, 1-based.
+    // Zero until the presenter asks for a cursor by pressing a key.
+    this.index_cursor               = 0;
     // Finishers for zoom phases still in flight. A presenter working a
     // clicker outruns any animation, so a new move snaps these rather
     // than queueing behind them.
@@ -1249,14 +1252,28 @@ Page.prototype = {
             return false;
         }
 
-        let index = this.nexus.slideFor(str_address);
+        return this.jump_take(str_address);
+    },
+
+    jump_take:                          function(astr_address) {
+        let str_help = `
+            Follow a jump to an address.
+
+            The one path a jump takes, however it was chosen: a digit, the
+            cursor, or a click. Departure and visited state are recorded
+            here so no caller can reach the destination without them.
+
+            Returns true when the deck moved.
+        `;
+
+        let index = this.nexus.slideFor(astr_address);
         if (!index) {
             return false;
         }
 
-        this.return_push(str_address);
-        this.visited_mark(str_address);
-        this.slide_goto(index, { jumpAddress: str_address });
+        this.return_push(astr_address);
+        this.visited_mark(astr_address);
+        this.slide_goto(index, { jumpAddress: astr_address });
         return true;
     },
 
@@ -1282,6 +1299,160 @@ Page.prototype = {
         return page.nexusDigit_process(parseInt(e.key, 10));
     },
 
+    cursorEntries_get:                  function(a_slideIndex) {
+        let str_help = `
+            The entries the cursor may sit on, in menu order.
+
+            Only revealed ones. An unannounced entry is inert to the digit
+            keys for the same reason it is inert to a click, and a cursor
+            that could land on it would be offering the room a choice it
+            has not been shown.
+        `;
+
+        let placement = this.nexus.placementFor(a_slideIndex);
+        if (!placement || !placement.jumps) {
+            return [];
+        }
+
+        let l_entry = [];
+        for (let i = 0; i < placement.jumps.length; i++) {
+            let str_address = placement.jumps[i];
+            let anchor = this.jumpAnchor_find(a_slideIndex, str_address);
+            if (anchor && this.jump_isRevealed(anchor)) {
+                l_entry.push(str_address);
+            }
+        }
+        return l_entry;
+    },
+
+    cursor_forget:                      function(a_slideIndex) {
+        let str_help = `
+            Drop the cursor, and take its mark off the slide it was on.
+
+            Called as the deck leaves a slide: a cursor is a position
+            within one menu, and means nothing on the next one.
+        `;
+
+        let l_entry = this.cursorEntries_get(a_slideIndex);
+        for (let i = 0; i < l_entry.length; i++) {
+            let anchor = this.jumpAnchor_find(a_slideIndex, l_entry[i]);
+            if (anchor && anchor.classList) {
+                anchor.classList.remove('sd-jump--cursor');
+            }
+        }
+        this.index_cursor = 0;
+    },
+
+    cursor_apply:                       function() {
+        let str_help = `
+            Put the mark on the entry the cursor is on, and nowhere else.
+        `;
+
+        let l_entry = this.cursorEntries_get(this.currentSlide);
+        for (let i = 0; i < l_entry.length; i++) {
+            let anchor = this.jumpAnchor_find(this.currentSlide, l_entry[i]);
+            if (!anchor || !anchor.classList) {
+                continue;
+            }
+            if (i + 1 === this.index_cursor) {
+                anchor.classList.add('sd-jump--cursor');
+            } else {
+                anchor.classList.remove('sd-jump--cursor');
+            }
+        }
+    },
+
+    cursor_move:                        function(a_delta) {
+        let str_help = `
+            Step the cursor through the current menu, wrapping at both
+            ends.
+
+            With no cursor yet, a step down lands on the first entry and
+            a step up on the last, so the first key press does the
+            obvious thing rather than requiring a second.
+
+            Returns true when the key was consumed.
+        `;
+
+        let l_entry = this.cursorEntries_get(this.currentSlide);
+        if (!l_entry.length) {
+            return false;
+        }
+
+        if (!this.index_cursor) {
+            this.index_cursor = (a_delta > 0) ? 1 : l_entry.length;
+        } else {
+            let index = this.index_cursor + a_delta;
+            if (index < 1) {
+                index = l_entry.length;
+            } else if (index > l_entry.length) {
+                index = 1;
+            }
+            this.index_cursor = index;
+        }
+
+        this.cursor_apply();
+        return true;
+    },
+
+    cursor_activate:                    function() {
+        let str_help = `
+            Take the jump the cursor is sitting on.
+
+            Returns true when the key was consumed.
+        `;
+
+        if (!this.index_cursor) {
+            return false;
+        }
+
+        let l_entry = this.cursorEntries_get(this.currentSlide);
+        let str_address = l_entry[this.index_cursor - 1];
+        if (!str_address) {
+            return false;
+        }
+
+        return this.jump_take(str_address);
+    },
+
+    nexusCursor_keyHandle:              function(e) {
+        let str_help = `
+            Route Up, Down and Enter to the current menu.
+
+            The digit keys are the fast path and stop at nine, because 0,
+            +, = and - belong to the typography scale. The cursor has no
+            such ceiling, so a menu may hold as many entries as it likes
+            and the first nine simply keep their shortcut.
+
+            Up and Down already mean first-slide and last-slide, and go
+            on meaning that everywhere except on a menu. A deck being
+            driven as a graph has little use for "last slide" while the
+            room is looking at a list of choices.
+        `;
+
+        if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) {
+            return false;
+        }
+        if (activeElement_isTextEntry()) {
+            return false;
+        }
+        if (!page.nexus.placementFor(page.currentSlide)) {
+            return false;
+        }
+
+        if (e.key === 'ArrowDown' || e.keyCode === 40) {
+            return page.cursor_move(1);
+        }
+        if (e.key === 'ArrowUp' || e.keyCode === 38) {
+            return page.cursor_move(-1);
+        }
+        if (e.key === 'Enter' || e.keyCode === 13) {
+            return page.cursor_activate();
+        }
+
+        return false;
+    },
+
     jumpClick_process:                  function(e) {
         let str_help = `
             Handle a click on a .sd-jump anchor.
@@ -1305,9 +1476,7 @@ Page.prototype = {
         let str_address = anchor.getAttribute('data-jump');
         let index = page.nexus.slideFor(str_address);
         if (index) {
-            page.return_push(str_address);
-            page.visited_mark(str_address);
-            page.slide_goto(index, { jumpAddress: str_address });
+            page.jump_take(str_address);
         }
         return true;
     },
@@ -1437,6 +1606,10 @@ Page.prototype = {
         `;
 
         let d_options = options || {};
+
+        // A cursor is a position within one menu, so it does not survive
+        // leaving that menu.
+        this.cursor_forget(index_currentSlide);
 
         let DOMID_currentSlide      = document.getElementById(
                                             this.str_slideIDprefix + index_currentSlide
@@ -2380,6 +2553,10 @@ Page.prototype = {
         }
 
         if (page.nexusDigit_keyHandle(e)) {
+            return;
+        }
+
+        if (page.nexusCursor_keyHandle(e)) {
             return;
         }
 

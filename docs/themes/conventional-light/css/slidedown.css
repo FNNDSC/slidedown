@@ -159,6 +159,17 @@ body {
     filter: brightness(1.5);
 }
 
+/*
+ * Where the cursor is sitting, for menus driven by Up/Down rather than
+ * by a digit. Deliberately quieter than the mark above: this one says
+ * "here", and that one says "this, and we are going now".
+ */
+.sd-jump--cursor {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    filter: brightness(1.25);
+}
+
 @media (prefers-reduced-motion: reduce) {
     .slide,
     .sd-ghost {
