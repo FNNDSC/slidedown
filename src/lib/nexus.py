@@ -254,6 +254,7 @@ def _spokes_forRegion(
     placements: NexusPlacements,
     placement_bySlide: dict[int, int],
     claimed: set[int],
+    emitted: set[int],
 ) -> list[dict[str, object]]:
     """
     Work out the spokes one placement owns, and those its children own.
@@ -276,6 +277,9 @@ def _spokes_forRegion(
         placements: All nexus placements.
         placement_bySlide: Slide number → index into ``placements``.
         claimed: Placement indices already accounted for, updated in place.
+        emitted: Spoke start slides already produced, updated in place. A
+            deck may list the same topics from more than one menu, and the
+            spoke belongs to whichever opened it first.
 
     Returns:
         Spoke descriptions for this placement and everything beneath it.
@@ -286,6 +290,13 @@ def _spokes_forRegion(
     spokes: list[dict[str, object]] = []
 
     for position, (start, address) in enumerate(starts):
+        # A menu listing a topic some earlier menu already opened is
+        # naming that spoke, not declaring a second one. Emitting it again
+        # would put two extents on one slide, and the runtime asks only
+        # which spoke a slide is in.
+        if start in emitted:
+            continue
+
         end_raw: int = (
             starts[position + 1][0] - 1
             if position + 1 < len(starts)
@@ -311,6 +322,7 @@ def _spokes_forRegion(
                 placements,
                 placement_bySlide,
                 claimed,
+                emitted,
             )
 
             if below:
@@ -322,6 +334,7 @@ def _spokes_forRegion(
                 # A menu shown again. It ends the spoke it sits in.
                 end = min(end, slide - 1)
 
+        emitted.add(start)
         spokes.append(
             {"address": address, "start": start, "end": max(end, start)}
         )
@@ -391,6 +404,7 @@ def spokes_compute(
         placement_bySlide.setdefault(slide, index)
 
     claimed: set[int] = set()
+    emitted: set[int] = set()
     spokes: list[dict[str, object]] = []
 
     # Placements are walked in document order. The first is the deck's
@@ -410,6 +424,7 @@ def spokes_compute(
                 placements,
                 placement_bySlide,
                 claimed,
+                emitted,
             )
         )
 

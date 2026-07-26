@@ -441,3 +441,65 @@ class TestNestedSpokes:
                     f"{claimed.get(slide)} and {spoke['address']}"
                 )
                 claimed[slide] = spoke["address"]
+
+    def test_twoMenus_listingTheSameTopics_declareOneSpokeEach(self) -> None:
+        """
+        A topic listed by two menus is one spoke, not two.
+
+        The demo deck opens with a live menu and follows it with the same
+        topics revealed one at a time. Both point forward, so both would
+        derive a spoke for every topic — and the two derivations do not
+        agree on where those spokes end, because the second runs after
+        the sub-menus have been accounted for. The runtime asks only
+        which spoke a slide is in, so two answers is one too many.
+        """
+        source = """
+.slide{
+  .title{Quick}
+  .body{.nexus{.id{quick}
+    .jump{.target{alpha} Alpha}
+    .jump{.target{beta} Beta}
+  }}
+}
+
+.slide{
+  .title{Revealed}
+  .body{.nexus{.id{topics}
+    .jump{.target{alpha} Alpha}
+    .jump{.target{beta} Beta}
+  }}
+}
+
+.slide{.id{alpha} .title{Alpha} .body{A}}
+
+.slide{
+  .id{alpha2}
+  .title{Alpha Continued}
+  .body{.nexus{.id{sub} .jump{.target{deep} Deep}}}
+}
+
+.slide{.id{deep} .title{Deep} .body{D}}
+.slide{.id{beta} .title{Beta} .body{B}}
+"""
+        html, _ = html_compile(source)
+        graph = graph_extract(html)
+
+        assert graph["spokes"] == [
+            {"address": "alpha", "start": 3, "end": 4},
+            {"address": "deep", "start": 5, "end": 5},
+            {"address": "beta", "start": 6, "end": 6},
+        ]
+
+    def test_everySpokeStart_isDeclaredOnce(self) -> None:
+        """No slide begins two spokes, however many menus name it."""
+        source = """
+.slide{.title{One} .body{.nexus{.id{a} .jump{.target{t} T}}}}
+.slide{.title{Two} .body{.nexus{.id{b} .jump{.target{t} T}}}}
+.slide{.title{Three} .body{.nexus{.id{c} .jump{.target{t} T}}}}
+.slide{.id{t} .title{T} .body{target}}
+"""
+        html, _ = html_compile(source)
+        graph = graph_extract(html)
+
+        starts = [spoke["start"] for spoke in graph["spokes"]]
+        assert starts == sorted(set(starts))
