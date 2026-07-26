@@ -28,3 +28,6 @@ output/
 .coverage
 htmlcov/
 .aider*
+
+# Example render output
+examples/*/out/
