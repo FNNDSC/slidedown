@@ -210,6 +210,126 @@ def jumpAddresses_extract(body_html: str) -> list[str]:
     return ordered
 
 
+def _placementSpokeStarts_collect(
+    jumps: list[str],
+    addresses: SlideAddresses,
+    lo: int,
+    hi: int,
+) -> list[tuple[int, str]]:
+    """
+    The slides a placement's jumps open, within a region.
+
+    Jumps pointing outside the region are ignored rather than dragged in.
+    That is what makes a nexus placed a second time at the end of a deck
+    harmless: its entries point backwards, over ground already covered,
+    and open nothing here.
+
+    Args:
+        jumps: Ordered jump addresses of one placement.
+        addresses: Completed address map.
+        lo: First slide of the region.
+        hi: Last slide of the region.
+
+    Returns:
+        Unique (slide, address) pairs inside the region, in slide order.
+    """
+    seen: set[int] = set()
+    starts: list[tuple[int, str]] = []
+    for address in jumps:
+        slide = addresses.get(address)
+        if slide is None or slide < lo or slide > hi or slide in seen:
+            continue
+        seen.add(slide)
+        starts.append((slide, address))
+
+    starts.sort()
+    return starts
+
+
+def _spokes_forRegion(
+    placement_index: int,
+    lo: int,
+    hi: int,
+    addresses: SlideAddresses,
+    placements: NexusPlacements,
+    placement_bySlide: dict[int, int],
+    claimed: set[int],
+) -> list[dict[str, object]]:
+    """
+    Work out the spokes one placement owns, and those its children own.
+
+    Recursive because the structure is: a placement owns spokes, a spoke
+    may contain a placement, and that placement owns spokes of its own. A
+    flat scan cannot see that, which is why an earlier version stopped a
+    spoke dead at any placement inside it and orphaned the slides beyond.
+
+    A placement found inside a spoke is a child when it opens ground of
+    its own within that spoke, and a boundary when it does not. A nexus
+    that only points backwards is not starting a section; it is a menu
+    being shown again, and the spoke it sits in ends before it.
+
+    Args:
+        placement_index: Index into ``placements`` of the owning placement.
+        lo: First slide the placement may claim.
+        hi: Last slide the placement may claim.
+        addresses: Completed address map.
+        placements: All nexus placements.
+        placement_bySlide: Slide number → index into ``placements``.
+        claimed: Placement indices already accounted for, updated in place.
+
+    Returns:
+        Spoke descriptions for this placement and everything beneath it.
+    """
+    _id, _placement_slide, jumps = placements[placement_index]
+    starts = _placementSpokeStarts_collect(list(jumps), addresses, lo, hi)
+
+    spokes: list[dict[str, object]] = []
+
+    for position, (start, address) in enumerate(starts):
+        end_raw: int = (
+            starts[position + 1][0] - 1
+            if position + 1 < len(starts)
+            else hi
+        )
+        end: int = end_raw
+        nested: list[dict[str, object]] = []
+
+        # Placements sitting inside this spoke, in the order they appear.
+        for slide in range(start, end_raw + 1):
+            index_child = placement_bySlide.get(slide)
+            if index_child is None or index_child in claimed:
+                continue
+            if index_child == placement_index:
+                continue
+
+            claimed.add(index_child)
+            below = _spokes_forRegion(
+                index_child,
+                slide + 1,
+                end_raw,
+                addresses,
+                placements,
+                placement_bySlide,
+                claimed,
+            )
+
+            if below:
+                # A genuine sub-menu. Its spokes are not part of this one,
+                # so this spoke stops where they begin.
+                nested.extend(below)
+                end = min(end, min(int(s["start"]) for s in below) - 1)
+            elif slide > start:
+                # A menu shown again. It ends the spoke it sits in.
+                end = min(end, slide - 1)
+
+        spokes.append(
+            {"address": address, "start": start, "end": max(end, start)}
+        )
+        spokes.extend(nested)
+
+    return spokes
+
+
 def spokes_compute(
     addresses: SlideAddresses,
     jump_refs: JumpRefs,
@@ -219,10 +339,15 @@ def spokes_compute(
     """
     Determine the extent of every spoke in the deck.
 
-    A spoke begins at a slide that some jump targets, and ends immediately
-    before the next slide that is itself a jump target or a nexus
-    placement. Single-slide spokes — the common case — fall out of the
-    rule naturally.
+    A spoke begins at a slide that some jump targets and runs until the
+    next thing that is not part of it: a sibling spoke, a menu shown
+    again, or the start of a sub-menu's own spokes. Single-slide spokes —
+    the common case — fall out of the rule naturally.
+
+    Spokes nest. A spoke may contain a nexus, whose spokes sit inside it
+    and are themselves spokes, to any depth. Nesting needs no new field on
+    the graph: extents stay disjoint, so the runtime keeps asking the one
+    question it asked before — which spoke is this slide in.
 
     This is load-bearing rather than bookkeeping: the runtime needs to know
     when advancing has reached the end of a spoke, because that is the
@@ -243,17 +368,52 @@ def spokes_compute(
         if slide is not None:
             target_slides.setdefault(slide, target)
 
-    placement_slides: set[int] = {slide for _id, slide, _j in placements}
-    boundaries: list[int] = sorted(set(target_slides) | placement_slides)
+    if not placements:
+        # Inline cross-references without a nexus: no menus, so no
+        # containment to work out, and the old flat rule is the whole
+        # truth.
+        boundaries: list[int] = sorted(target_slides)
+        flat: list[dict[str, object]] = []
+        for start in sorted(target_slides):
+            later = [b for b in boundaries if b > start]
+            end = (later[0] - 1) if later else slide_count
+            flat.append(
+                {
+                    "address": target_slides[start],
+                    "start": start,
+                    "end": end,
+                }
+            )
+        return flat
 
+    placement_bySlide: dict[int, int] = {}
+    for index, (_id, slide, _jumps) in enumerate(placements):
+        placement_bySlide.setdefault(slide, index)
+
+    claimed: set[int] = set()
     spokes: list[dict[str, object]] = []
-    for start in sorted(target_slides):
-        later = [b for b in boundaries if b > start]
-        end: int = (later[0] - 1) if later else slide_count
-        spokes.append(
-            {"address": target_slides[start], "start": start, "end": end}
+
+    # Placements are walked in document order. The first is the deck's
+    # top menu; any later one not already claimed as a sub-menu is
+    # another top-level placement, and owns whatever it opens after
+    # itself.
+    for index, (_id, slide, _jumps) in enumerate(placements):
+        if index in claimed:
+            continue
+        claimed.add(index)
+        spokes.extend(
+            _spokes_forRegion(
+                index,
+                slide + 1,
+                slide_count,
+                addresses,
+                placements,
+                placement_bySlide,
+                claimed,
+            )
         )
 
+    spokes.sort(key=lambda s: int(s["start"]))
     return spokes
 
 
