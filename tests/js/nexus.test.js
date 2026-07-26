@@ -1314,6 +1314,199 @@ test('a spoke with no heading falls back to the instant swap', () => {
     assert.strictEqual(ctx.page.l_zoomPending.length, 0);
 });
 
+/* --- cursor selection ------------------------------------------------- */
+
+/**
+ * A key event stub.
+ *
+ * @param {string} key    KeyboardEvent.key value.
+ * @param {object} extra  Modifier flags to set.
+ * @returns {object} Event-like stub.
+ */
+function key_make(key, extra) {
+    return Object.assign({ key, ctrlKey: false, metaKey: false,
+                           altKey: false, shiftKey: false }, extra || {});
+}
+
+/**
+ * A menu of twelve entries, past the digit keys' ceiling of nine.
+ *
+ * @returns {object} sandbox
+ */
+function wideMenu_make() {
+    const addresses = {};
+    const jumps = [];
+    const anchors = { 1: {} };
+    for (let i = 1; i <= 12; i++) {
+        const addr = 'topic-' + i;
+        addresses[addr] = i + 1;
+        jumps.push(addr);
+        anchors[1][addr] = true;
+    }
+
+    return context_make({
+        slideCount: 13,
+        anchors,
+        graph: {
+            version: 1, slideCount: 13,
+            slides: Object.assign({ menu: 1 }, addresses),
+            jumps: [], isNexusDeck: true,
+            nexuses: [{ id: 'wide', slide: 1, jumps }],
+            spokes: jumps.map((a, i) => ({ address: a, start: i + 2,
+                                           end: i + 2 }))
+        }
+    });
+}
+
+test('a step down with no cursor lands on the first entry', () => {
+    const ctx = sandwich_make();
+    ctx.page.currentSlide = 1;
+
+    assert.strictEqual(ctx.page.nexusCursor_keyHandle(key_make('ArrowDown')),
+                       true);
+    assert.strictEqual(ctx.page.index_cursor, 1);
+    assert.strictEqual(
+        anchor_of(ctx, 1, 'depth').classList.contains('sd-jump--cursor'),
+        true
+    );
+});
+
+test('a step up with no cursor lands on the last entry', () => {
+    const ctx = sandwich_make();
+    ctx.page.currentSlide = 1;
+
+    ctx.page.nexusCursor_keyHandle(key_make('ArrowUp'));
+    assert.strictEqual(ctx.page.index_cursor, 2);
+    assert.strictEqual(
+        anchor_of(ctx, 1, 'registry').classList.contains('sd-jump--cursor'),
+        true
+    );
+});
+
+test('the cursor wraps at both ends', () => {
+    const ctx = sandwich_make();
+    ctx.page.currentSlide = 1;
+
+    ctx.page.cursor_move(1);            // 1
+    ctx.page.cursor_move(1);            // 2
+    ctx.page.cursor_move(1);            // wraps to 1
+    assert.strictEqual(ctx.page.index_cursor, 1);
+
+    ctx.page.cursor_move(-1);           // wraps to 2
+    assert.strictEqual(ctx.page.index_cursor, 2);
+});
+
+test('the mark sits on one entry and no other', () => {
+    const ctx = sandwich_make();
+    ctx.page.currentSlide = 1;
+
+    ctx.page.cursor_move(1);
+    ctx.page.cursor_move(1);
+
+    assert.strictEqual(
+        anchor_of(ctx, 1, 'depth').classList.contains('sd-jump--cursor'),
+        false
+    );
+    assert.strictEqual(
+        anchor_of(ctx, 1, 'registry').classList.contains('sd-jump--cursor'),
+        true
+    );
+});
+
+test('the cursor skips entries not yet revealed', () => {
+    const ctx = context_make({
+        graph: SANDWICH, slideCount: 4,
+        anchors: { 1: { depth: true, registry: false } }
+    });
+    ctx.page.currentSlide = 1;
+
+    // An unannounced entry is not a choice the room has been offered.
+    assert.deepStrictEqual(
+        Array.from(ctx.page.cursorEntries_get(1)), ['depth']
+    );
+
+    ctx.page.cursor_move(1);
+    ctx.page.cursor_move(1);
+    assert.strictEqual(ctx.page.index_cursor, 1);
+});
+
+test('enter takes the jump the cursor is on', () => {
+    const ctx = sandwich_make();
+    ctx.page.currentSlide = 1;
+
+    ctx.page.cursor_move(1);
+    ctx.page.cursor_move(1);            // registry
+    assert.strictEqual(ctx.page.nexusCursor_keyHandle(key_make('Enter')),
+                       true);
+
+    assert.strictEqual(ctx.page.currentSlide, 3);
+    assert.strictEqual(ctx.page.d_visited['registry'], true);
+    assert.strictEqual(ctx.page.l_returnStack.length, 1);
+    assert.strictEqual(ctx.page.l_returnStack[0].slide, 1);
+});
+
+test('enter with no cursor is not consumed', () => {
+    const ctx = sandwich_make();
+    ctx.page.currentSlide = 1;
+    assert.strictEqual(ctx.page.nexusCursor_keyHandle(key_make('Enter')),
+                       false);
+});
+
+test('arrows off a menu are left to mean first and last slide', () => {
+    const ctx = sandwich_make();
+    ctx.page.currentSlide = 2;          // a spoke, not a menu
+
+    assert.strictEqual(ctx.page.nexusCursor_keyHandle(key_make('ArrowDown')),
+                       false);
+    assert.strictEqual(ctx.page.index_cursor, 0);
+});
+
+test('a modified arrow is not a cursor step', () => {
+    const ctx = sandwich_make();
+    ctx.page.currentSlide = 1;
+
+    for (const mod of ['ctrlKey', 'metaKey', 'altKey', 'shiftKey']) {
+        const e = key_make('ArrowDown', { [mod]: true });
+        assert.strictEqual(ctx.page.nexusCursor_keyHandle(e), false);
+    }
+    assert.strictEqual(ctx.page.index_cursor, 0);
+});
+
+test('the cursor does not survive leaving the menu', () => {
+    const ctx = zoomLive_make();
+    ctx.page.currentSlide = 1;
+    ctx.page.cursor_move(1);
+
+    ctx.page.slide_transition(1, 2, {});
+
+    // A position within one menu means nothing on the next slide.
+    assert.strictEqual(ctx.page.index_cursor, 0);
+    assert.strictEqual(
+        anchor_of(ctx, 1, 'depth').classList.contains('sd-jump--cursor'),
+        false
+    );
+});
+
+test('a menu may hold more entries than there are digit keys', () => {
+    const ctx = wideMenu_make();
+    ctx.page.currentSlide = 1;
+
+    // Nine is a limit on the shortcut, not on the menu: the ceiling is
+    // in the key handler, because 0 belongs to the typography scale and
+    // a tenth entry has no key left to name it.
+    assert.strictEqual(ctx.page.cursorEntries_get(1).length, 12);
+    assert.strictEqual(ctx.page.nexusDigit_keyHandle(key_make('0')), false);
+
+    for (let i = 0; i < 12; i++) {
+        ctx.page.cursor_move(1);
+    }
+    assert.strictEqual(ctx.page.index_cursor, 12);
+
+    ctx.page.cursor_activate();
+    assert.strictEqual(ctx.page.currentSlide, 13);
+});
+
+
 /* --- runner ----------------------------------------------------------- */
 
 let passed = 0;
