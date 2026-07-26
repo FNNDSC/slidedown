@@ -189,6 +189,7 @@ class PresentationMetaConfig(TypedDict, total=False):
     lcars: LCARSConfig
     typography: TypographyConfig
     snippets: SnippetsConfig
+    transition: str
 
 
 class ThemeLike(Protocol):
