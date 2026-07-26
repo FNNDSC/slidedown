@@ -176,8 +176,9 @@ rejected — see <<deferred>>.
 [[spoke-extent]]
 == Spoke extent
 
-A spoke begins at a jump target and ends immediately before the next slide that
-is itself either a jump target or a nexus placement.
+A spoke begins at a jump target and runs until the next thing that is not part
+of it: a sibling spoke, a menu shown again, or the first slide of a sub-menu's
+own spokes.
 
 This rule is load-bearing for the return semantics below — the engine has to
 know where a spoke ends in order to know when advancing should return. It is not
@@ -185,6 +186,39 @@ merely bookkeeping for a progress readout.
 
 Single-slide spokes are the common case and fall out of the rule naturally: a
 target immediately followed by another target is a spoke of length one.
+
+=== Spokes nest
+
+A spoke may contain a nexus of its own, whose spokes sit inside it, to any
+depth. `spokes_compute()` walks the containment tree rather than a flat list of
+boundaries, and the extents it produces are disjoint — so the runtime keeps
+asking the one question it always asked, which spoke a given slide is in.
+
+An earlier flat rule ended a spoke at *any* placement inside it. A menu partway
+through a spoke therefore truncated its own parent and orphaned every slide from
+the menu onwards: advancing off the slide before it returned to the top, and
+nothing could reach the menu at all.
+
+Depth costs the return semantics nothing, because departures were already
+recorded on a *stack* — built so a spoke returns to the exact placement it was
+entered from, rather than merely to that nexus. Arbitrary nesting falls out of
+that decision without anything being added for it.
+
+==== Telling a sub-menu from a menu shown again
+
+Both sit on a slide inside a spoke, so position alone cannot separate them. The
+discriminator is what they open: a placement whose jumps reach slides *ahead of
+it, within the enclosing spoke* is starting a section and is a child; one whose
+jumps only point backwards over ground already covered is the same menu being
+shown again, and ends the spoke it sits in. That is what keeps the sandwich
+shape — menu, spokes, menu — behaving as it always did.
+
+This is a judgement, and it is worth stating plainly: a deck that places a
+genuinely new top-level menu partway through, with fresh spokes after it, will
+be read as nesting that menu inside the running spoke rather than as starting a
+new top-level section. Both readings are defensible from the source alone. If
+the distinction ever needs to be authored rather than inferred, that is an
+argument for marking it explicitly, not for a cleverer heuristic.
 
 [[return]]
 == Navigation semantics
@@ -347,8 +381,10 @@ defined above.
 
 Multi-digit jump targets:: See above.
 
-Nested nexuses:: A spoke containing its own nexus. No motivating case yet, and
-the return stack semantics would need to be specified rather than assumed.
+Nested nexuses:: Now implemented — see <<spoke-extent>>. The return stack
+semantics turned out not to need specifying: a stack was already the right
+shape, and depth worked the moment spoke extents stopped being computed from a
+flat list of boundaries.
 
 == Open questions
 

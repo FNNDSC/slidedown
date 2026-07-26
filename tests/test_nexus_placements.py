@@ -295,3 +295,149 @@ class TestJumpAddressExtraction:
 
     def test_empty_body_yields_nothing(self) -> None:
         assert jumpAddresses_extract("<p>no jumps</p>") == []
+
+
+class TestNestedSpokes:
+    """Spokes containing menus of their own, to any depth"""
+
+    def test_subMenu_onTheSpokesOwnSlide(self) -> None:
+        """A spoke whose first slide is itself a menu."""
+        source = """
+.slide{
+  .title{Top}
+  .body{.nexus{.id{top} .jump{.target{alpha} Alpha} .jump{.target{beta} Beta}}}
+}
+
+.slide{
+  .id{alpha}
+  .title{Alpha}
+  .body{.nexus{.id{sub} .jump{.target{one} One} .jump{.target{two} Two}}}
+}
+
+.slide{.id{one} .title{One} .body{1}}
+.slide{.id{two} .title{Two} .body{2}}
+.slide{.id{beta} .title{Beta} .body{B}}
+"""
+        html, _ = html_compile(source)
+        graph = graph_extract(html)
+
+        assert graph["spokes"] == [
+            {"address": "alpha", "start": 2, "end": 2},
+            {"address": "one", "start": 3, "end": 3},
+            {"address": "two", "start": 4, "end": 4},
+            {"address": "beta", "start": 5, "end": 5},
+        ]
+
+    def test_subMenu_midSpoke_doesNotOrphanTheSlidesBeforeIt(self) -> None:
+        """
+        A menu partway through a spoke belongs to that spoke.
+
+        The flat rule stopped the spoke dead at the menu, so advancing
+        off the slide before it returned to the top and the menu slide
+        could not be reached at all.
+        """
+        source = """
+.slide{
+  .title{Top}
+  .body{.nexus{.id{top} .jump{.target{alpha} Alpha}}}
+}
+
+.slide{.id{alpha} .title{Alpha} .body{A}}
+
+.slide{
+  .id{alpha2}
+  .title{Alpha Continued}
+  .body{.nexus{.id{sub} .jump{.target{deep} Deep}}}
+}
+
+.slide{.id{deep} .title{Deep} .body{D}}
+"""
+        html, _ = html_compile(source)
+        graph = graph_extract(html)
+
+        assert graph["spokes"] == [
+            {"address": "alpha", "start": 2, "end": 3},
+            {"address": "deep", "start": 4, "end": 4},
+        ]
+
+    def test_nesting_goesThreeDeep(self) -> None:
+        """Depth is not capped; the rule is the same at every level."""
+        source = """
+.slide{
+  .title{L0}
+  .body{.nexus{.id{n0} .jump{.target{l1} Level One}}}
+}
+
+.slide{
+  .id{l1}
+  .title{L1}
+  .body{.nexus{.id{n1} .jump{.target{l2} Level Two}}}
+}
+
+.slide{
+  .id{l2}
+  .title{L2}
+  .body{.nexus{.id{n2} .jump{.target{l3} Level Three}}}
+}
+
+.slide{.id{l3} .title{L3} .body{bottom}}
+"""
+        html, _ = html_compile(source)
+        graph = graph_extract(html)
+
+        assert graph["spokes"] == [
+            {"address": "l1", "start": 2, "end": 2},
+            {"address": "l2", "start": 3, "end": 3},
+            {"address": "l3", "start": 4, "end": 4},
+        ]
+
+    def test_menuShownAgain_stillEndsTheSpokeItSitsIn(self) -> None:
+        """
+        A nexus that only points backwards is not opening a section.
+
+        This is what separates a sub-menu from the same menu placed a
+        second time at the end of a deck, which the sandwich deck does
+        and which must keep its old extents.
+        """
+        html, _ = html_compile(SANDWICH_DECK)
+        graph = graph_extract(html)
+
+        assert graph["spokes"] == [
+            {"address": "depth", "start": 2, "end": 2},
+            {"address": "registry", "start": 3, "end": 3},
+        ]
+
+    def test_spokeExtents_neverOverlap(self) -> None:
+        """
+        Nesting must not put a slide in two spokes at once.
+
+        The runtime asks only "which spoke is this slide in", so two
+        answers would mean returning to whichever was found first.
+        """
+        source = """
+.slide{
+  .title{Top}
+  .body{.nexus{.id{top} .jump{.target{alpha} Alpha} .jump{.target{beta} Beta}}}
+}
+
+.slide{
+  .id{alpha}
+  .title{Alpha}
+  .body{.nexus{.id{sub} .jump{.target{one} One}}}
+}
+
+.slide{.id{one} .title{One} .body{1}}
+.slide{.title{One Continued} .body{1b}}
+.slide{.id{beta} .title{Beta} .body{B}}
+"""
+        html, _ = html_compile(source)
+        graph = graph_extract(html)
+
+        claimed: dict[int, str] = {}
+        for spoke in graph["spokes"]:
+            for slide in range(spoke["start"], spoke["end"] + 1):
+                assert slide not in claimed, (
+                    f"slide {slide} claimed by both "
+                    f"{claimed.get(slide)} and {spoke['address']}"
+                )
+                claimed[slide] = spoke["address"]
