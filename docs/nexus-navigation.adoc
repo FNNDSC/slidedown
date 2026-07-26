@@ -3,13 +3,19 @@ v0.1, July 2026
 
 [IMPORTANT]
 ====
-*Status: Implemented on branch `feat/nexus-navigation`.*
+*Status: Implemented, on `main`.*
 
 All five stages are built and covered by `tests/test_nexus_addressing.py`,
 `tests/test_nexus_jumps.py`, `tests/test_nexus_placements.py` and
-`tests/js/nexus.test.js` (178 and 54 tests respectively). Manual browser
-checks are in `nexus-smoke-test.adoc`, with a fixture at
+`tests/js/nexus.test.js` (196 Python and 100 JavaScript tests). Manual
+browser checks are in `nexus-smoke-test.adoc`, with a fixture at
 `examples/nexus/nexus-demo.sd`.
+
+Two things have since gone beyond the design as written: spokes may
+contain menus of their own to any depth (<<spoke-extent>>), and a cursor
+lifts the nine-entry ceiling on menus (<<cursor>>). The zoom transition
+that carries a chosen entry into the slide it names is described
+separately, in `zoom-transition.adoc`.
 
 Theming ships a base skin in `assets/css/slidedown.css` plus per-theme
 treatments for `lcars-lower-decks` and `terminal`. `conventional-light`,
@@ -317,11 +323,40 @@ gets used in practice, and clicking is the fallback.
 
 Constraints:
 
-* Digits are currently unbound, but `0`, `+`/`=` and `-`/`_` are taken by the
+* Digits are otherwise unbound, but `0`, `+`/`=` and `-`/`_` are taken by the
   typography scale handler (`typographyScale_keyHandle`). Cap at `1`–`9`.
-* No multi-digit buffer. A nexus with more than nine options is a design problem
-  in the deck, not a gap in the engine.
+* No multi-digit buffer, and none needed: past nine entries the cursor takes
+  over — see <<cursor>>.
 * Number keys are inert on non-nexus slides.
+
+[[cursor]]
+=== Cursor selection
+
+`Up` and `Down` walk a cursor through the current menu's revealed entries,
+wrapping at both ends; `Enter` takes the jump it is sitting on. This is what
+lifts the nine-entry ceiling: the digits remain the fast path for the first
+nine, and the cursor reaches the rest.
+
+There is no cursor until a key asks for one, so nothing appears unbidden on a
+menu the presenter is driving by number. The first `Down` lands on the first
+entry and the first `Up` on the last, so one press does the obvious thing.
+
+The mark is `.sd-jump--cursor`, drawn deliberately quieter than the
+`.sd-jump--selected` flash that confirms a choice: one says "here", the other
+says "this, and we are going now".
+
+Constraints:
+
+* Only revealed entries are reachable, for the same reason they are inert to
+  the digits and to a click.
+* `Up`/`Down` already mean first-slide and last-slide, and go on meaning that
+  everywhere except on a menu. A deck being driven as a graph has little use
+  for "last slide" while the room is looking at a list of choices — but this
+  *is* a change in what those keys do on nexus slides, and is the one place
+  this feature is not purely additive.
+* A cursor is a position within one menu, so `slide_commit` forgets it on the
+  way out.
+* Modified arrows are left alone.
 
 === Unrevealed jumps are inert
 
@@ -379,7 +414,8 @@ then real use will have shown whether it is wanted. Suppression is a decision
 that can be revisited cheaply; the spoke-extent model it would need is already
 defined above.
 
-Multi-digit jump targets:: See above.
+Multi-digit jump targets:: Not needed; cursor selection lifts the ceiling
+instead. See <<cursor>>.
 
 Nested nexuses:: Now implemented — see <<spoke-extent>>. The return stack
 semantics turned out not to need specifying: a stack was already the right
@@ -411,7 +447,8 @@ Areas that assume a linear array and will need attention:
   `l_snippetsPerSlide`, `l_snippetPerSlideON`; the return stack is new state on
   this object.
 * `Page.checkForMouseClick` — propagation and nexus-slide suppression.
-* `Page.checkForArrowKeyPress` — `Esc`, digits, spoke-end interception on Right.
+* `Page.checkForArrowKeyPress` — `Esc`, digits, cursor keys, spoke-end
+  interception on Right.
 * URL parameter parsing — named targets.
 * Progress indicator rendering — suppression in nexus decks; note the
   `numberOfSlides` element and the `{current}`/`{total}` placeholders.
