@@ -198,6 +198,10 @@ def htmlDocument_build(compiler: CompilerRenderer, content: str) -> str:
                 '    <div class="presentation-viewport">',
                 _metadata_html("numberOfSlides", str(compiler.slide_count)),
                 _metadata_html("slideIDprefix", "slide-"),
+                _metadata_html(
+                    "slideTransition",
+                    transition_resolve(compiler.meta_config),
+                ),
                 nexus.navigationGraph_htmlEmit(
                     compiler.slide_addresses,
                     compiler.jump_refs,
@@ -215,6 +219,10 @@ def htmlDocument_build(compiler: CompilerRenderer, content: str) -> str:
                 '    <div class="presentation-viewport">',
                 _metadata_html("numberOfSlides", str(compiler.slide_count)),
                 _metadata_html("slideIDprefix", "slide-"),
+                _metadata_html(
+                    "slideTransition",
+                    transition_resolve(compiler.meta_config),
+                ),
                 nexus.navigationGraph_htmlEmit(
                     compiler.slide_addresses,
                     compiler.jump_refs,
@@ -552,6 +560,40 @@ def blankLines_insertBreaks(html: str) -> str:
         html,
         flags=re.DOTALL,
     )
+
+
+# Slide transitions the runtime knows how to perform. A deck asking for
+# anything else gets the instant swap rather than a broken animation.
+TRANSITIONS_KNOWN: frozenset[str] = frozenset({"none", "zoom"})
+
+TRANSITION_DEFAULT = "none"
+
+
+def transition_resolve(meta_config: PresentationMetaConfig) -> str:
+    """
+    Determine the slide transition a deck has asked for.
+
+    Motion is opt-in. A deck that says nothing keeps the instant swap it
+    has always had, and an unrecognised value degrades to the same place
+    rather than emitting a mode the runtime cannot drive.
+
+    Args:
+        meta_config: Parsed ``.meta{}`` configuration.
+
+    Returns:
+        A transition name the runtime understands.
+
+    Example:
+        >>> transition_resolve({"transition": "Zoom"})
+        'zoom'
+        >>> transition_resolve({"transition": "swirl"})
+        'none'
+    """
+    requested: str = str(meta_config.get("transition", "")).strip().lower()
+    if requested in TRANSITIONS_KNOWN:
+        return requested
+
+    return TRANSITION_DEFAULT
 
 
 def _metadata_html(element_id: str, value: str) -> str:

@@ -1,0 +1,223 @@
+= Slidedown Design: Zoom Transition
+:toc:
+:toclevels: 2
+
+====
+Status: implemented. The canvas described under <<canvas>> is not built and
+may never need to be.
+====
+
+== What this is
+
+Prezi's one good idea was that moving the camera can say something. A deck
+laid out on a plane, with detail nested inside overview, made "advance" mean
+"go inside this" — and going back meant coming out again, to the place you
+left. The zoom was not decoration; it was an assertion about structure.
+
+Prezi also made every other transition swoop, which is how the idea acquired
+its reputation and its nickname, "Prezi nausea".
+
+Slidedown is in an unusual position to take the good half. A nexus deck
+already states which slides contain which: a nexus is an overview, and its
+spokes are the topics it lists. That relation is computed at build time and
+sits in the navigation graph. The movement does not have to be authored,
+because the containment is already known.
+
+== The rule
+
+Motion is confined to moves it can honestly describe.
+
+Moves::
+Entering a spoke from a nexus, and returning from that spoke to the nexus it
+was entered from.
+
+Does not move::
+Everything else. A plain advance is a step sideways, not a step inward. Two
+consecutive slides do not contain one another, and animating that transition
+would assert a relationship the deck does not have.
+
+This is the whole discipline, and it is the difference between the feature
+and the cliché.
+
+== Opting in
+
+....
+.meta{
+  transition: zoom
+}
+....
+
+The default is `none`, so every deck that does not ask keeps the instant
+swap it has always had. An unrecognised value resolves to `none` rather than
+reaching the runtime — see `transition_resolve()` in
+`src/lib/compiler_rendering.py`. The resolved value is emitted as a
+`slideTransition` metadata element beside `slideIDprefix`.
+
+== What flies is the text
+
+The entry in the menu and the heading on the slide are the same thing said
+twice. So the transition carries one into the other: the chosen line lifts
+off the nexus, rises, and becomes the spoke's `<h1>`. Returning, the heading
+falls back into the bullet it came from.
+
+Nothing else travels. The two slides cross-fade underneath.
+
+=== Two approaches that did not work
+
+Both are recorded because both look like they should work.
+
+Scaling the slides past one another::
+Grow the outgoing slide about the anchor, bring the incoming one in from
+small about the same point. The result reads as a PowerPoint zoom: the whole
+frame expands, blanks, and contracts. Nothing the viewer was looking at
+before the move is present after it, so there is no target — only a change
+of scale, and the eye has nothing to follow.
+
+Flying a miniature of the destination::
+Closer, and still wrong. At the size of a menu entry a slide is an
+illegible grey rectangle, so the promise — see where you are going — is only
+half kept: you get the destination's shape, not its content. It also has to
+be painted, and painting it means guessing a background colour, which
+visibly corrects itself on landing.
+
+What made Prezi legible was that the destination was already on screen,
+small and in place, and the camera merely closed the distance. The
+continuity is *material*: the same thing, seen from nearer. A line of text
+is the one part of a slide that survives being carried — it reads as text at
+every size on the way, and there is nothing to repaint, because the real
+slide is what is underneath.
+
+== The choreography
+
+....
+beat      the chosen entry is marked and held        160ms
+flight    the entry is carried onto the heading      300ms
+handover  the copy gives way to the real heading     120ms
+....
+
+=== The beat
+
+With a clicker the room cannot see which key was pressed, and a deck that
+simply starts moving leaves the audience working out after the fact where it
+went. So the entry is outlined in its own `currentColor` and held long
+enough to be read, before anything travels. It also parks the eye on the
+point the movement is about to start from.
+
+Returns skip it: nothing was selected.
+
+=== The flight
+
+A clone of the chosen line is fixed to the screen at the box it currently
+occupies, and transformed to the box the heading will occupy — a translate
+plus a scale. Both ends of the shared element are concealed for the
+duration, so the text is never on screen twice.
+
+The scale is the ratio of the two *heights*, not their widths. The two
+phrasings are rarely the same length, but both are a line of type, and it is
+the type that has to match on arrival.
+
+=== The handover
+
+An entry and the heading it becomes are usually not word for word the same,
+so the last moment is a short cross-fade rather than a swap. Where the two
+do read the same, there is nothing to see — and a deck that wants the effect
+at its cleanest should phrase them identically, which turns the handover
+into a true morph.
+
+== Ordering, and the bug it exists to prevent
+
+Slides are flex children of `.presentation-viewport`. Two of them shown at
+once would stack, one above the other.
+
+That constraint produced the subtlest fault in this feature. The heading's
+position was measured while the outgoing slide was still in the flow — so
+the incoming slide laid out *beneath* it, and its heading measured about
+half a page too low. The carry flew to that position, which meant it went
+downwards on the way in. Returning was unaffected and looked perfect,
+because there the spoke is genuinely on screen when measured.
+
+"One direction is right and the other is not" is the fingerprint of a
+measurement made in the wrong conditions, rather than of a sign error.
+
+So the order is fixed, and the same in both directions:
+
+. `slide_detach()` pins the outgoing slide to the box it already occupies,
+  taking it out of the flow without moving it. Layout coordinates
+  (`offsetLeft`, `offsetWidth`) are used, so the viewport's scale does not
+  enter into it.
+. `slide_commit()` performs the swap. The incoming slide is now the only one
+  in the flow, and lays out exactly where it will stay.
+. The outgoing slide is shown again, pinned, for the cross-fade.
+. *Now* the heading is measured, and the copy is built and flown.
+
+Because the swap happens at the start, the fallback path — a spoke with no
+`<h1>`, or a copy that cannot be built — has to take the scaffolding back
+down rather than skip it. `slide_reattach()` does that, and it runs on every
+path out.
+
+== Where the boxes come from
+
+The entry's box is the jump anchor itself: `zoom_anchorRect()` reads it from
+the `.sd-jump[data-jump="..."]` element the compiler emits. A return needs
+the same box, but by then the nexus is hidden and measures as nothing, so it
+is measured when the jump is taken and travels on the return stack alongside
+the reveal count, in `return_push()`.
+
+A return also carries no address of its own. The spoke names its own entry,
+via `spokeFor()`.
+
+One conversion is needed. The copy is fixed to the screen, which puts it
+outside the viewport that scales the deck to the window, so the type it
+inherits is in the deck's baseline pixels and would render far too large.
+`ghost_create()` reads the computed font size and multiplies it by the
+viewport scale.
+
+== When it declines
+
+The deck falls through to the instant swap when any of these hold:
+
+* the deck did not opt in;
+* the viewer has `prefers-reduced-motion: reduce` set;
+* the deck is not a nexus deck;
+* the move is not a jump or a return;
+* the anchor does not exist, is not revealed, or cannot be measured;
+* the viewport cannot be measured;
+* a return has no recorded box, as after a deep link into a spoke;
+* the spoke has no heading to carry the entry onto;
+* the flying copy cannot be built.
+
+Reduced motion is also enforced in CSS, so a page served with a stale
+`slidedown.js` still lands on the instant swap.
+
+== Presenters outrun animations
+
+A clicker at a lectern produces input faster than any transition. Rather
+than queueing or dropping those presses, a new move snaps the running one to
+its end state first: `zoom_cancel()` drains the pending finishers, each of
+which completes its leg synchronously. Finishing one leg starts the next,
+which is then drained in the same loop, so the deck lands exactly where it
+would have landed anyway — immediately.
+
+Every leg carries a timer as well as a `transitionend` listener, because an
+element hidden mid-flight never fires the event. The selection beat is a
+plain wait with no element to listen to, and takes no such allowance.
+
+[[canvas]]
+== Not built: the canvas
+
+The real Prezi arrangement has every slide laid out on one plane, spokes
+nested inside their nexus, so the destination is visible — small, legible,
+in place — *before* it is chosen. A menu whose entries were the spokes
+themselves would say what each topic looks like, not merely what it is
+called.
+
+That needs the slides genuinely stacked rather than swapped: `.slide` moved
+to `position: absolute` inside a positioned stage emitted by
+`compiler_rendering.py`, with the `display: block` the runtime sets inline
+preserved exactly, since that inline value overrides the stylesheet's
+`display: flex` and quietly restoring the flex centring would move content
+on every existing deck.
+
+It is worth doing only if these decks are ever navigated exploratorily. Where
+the nexus is a menu passed through on the way somewhere, carrying the chosen
+line across says everything the canvas would, for a great deal less.

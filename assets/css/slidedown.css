@@ -138,6 +138,34 @@ body {
     padding: 0;
 }
 
+/*
+ * Zoom transition, reduced-motion backstop.
+ *
+ * The runtime already declines to animate when this preference is set,
+ * so this rule is a second lock on the same door: a deck served with a
+ * stale slidedown.js still lands on the instant swap rather than on
+ * movement someone has explicitly asked not to be shown.
+ */
+/*
+ * The chosen entry, held for a beat before the deck moves.
+ *
+ * With a clicker the room cannot see which key was pressed, so the entry
+ * says so itself. Drawn in the entry's own colour rather than a chosen
+ * one, so it reads the same on every theme.
+ */
+.sd-jump--selected {
+    outline: 2px solid currentColor;
+    outline-offset: 0.3em;
+    filter: brightness(1.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .slide,
+    .sd-ghost {
+        transition: none !important;
+    }
+}
+
 .slide h1 {
     font-size: 2.8em;
     margin: 0.3em 0;

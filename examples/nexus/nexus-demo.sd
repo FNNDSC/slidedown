@@ -1,6 +1,7 @@
 .meta{
   title: "Nexus Navigation Demo"
   theme: "terminal"
+  transition: zoom
   typography:
     baseline: presentation
   snippets:
@@ -8,11 +9,29 @@
 }
 
 .slide{
+  .id{quickmenu}
+  .title{Start Here}
+  .body{
+    .h1{Nexus Demo}
+    .h2{Press 1, 2 or 3 -- or click}
+
+    .nexus{.id{quick}
+      .div{.jump{.target{addressing} How slides get names}}
+      .div{.jump{.target{returning} How returning works}}
+      .div{.jump{.target{keys} What the keyboard does}}
+    }
+
+    .div{.class{prompt} These entries are live immediately. The menu on the
+next slide reveals its entries one at a time instead.}
+  }
+}
+
+.slide{
   .id{menu}
   .title{Pick a Topic}
   .body{
-    .h1{Nexus Demo}
-    .h2{Click an entry, or press its number}
+    .h1{The Same Topics, Revealed}
+    .h2{Press Right three times, then a number}
 
     .nexus{.id{topics}
       .o{.jump{.target{addressing} How slides get names}}

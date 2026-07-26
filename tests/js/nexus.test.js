@@ -41,22 +41,59 @@ function storage_make(throws) {
     };
 }
 
+// Anchor at (100,200), 300x40, so its centre lands on (250,220).
+const RECT_ANCHOR_DEFAULT = { left: 100, top: 200, width: 300, height: 40 };
+
+// A slide fills the 2560x1440 baseline with its origin at the origin, so
+// slide-local coordinates and screen coordinates differ only by scale.
+const RECT_SLIDE = { left: 0, top: 0, width: 2560, height: 1440 };
+
+// The heading a spoke arrives as. Three times the entry's height, and
+// offset from it on both axes, so a flight between them is unambiguous.
+const RECT_HEADING = { left: 200, top: 100, width: 1200, height: 120 };
+
+/**
+ * Build a stub heading element.
+ *
+ * @returns {object} Element-like stub.
+ */
+function headingElement_make() {
+    return {
+        style: { visibility: '', opacity: '', transition: '' },
+        removeAttribute() {},
+        querySelectorAll: () => [],
+        cloneNode: () => headingElement_make(),
+        getBoundingClientRect: () => RECT_HEADING
+    };
+}
+
 /**
  * Build a stub anchor element carrying a jump address.
  *
  * @param {string} address  data-jump value.
  * @returns {object} Anchor stub with a recording classList.
  */
-function anchorElement_make(address) {
+function anchorElement_make(address, revealed, rect) {
     const classes = new Set();
     return {
         classes,
+        // Unset style properties read as empty strings in a real DOM, and
+        // the runtime restores them by writing that back.
+        style: { visibility: '', opacity: '', transition: '' },
+        removeAttribute() {},
+        querySelectorAll: () => [],
+        cloneNode: () => anchorElement_make(address, revealed, rect),
         getAttribute: (n) => (n === 'data-jump' ? address : null),
         classList: {
             add: (c) => classes.add(c),
             remove: (c) => classes.delete(c),
             contains: (c) => classes.has(c)
-        }
+        },
+        // Revealed anchors report no hiding snippet above them.
+        closest: (sel) => (sel === '.snippet' && !revealed ? {
+            classList: { contains: (cls) => cls === 'sl-hidden' }
+        } : null),
+        getBoundingClientRect: () => rect || RECT_ANCHOR_DEFAULT
     };
 }
 
@@ -68,28 +105,18 @@ function anchorElement_make(address) {
  * @param {string} selector  The .sd-jump[data-jump="..."] expression.
  * @returns {object|null} Anchor stub, or null when absent.
  */
-function anchor_find(anchors, slide, selector) {
-    if (!anchors || !anchors[slide]) {
-        return null;
-    }
-
+function anchor_find(slideAnchors, selector) {
     const match = /data-jump="([^"]+)"/.exec(selector || '');
     if (!match) {
         return null;
     }
 
-    const revealed = anchors[slide][match[1]];
-    if (revealed === undefined) {
-        return null;
+    for (const anchor of slideAnchors) {
+        if (anchor.getAttribute('data-jump') === match[1]) {
+            return anchor;
+        }
     }
-
-    return {
-        closest: (sel) => (sel === '.snippet' ? {
-            classList: {
-                contains: (cls) => cls === 'sl-hidden' && !revealed
-            }
-        } : null)
-    };
+    return null;
 }
 
 /**
@@ -114,22 +141,52 @@ function context_make(options) {
                 : JSON.stringify(opts.graph)
         };
     }
+    if (opts.transition) {
+        elements.slideTransition = { innerHTML: opts.transition };
+    }
+    if (opts.chrome) {
+        // Footer furniture slide_commit writes to. Only the tests that
+        // drive a real transition need these.
+        elements.pageTitle    = { innerHTML: '' };
+        elements.slideCounter = { innerHTML: '' };
+        elements.slideBar     = { style: {} };
+    }
     if (opts.slideCount > 0) {
         elements.numberOfSlides = { innerHTML: String(opts.slideCount) };
         elements.slideIDprefix = { innerHTML: 'slide-' };
         for (let i = 1; i <= opts.slideCount; i++) {
-            const slideAnchors = Object.keys(
-                (opts.anchors && opts.anchors[i]) || {}
-            ).map(anchorElement_make);
+            // One stable stub per anchor, so a class added by the runtime
+            // is still there when the test looks for it.
+            const declared = (opts.anchors && opts.anchors[i]) || {};
+            const slideAnchors = Object.keys(declared).map(
+                (addr) => anchorElement_make(
+                    addr, declared[addr], (opts.rects || {})[addr]
+                )
+            );
+
+            const heading = headingElement_make();
 
             elements['slide-' + i] = {
-                style: {},
+                style: { visibility: '', opacity: '', transition: '' },
+                heading,
                 getElementsByClassName: () => [],
+                offsetLeft: 0,
+                offsetTop: 0,
+                offsetWidth: 2560,
+                offsetHeight: 1440,
                 // Anchors declared per slide via options.anchors, so tests
                 // can control whether a jump is revealed.
-                querySelector: (sel) => anchor_find(opts.anchors, i, sel),
-                querySelectorAll: () => slideAnchors,
-                anchors: slideAnchors
+                querySelector: (sel) => (
+                    sel === 'h1' ? heading : anchor_find(slideAnchors, sel)
+                ),
+                // Selector-aware: the runtime also asks a slide for its
+                // typewriters, which are not anchors and answer a
+                // different interface.
+                querySelectorAll: (sel) => (
+                    String(sel).indexOf('sd-jump') >= 0 ? slideAnchors : []
+                ),
+                anchors: slideAnchors,
+                getBoundingClientRect: () => RECT_SLIDE
             };
             elements['slide-' + i + '-title'] = { innerHTML: 'Slide ' + i };
         }
@@ -143,7 +200,17 @@ function context_make(options) {
         transitions: [],
         document: {
             getElementById: (id) => elements[id] || null,
-            querySelector: () => null,
+            // The viewport is the box a slide fills, and carries the
+            // scale scalePresentation() fitted it to the window with.
+            querySelector: (sel) => (
+                sel === '.presentation-viewport'
+                    ? {
+                        offsetWidth: 2560,
+                        offsetHeight: 1440,
+                        getBoundingClientRect: () => RECT_SLIDE
+                    }
+                    : null
+            ),
             querySelectorAll: () => [],
             getElementsByClassName: () => [],
             addEventListener() {},
@@ -153,6 +220,10 @@ function context_make(options) {
         },
         window: {
             location: { search: opts.search, pathname: '/deck/' },
+            matchMedia: (query) => ({
+                matches: query === '(prefers-reduced-motion: reduce)'
+                            && opts.reducedMotion === true
+            }),
             addEventListener() {},
             innerWidth: 2560,
             innerHeight: 1440,
@@ -749,6 +820,499 @@ test('marking an empty address is refused', () => {
     assert.strictEqual(ctx.page.visited_mark(''), false);
 });
 
+
+/* --- zoom transition -------------------------------------------------- */
+
+/**
+ * Read a runtime constant out of a sandbox.
+ *
+ * Top-level const declarations do not become properties of the sandbox
+ * global, so they have to be evaluated in the context rather than read
+ * off it. Going through the runtime keeps the tests honest if the
+ * constant is ever retuned.
+ *
+ * @param {object} ctx   Contextified sandbox.
+ * @param {string} name  Constant to read.
+ * @returns {*} Its value.
+ */
+function constant_read(ctx, name) {
+    return vm.runInContext(name, ctx);
+}
+
+/**
+ * Assert an entry box.
+ *
+ * Objects built inside the vm sandbox carry that realm's prototype, so
+ * deepStrictEqual rejects them however equal their contents.
+ *
+ * @param {object|null} rect  Rect under test.
+ * @param {object} expected   {left, top, width, height}.
+ */
+function rect_assert(rect, expected) {
+    assert.ok(rect, 'expected a rect, got ' + rect);
+    for (const k of ['left', 'top', 'width', 'height']) {
+        assert.strictEqual(rect[k], expected[k], 'rect.' + k);
+    }
+}
+
+/**
+ * A sandwich context that has opted into the zoom transition.
+ *
+ * @param {object} extra  Additional context_make options.
+ * @returns {object} sandbox
+ */
+function zoomable_make(extra) {
+    return context_make(Object.assign({
+        graph: SANDWICH,
+        slideCount: 4,
+        transition: 'zoom',
+        anchors: {
+            1: { depth: true, registry: true },
+            4: { depth: true, registry: true }
+        }
+    }, extra || {}));
+}
+
+test('the transition is read from the deck, defaulting to none', () => {
+    assert.strictEqual(sandwich_make().page.str_transition, 'none');
+    assert.strictEqual(zoomable_make().page.str_transition, 'zoom');
+});
+
+test('an entry box is the anchor jumped from', () => {
+    const ctx = zoomable_make();
+    rect_assert(ctx.page.zoom_anchorRect(1, 'depth'), RECT_ANCHOR_DEFAULT);
+});
+
+test('an unrevealed anchor yields no box', () => {
+    const ctx = zoomable_make({ anchors: { 1: { depth: false } } });
+    assert.strictEqual(ctx.page.zoom_anchorRect(1, 'depth'), null);
+});
+
+test('an absent anchor yields no box', () => {
+    const ctx = zoomable_make();
+    assert.strictEqual(ctx.page.zoom_anchorRect(1, 'nope'), null);
+});
+
+test('a zero-sized anchor yields no box', () => {
+    const ctx = zoomable_make({
+        rects: { depth: { left: 0, top: 0, width: 0, height: 0 } }
+    });
+    assert.strictEqual(ctx.page.zoom_anchorRect(1, 'depth'), null);
+});
+
+test('a jump into a spoke resolves a box', () => {
+    const ctx = zoomable_make();
+    rect_assert(
+        ctx.page.zoom_rectResolve(1, 2, { jumpAddress: 'depth' }),
+        RECT_ANCHOR_DEFAULT
+    );
+});
+
+test('a plain advance resolves no box', () => {
+    // Sequential slides do not contain one another, so there is nothing
+    // for the movement to assert about them.
+    const ctx = zoomable_make();
+    assert.strictEqual(ctx.page.zoom_rectResolve(1, 2, {}), null);
+});
+
+test('a return flies back to the box recorded on departure', () => {
+    const ctx = zoomable_make();
+    rect_assert(
+        ctx.page.zoom_rectResolve(2, 1, {
+            isReturn: true, rect: RECT_ANCHOR_DEFAULT
+        }),
+        RECT_ANCHOR_DEFAULT
+    );
+});
+
+test('a return with no recorded box does not animate', () => {
+    // The deep-link fallback has no departure to have measured.
+    const ctx = zoomable_make();
+    assert.strictEqual(
+        ctx.page.zoom_rectResolve(2, 1, { isReturn: true, rect: null }), null
+    );
+});
+
+test('reduced motion refuses every box', () => {
+    const ctx = zoomable_make({ reducedMotion: true });
+    assert.strictEqual(ctx.page.motion_isReduced(), true);
+    assert.strictEqual(
+        ctx.page.zoom_rectResolve(1, 2, { jumpAddress: 'depth' }), null
+    );
+});
+
+test('a deck that did not opt in resolves no box', () => {
+    const ctx = sandwich_make();
+    assert.strictEqual(
+        ctx.page.zoom_rectResolve(1, 2, { jumpAddress: 'depth' }), null
+    );
+});
+
+test('a non-nexus deck resolves no box', () => {
+    const ctx = context_make({
+        graph: GRAPH, slideCount: 3, transition: 'zoom',
+        anchors: { 1: { depth: true } }
+    });
+    assert.strictEqual(
+        ctx.page.zoom_rectResolve(1, 2, { jumpAddress: 'depth' }), null
+    );
+});
+
+test('a move to the slide already showing resolves no box', () => {
+    const ctx = zoomable_make();
+    assert.strictEqual(
+        ctx.page.zoom_rectResolve(1, 1, { jumpAddress: 'depth' }), null
+    );
+});
+
+test('a departure records the box it must return through', () => {
+    const ctx = zoomable_make();
+    ctx.page.currentSlide = 1;
+    assert.strictEqual(ctx.page.return_push('depth'), true);
+
+    const departure = ctx.page.l_returnStack[0];
+    rect_assert(departure.rect, RECT_ANCHOR_DEFAULT);
+    assert.strictEqual(departure.slide, 1);
+});
+
+test('a departure with no address records no box', () => {
+    const ctx = zoomable_make();
+    ctx.page.currentSlide = 1;
+    ctx.page.return_push();
+    assert.strictEqual(ctx.page.l_returnStack[0].rect, null);
+});
+
+
+/* --- the shared element ----------------------------------------------- */
+
+/**
+ * A stand-in for the flying copy.
+ *
+ * @returns {object} Element-like stub.
+ */
+function ghostStub_make() {
+    return {
+        style: {},
+        offsetWidth: 300,
+        parentNode: null,
+        addEventListener() {},
+        removeEventListener() {}
+    };
+}
+
+// Entry is 40 high at (100,200); heading is 120 high at (200,100). So the
+// carry scales by 120/40 and shifts by (200-100) across and by
+// (100+60)-(200+20) down.
+const TRANSFORM_TOHEADING = 'translate(100px, -60px) scale(3)';
+const TRANSFORM_TOENTRY =
+    'translate(-100px, 60px) scale(' + (40 / 120) + ')';
+
+test('a spoke is found by the heading it arrives as', () => {
+    const ctx = zoomable_make();
+    assert.strictEqual(
+        ctx.page.heading_find(2), ctx.elements['slide-2'].heading
+    );
+});
+
+test('the entry is carried onto the heading', () => {
+    const ctx = zoomable_make();
+    const ghost = ghostStub_make();
+
+    ctx.page.ghost_fly(ghost, RECT_ANCHOR_DEFAULT, RECT_HEADING, () => {});
+    assert.strictEqual(ghost.style.transform, TRANSFORM_TOHEADING);
+});
+
+test('the heading is carried back onto the entry', () => {
+    const ctx = zoomable_make();
+    const ghost = ghostStub_make();
+
+    ctx.page.ghost_fly(ghost, RECT_HEADING, RECT_ANCHOR_DEFAULT, () => {});
+    assert.strictEqual(ghost.style.transform, TRANSFORM_TOENTRY);
+});
+
+test('the carry is scaled by height, not by width', () => {
+    // The two phrasings are rarely the same length, but both are a line
+    // of type, and it is the type that has to match on arrival.
+    const ctx = zoomable_make();
+    const ghost = ghostStub_make();
+
+    ctx.page.ghost_fly(ghost, RECT_ANCHOR_DEFAULT, RECT_HEADING, () => {});
+    const scale = /scale\(([^)]+)\)/.exec(ghost.style.transform)[1];
+    assert.strictEqual(
+        Number(scale), RECT_HEADING.height / RECT_ANCHOR_DEFAULT.height
+    );
+});
+
+test('a ghost that cannot fly finishes rather than hangs', () => {
+    const ctx = zoomable_make();
+    let done = false;
+
+    ctx.page.ghost_fly(null, RECT_ANCHOR_DEFAULT, RECT_HEADING, () => {
+        done = true;
+    });
+
+    assert.strictEqual(done, true);
+    assert.strictEqual(ctx.page.l_zoomPending.length, 0);
+});
+
+test('landing hands over to the real element', () => {
+    const ctx = zoomable_make();
+    const ghost = ghostStub_make();
+    const arriving = headingElement_make();
+    arriving.style.visibility = 'hidden';
+
+    ctx.page.ghost_land(ghost, arriving, () => {});
+
+    // The copy goes as the real one comes, so a wording that differs
+    // between the two does not pop.
+    assert.strictEqual(arriving.style.visibility, '');
+    assert.strictEqual(arriving.style.opacity, '1');
+    assert.strictEqual(ghost.style.opacity, '0');
+});
+
+
+/* --- lifting a slide out of the flow ---------------------------------- */
+
+test('a departing slide is pinned to the box it already occupies', () => {
+    const ctx = zoomable_make();
+    ctx.page.slide_detach(1);
+
+    // Two flex children cannot both be shown without stacking, so the
+    // outgoing one is taken out of the flow exactly where it stands.
+    const slide = ctx.elements['slide-1'];
+    assert.strictEqual(slide.style.position, 'absolute');
+    assert.strictEqual(slide.style.width, '2560px');
+    assert.strictEqual(slide.style.height, '1440px');
+    assert.strictEqual(slide.style.left, '0px');
+});
+
+test('a pinned slide is put back into the flow', () => {
+    const ctx = zoomable_make();
+    ctx.page.slide_detach(1);
+    ctx.page.slide_reattach(1);
+
+    const slide = ctx.elements['slide-1'];
+    assert.strictEqual(slide.style.position, '');
+    assert.strictEqual(slide.style.width, '');
+    assert.strictEqual(slide.style.opacity, '');
+});
+
+
+/* --- zoom sequencing -------------------------------------------------- */
+
+/**
+ * A zoom context whose slide_transition runs for real, with the flying
+ * copy replaced by a stub.
+ *
+ * Building a true ghost needs cloneNode, getComputedStyle and a live
+ * document; the choreography it serves needs none of that, and the
+ * choreography is what can regress.
+ *
+ * @returns {object} sandbox, with ctx.ghost holding the stub
+ */
+function zoomLive_make() {
+    const ctx = zoomable_make({ chrome: true });
+    delete ctx.page.slide_transition;   // restore the prototype's
+
+    ctx.ghost = ghostStub_make();
+    ctx.page.ghost_create = () => ctx.ghost;
+    return ctx;
+}
+
+/**
+ * Run exactly one pending finisher.
+ *
+ * zoom_cancel() drains to the end, which is the wrong instrument for
+ * looking at the state between the selection beat and the flight.
+ *
+ * @param {object} ctx  sandbox
+ */
+function beat_advance(ctx) {
+    const finish = ctx.page.l_zoomPending.shift();
+    assert.ok(finish, 'expected something pending');
+    finish();
+}
+
+/**
+ * The anchor stub for an address on a slide.
+ *
+ * @param {object} ctx     sandbox
+ * @param {number} slide   Slide number.
+ * @param {string} address Jump address.
+ * @returns {object} Anchor stub.
+ */
+function anchor_of(ctx, slide, address) {
+    return ctx.elements['slide-' + slide].querySelector(
+        '.sd-jump[data-jump="' + address + '"]'
+    );
+}
+
+test('the chosen entry is marked before anything moves', () => {
+    const ctx = zoomLive_make();
+    ctx.page.currentSlide = 1;
+    ctx.page.slide_transition(1, 2, { jumpAddress: 'depth' });
+
+    // The room is told what was picked, and nothing has flown yet.
+    assert.strictEqual(
+        anchor_of(ctx, 1, 'depth').classList.contains('sd-jump--selected'),
+        true
+    );
+    assert.strictEqual(ctx.ghost.style.transform, undefined);
+});
+
+test('the mark is taken off once the flight begins', () => {
+    const ctx = zoomLive_make();
+    ctx.page.currentSlide = 1;
+    ctx.page.slide_transition(1, 2, { jumpAddress: 'depth' });
+    beat_advance(ctx);
+
+    assert.strictEqual(
+        anchor_of(ctx, 1, 'depth').classList.contains('sd-jump--selected'),
+        false
+    );
+    assert.strictEqual(ctx.ghost.style.transform, TRANSFORM_TOHEADING);
+});
+
+test('a return marks nothing, having selected nothing', () => {
+    const ctx = zoomLive_make();
+    ctx.page.currentSlide = 2;
+    ctx.page.slide_transition(2, 1, {
+        isReturn: true, rect: RECT_ANCHOR_DEFAULT
+    });
+
+    assert.strictEqual(
+        anchor_of(ctx, 1, 'depth').classList.contains('sd-jump--selected'),
+        false
+    );
+});
+
+test('a return carries the heading back to the entry it came from', () => {
+    const ctx = zoomLive_make();
+    ctx.page.currentSlide = 2;
+    ctx.page.slide_transition(2, 1, {
+        isReturn: true, rect: RECT_ANCHOR_DEFAULT
+    });
+
+    // No address is passed on a return; the spoke names its own entry.
+    assert.strictEqual(ctx.ghost.style.transform, TRANSFORM_TOENTRY);
+});
+
+test('both ends of the shared element step aside for the copy', () => {
+    const ctx = zoomLive_make();
+    ctx.page.currentSlide = 1;
+    ctx.page.slide_transition(1, 2, { jumpAddress: 'depth' });
+    beat_advance(ctx);
+
+    // Otherwise the text would be on screen twice for the whole flight.
+    assert.strictEqual(
+        anchor_of(ctx, 1, 'depth').style.visibility, 'hidden'
+    );
+    assert.strictEqual(ctx.elements['slide-2'].heading.style.visibility,
+                       'hidden');
+});
+
+test('the heading is measured only once the flow is clear', () => {
+    const ctx = zoomLive_make();
+    const spoke = ctx.elements['slide-2'];
+
+    // Both slides are flex children. Measured while the outgoing one is
+    // still in the flow, the incoming one lays out beneath it and its
+    // heading reads half a page too low — which sent the carry
+    // downwards instead of up.
+    const RECT_PUSHEDDOWN = { left: 200, top: 900, width: 1200, height: 120 };
+    spoke.heading.getBoundingClientRect = () => (
+        ctx.elements['slide-1'].style.position === 'absolute'
+            ? RECT_HEADING
+            : RECT_PUSHEDDOWN
+    );
+
+    ctx.page.currentSlide = 1;
+    ctx.page.slide_transition(1, 2, { jumpAddress: 'depth' });
+    beat_advance(ctx);
+
+    // Upwards, onto the real heading position.
+    assert.strictEqual(ctx.ghost.style.transform, TRANSFORM_TOHEADING);
+});
+
+test('both slides are on screen while the copy is in flight', () => {
+    const ctx = zoomLive_make();
+    ctx.page.currentSlide = 1;
+    ctx.page.slide_transition(1, 2, { jumpAddress: 'depth' });
+    beat_advance(ctx);
+
+    // The pages cross over underneath the text rather than cutting.
+    assert.strictEqual(ctx.elements['slide-1'].style.display, 'block');
+    assert.strictEqual(ctx.elements['slide-1'].style.position, 'absolute');
+    assert.strictEqual(ctx.elements['slide-2'].style.display, 'block');
+    assert.strictEqual(ctx.elements['slide-2'].style.opacity, '1');
+});
+
+test('the deck is left with nothing pinned or concealed', () => {
+    const ctx = zoomLive_make();
+    ctx.page.currentSlide = 1;
+    ctx.page.slide_transition(1, 2, { jumpAddress: 'depth' });
+    ctx.page.zoom_cancel();
+
+    const leaving = ctx.elements['slide-1'];
+    const arrived = ctx.elements['slide-2'];
+
+    assert.strictEqual(leaving.style.display, 'none');
+    assert.strictEqual(leaving.style.position, '');
+    assert.strictEqual(leaving.style.opacity, '');
+    assert.strictEqual(arrived.style.display, 'block');
+    assert.strictEqual(arrived.style.opacity, '');
+    assert.strictEqual(anchor_of(ctx, 1, 'depth').style.visibility, '');
+    assert.strictEqual(arrived.heading.style.visibility, '');
+    assert.strictEqual(ctx.page.l_zoomPending.length, 0);
+});
+
+test('outrunning the animation still lands on the destination', () => {
+    const ctx = zoomLive_make();
+    ctx.page.currentSlide = 1;
+    ctx.page.slide_transition(1, 2, { jumpAddress: 'depth' });
+
+    // The presenter presses again before the movement finishes.
+    ctx.page.zoom_cancel();
+
+    assert.strictEqual(ctx.elements['slide-1'].style.display, 'none');
+    assert.strictEqual(ctx.elements['slide-2'].style.display, 'block');
+    assert.strictEqual(ctx.page.l_zoomPending.length, 0);
+});
+
+test('a non-animating move commits immediately', () => {
+    const ctx = zoomLive_make();
+    ctx.page.currentSlide = 1;
+
+    // A plain advance: no jump address, so no flight and no deferral.
+    ctx.page.slide_transition(1, 2, {});
+
+    assert.strictEqual(ctx.elements['slide-2'].style.display, 'block');
+    assert.strictEqual(ctx.page.l_zoomPending.length, 0);
+});
+
+test('a ghost that cannot be built falls back to the instant swap', () => {
+    const ctx = zoomLive_make();
+    ctx.page.ghost_create = () => null;
+    ctx.page.currentSlide = 1;
+
+    ctx.page.slide_transition(1, 2, { jumpAddress: 'depth' });
+    beat_advance(ctx);
+
+    assert.strictEqual(ctx.elements['slide-2'].style.display, 'block');
+    assert.strictEqual(ctx.page.l_zoomPending.length, 0);
+});
+
+test('a spoke with no heading falls back to the instant swap', () => {
+    const ctx = zoomLive_make();
+    ctx.page.heading_find = () => null;
+    ctx.page.currentSlide = 1;
+
+    ctx.page.slide_transition(1, 2, { jumpAddress: 'depth' });
+    beat_advance(ctx);
+
+    assert.strictEqual(ctx.elements['slide-2'].style.display, 'block');
+    assert.strictEqual(ctx.page.l_zoomPending.length, 0);
+});
 
 /* --- runner ----------------------------------------------------------- */
 
