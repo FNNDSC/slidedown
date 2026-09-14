@@ -900,6 +900,56 @@ test('a zero-sized anchor yields no box', () => {
     assert.strictEqual(ctx.page.zoom_anchorRect(1, 'depth'), null);
 });
 
+// A centred heading's block runs the full slide width; its words sit in
+// the middle of it. The carry has to land on the words.
+const RECT_HEADING_WORDS = { left: 900, top: 100, width: 400, height: 120 };
+
+/**
+ * Give the fake document a Range that measures every element's words as
+ * one fixed box.
+ *
+ * @param {object} ctx - Sandbox from zoomable_make().
+ * @param {object} rect - Box the range reports.
+ */
+function range_install(ctx, rect) {
+    ctx.document.createRange = () => ({
+        selectNodeContents() {},
+        getBoundingClientRect: () => rect
+    });
+}
+
+test('a heading is measured by its words, not its block', () => {
+    const ctx = zoomable_make();
+    range_install(ctx, RECT_HEADING_WORDS);
+    rect_assert(
+        ctx.page.textRect_read(ctx.elements['slide-2'].heading),
+        RECT_HEADING_WORDS
+    );
+});
+
+test('an entry is measured by its words too', () => {
+    const ctx = zoomable_make();
+    range_install(ctx, RECT_HEADING_WORDS);
+    rect_assert(ctx.page.zoom_anchorRect(1, 'depth'), RECT_HEADING_WORDS);
+});
+
+test('words that measure as nothing fall back to the block', () => {
+    const ctx = zoomable_make();
+    range_install(ctx, { left: 0, top: 0, width: 0, height: 0 });
+    rect_assert(
+        ctx.page.textRect_read(ctx.elements['slide-2'].heading),
+        RECT_HEADING
+    );
+});
+
+test('without ranges the block is the box', () => {
+    const ctx = zoomable_make();
+    rect_assert(
+        ctx.page.textRect_read(ctx.elements['slide-2'].heading),
+        RECT_HEADING
+    );
+});
+
 test('a jump into a spoke resolves a box', () => {
     const ctx = zoomable_make();
     rect_assert(

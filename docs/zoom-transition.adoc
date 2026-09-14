@@ -166,6 +166,15 @@ the reveal count, in `return_push()`.
 A return also carries no address of its own. The spoke names its own entry,
 via `spokeFor()`.
 
+Both boxes are the *words*, not the element. A heading is a block, so its
+own box runs the full width of the slide whatever its `text-align` says, and
+a jump entry is a block too. Flying to the block put the carry on the left
+margin of a centred title, and the handover then showed the text stepping
+sideways into place — the one movement the transition exists to avoid.
+`textRect_read()` measures a Range over the element's contents instead,
+which is the ink, and falls back to the element's box where a range cannot
+be made or measures as nothing.
+
 One conversion is needed. The copy is fixed to the screen, which puts it
 outside the viewport that scales the deck to the window, so the type it
 inherits is in the deck's baseline pixels and would render far too large.
