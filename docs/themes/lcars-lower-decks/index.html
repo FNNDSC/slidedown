@@ -226,7 +226,7 @@
                 </button>
                 <div>
                     <div class="panel-3">
-                        VER <span class="hop">v1.3.1-a0f2c</span>
+                        VER <span class="hop">v1.3.1-c4e0b</span>
                     </div>
                     <div class="panel-4">
                         04<span class="hop">-41969</span>
@@ -327,7 +327,7 @@ Select with <tt>--theme <name></tt> at compile time.
 <br />
 <br />
 <code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span>git<span style="color: #F8F8F2"> </span>clone<span style="color: #F8F8F2"> </span>https://github.com/FNNDSC/slidedown
-<span style="color: #F8F8F2">cd </span>slidedown
+<span style="color: #A6E22E">cd</span><span style="color: #F8F8F2"> </span>slidedown
 make<span style="color: #F8F8F2"> </span>dev
 <span style="color: #F8F8F2">    </span>
 </pre></div>
@@ -366,9 +366,9 @@ Or the raw CLI:
 <br />
 <br />
 <code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span>python3<span style="color: #F8F8F2"> </span>-m<span style="color: #F8F8F2"> </span>venv<span style="color: #F8F8F2"> </span>.venv
-.venv/bin/pip<span style="color: #F8F8F2"> </span>install<span style="color: #F8F8F2"> </span>-e<span style="color: #F8F8F2"> </span><span style="color: #E6DB74">&quot;.[dev]&quot;</span>
+.venv/bin/pip<span style="color: #F8F8F2"> </span>install<span style="color: #F8F8F2"> </span>-e<span style="color: #F8F8F2"> </span><span style="color: #E6DB74">".[dev]"</span>
 slidedown<span style="color: #F8F8F2"> </span>examples/minimal/<span style="color: #F8F8F2"> </span>output/<span style="color: #F8F8F2"> </span>--inputFile<span style="color: #F8F8F2"> </span>minimal.sd
-<span style="color: #F8F8F2">cd </span>output/<span style="color: #F8F8F2"> </span><span style="color: #FF4689">&amp;&amp;</span><span style="color: #F8F8F2"> </span>python3<span style="color: #F8F8F2"> </span>-m<span style="color: #F8F8F2"> </span>http.server<span style="color: #F8F8F2"> </span><span style="color: #AE81FF">8000</span>
+<span style="color: #A6E22E">cd</span><span style="color: #F8F8F2"> </span>output/<span style="color: #F8F8F2"> </span><span style="color: #FF4689">&amp;&amp;</span><span style="color: #F8F8F2"> </span>python3<span style="color: #F8F8F2"> </span>-m<span style="color: #F8F8F2"> </span>http.server<span style="color: #F8F8F2"> </span><span style="color: #AE81FF">8000</span>
 <span style="color: #F8F8F2">    </span>
 </pre></div>
 </code>   
@@ -484,7 +484,7 @@ make<span style="color: #F8F8F2"> </span>serve<span style="color: #F8F8F2"> SOUR
 </code>
 <br />
 <br />
-<strong>See all Makefile targets:</strong>     <code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span>make<span style="color: #F8F8F2"> help</span>
+<strong>See all Makefile targets:</strong>     <code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span>make<span style="color: #F8F8F2"> </span><span style="color: #A6E22E">help</span>
 <span style="color: #F8F8F2">    </span>
 </pre></div>
 </code>   
@@ -528,7 +528,7 @@ make<span style="color: #F8F8F2"> </span>serve<span style="color: #F8F8F2"> SOUR
     
   
        <code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span><span style="color: #959077"># Run all tests</span>
-make<span style="color: #F8F8F2"> test</span>
+make<span style="color: #F8F8F2"> </span><span style="color: #A6E22E">test</span>
 
 <span style="color: #959077"># Specific file</span>
 pytest<span style="color: #F8F8F2"> </span>tests/test_parser_basic.py<span style="color: #F8F8F2"> </span>-v

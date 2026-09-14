@@ -1759,19 +1759,8 @@ Page.prototype = {
             return null;
         }
 
-        let rect = anchor.getBoundingClientRect();
-
-        // A hidden or unlaid-out element measures zero on both axes.
-        if (!rect.width || !rect.height) {
-            return null;
-        }
-
-        return {
-            left:   rect.left,
-            top:    rect.top,
-            width:  rect.width,
-            height: rect.height
-        };
+        // The entry is a block too; what flies is its words.
+        return this.textRect_read(anchor);
     },
 
     zoom_rectResolve:                   function(a_fromSlide,
@@ -1971,6 +1960,47 @@ Page.prototype = {
             width:  rect.width,
             height: rect.height
         };
+    },
+
+    textRect_read:                      function(a_el) {
+        let str_help = `
+            The box the type inside an element actually occupies.
+
+            A heading is a block, so its own box runs the full width of
+            the slide whatever the text-align says; the words sit
+            somewhere inside it. Flying to the block lands the carry on
+            the left margin of a centred title, and the handover then
+            shows the text stepping sideways into place. A Range over
+            the contents measures the ink, which is where the carry has
+            to arrive.
+
+            Falls back to the element's box where ranges cannot be made
+            or the contents measure as nothing.
+        `;
+
+        if (!a_el || !a_el.getBoundingClientRect) {
+            return null;
+        }
+
+        if (typeof document !== 'undefined' && document.createRange) {
+            try {
+                let range = document.createRange();
+                range.selectNodeContents(a_el);
+                let rect = range.getBoundingClientRect();
+                if (rect && rect.width && rect.height) {
+                    return {
+                        left:   rect.left,
+                        top:    rect.top,
+                        width:  rect.width,
+                        height: rect.height
+                    };
+                }
+            } catch (err) {
+                // Fall through to the element's own box.
+            }
+        }
+
+        return this.rect_read(a_el);
     },
 
     element_conceal:                    function(a_el) {
@@ -2338,7 +2368,7 @@ Page.prototype = {
             }
 
             let heading = self.heading_find(index_spoke);
-            let d_rectHeading = self.rect_read(heading);
+            let d_rectHeading = self.textRect_read(heading);
 
             let d_from = b_isReturn ? d_rectHeading : d_rect;
             let d_to   = b_isReturn ? d_rect : d_rectHeading;
