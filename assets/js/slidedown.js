@@ -1299,6 +1299,79 @@ Page.prototype = {
         return true;
     },
 
+    nexusReturn_keyHandle:              function(e) {
+        let str_help = `
+            Esc or Backspace goes home from anywhere in a spoke, not only
+            from its end. A presenter who reads the room three slides into
+            a topic should not have to walk to the end of it first.
+
+            Backspace is an equal binding because browsers reserve Esc in
+            fullscreen: it leaves fullscreen, and often never reaches the
+            page at all. Presenting fullscreen must not cost the way home.
+        `;
+
+        if (e.key !== 'Escape' && e.key !== 'Backspace') {
+            return false;
+        }
+        if (e.ctrlKey || e.metaKey || e.altKey) {
+            return false;
+        }
+        if (!this.nexus.isNexusDeck() || !this.nexus.spokeFor(this.currentSlide)) {
+            return false;
+        }
+        if (e.preventDefault) {
+            e.preventDefault();
+        }
+        this.return_process();
+        return true;
+    },
+
+    fullscreen_keyHandle:               function(e) {
+        let str_help = `
+            'f' toggles the deck's own fullscreen. Where the browser
+            supports the Keyboard Lock API (desktop Chromium), Esc is then
+            locked to the page, so it returns to the nexus and holding Esc
+            leaves fullscreen. Elsewhere Backspace is the way home.
+        `;
+
+        if (e.key !== 'f' && e.key !== 'F') {
+            return false;
+        }
+        if (e.ctrlKey || e.metaKey || e.altKey) {
+            return false;
+        }
+        this.fullscreen_toggle();
+        return true;
+    },
+
+    fullscreen_toggle:                  function() {
+        let doc      = document;
+        let keyboard = (typeof navigator !== 'undefined') ? navigator.keyboard : null;
+
+        if (doc.fullscreenElement) {
+            if (keyboard && keyboard.unlock) {
+                keyboard.unlock();
+            }
+            if (doc.exitFullscreen) {
+                doc.exitFullscreen();
+            }
+            return;
+        }
+
+        let el = doc.documentElement;
+        if (!el || !el.requestFullscreen) {
+            return;
+        }
+        let pending = el.requestFullscreen();
+        if (pending && pending.then) {
+            pending.then(function() {
+                if (keyboard && keyboard.lock) {
+                    keyboard.lock(['Escape']).catch(function() {});
+                }
+            }).catch(function() {});
+        }
+    },
+
     jump_isRevealed:                    function(a_anchor) {
         let str_help = `
             Whether a jump anchor is currently visible.
@@ -2699,15 +2772,12 @@ Page.prototype = {
             return;
         }
 
-        // Esc goes home from anywhere in a spoke, not only from its end.
-        // A presenter who reads the room three slides into a topic should
-        // not have to walk to the end of it first. This is the affordance
-        // that separates a menu from a deck with shortcuts.
-        if (e.key === 'Escape' && page.nexus.isNexusDeck()) {
-            if (page.nexus.spokeFor(page.currentSlide)) {
-                page.return_process();
-                return;
-            }
+        if (page.nexusReturn_keyHandle(e)) {
+            return;
+        }
+
+        if (page.fullscreen_keyHandle(e)) {
+            return;
         }
 
         if (e.keyCode == '38') {
