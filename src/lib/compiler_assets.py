@@ -13,6 +13,15 @@ from .log import LOG
 # Maps output-relative asset path → source Path for standalone inlining.
 AssetSourceMap: dict[str, Path] = {}
 
+# Cascade layer for slidedown.css and theme.css. Deck CSS from
+# .meta{css: ...} is unlayered, so it beats these regardless of specificity.
+CSS_LAYER = "base"
+
+_CSS_PRELUDE = re.compile(
+    r"""^\s*@(?:charset|import)\b(?:"[^"]*"|'[^']*'|url\([^)]*\)|[^;"'])*;[ \t]*\n?""",
+    re.MULTILINE,
+)
+
 
 class CompilerAssets(Protocol):
     """Compiler attributes required by asset helpers."""
@@ -41,6 +50,29 @@ def template_load(compiler: CompilerAssets, filename: str) -> str:
     return ""
 
 
+def css_layerWrap(css: str, layer: str = CSS_LAYER) -> str:
+    """Wrap a stylesheet in an ``@layer`` block.
+
+    ``@charset`` and ``@import`` statements are not allowed inside a layer
+    block, so they are hoisted above it.
+
+    Args:
+        css: Stylesheet source.
+        layer: Cascade layer name.
+
+    Returns:
+        Stylesheet with its rules inside ``@layer <layer> { ... }``.
+    """
+    prelude = "".join(m.group(0).rstrip() + "\n" for m in _CSS_PRELUDE.finditer(css))
+    body = _CSS_PRELUDE.sub("", css)
+    return f"{prelude}@layer {layer} {{\n{body}\n}}\n"
+
+
+def css_layerFile(path: Path, layer: str = CSS_LAYER) -> None:
+    """Rewrite a copied stylesheet in place, wrapped in ``layer``."""
+    path.write_text(css_layerWrap(path.read_text(encoding="utf-8"), layer), encoding="utf-8")
+
+
 def assets_copy(compiler: CompilerAssets) -> None:
     """Copy CSS, JavaScript, image, logo, and theme assets to output.
 
@@ -54,12 +86,16 @@ def assets_copy(compiler: CompilerAssets) -> None:
         if src.exists():
             shutil.copytree(src, dst, dirs_exist_ok=True)
             LOG(f"Copied {asset_dir}/ to output", level=3)
+            if asset_dir == "css":
+                for css_file in src.glob("*.css"):
+                    css_layerFile(dst / css_file.name)
 
     theme_css_path = compiler.theme.cssPath_get()
     if theme_css_path and theme_css_path.exists():
         dst_css = compiler.output_dir / "css" / "theme.css"
         dst_css.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(theme_css_path, dst_css)
+        css_layerFile(dst_css)
         LOG(f"Copied theme CSS: {compiler.theme.name}", level=2)
 
     theme_assets_dir = compiler.theme.assetsDir_get()
@@ -142,7 +178,7 @@ def html_inline(html: str, source_map: dict[str, Path]) -> str:
     def _css_inline(match: re.Match[str]) -> str:
         href = match.group(1)
         if href in source_map:
-            css = source_map[href].read_text(encoding="utf-8")
+            css = css_layerWrap(source_map[href].read_text(encoding="utf-8"))
             LOG(f"[standalone] Inlining CSS: {href}", level=2)
             return f"<style>\n{css}\n</style>"
         return match.group(0)  # CDN or unknown — keep as-is

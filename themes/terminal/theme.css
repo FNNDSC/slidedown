@@ -120,7 +120,8 @@ body {
 }
 
 /* Code blocks */
-.slide pre {
+/* Code blocks. Typewriters are terminal lines, not listings: no box. */
+.slide pre:not([id^="typewriter-"]) {
   font-size: 1.2em;
   line-height: 1.4;
   max-width: 100%;
@@ -373,7 +374,18 @@ img {
 pre[id^="typewriter-"] {
   color: #d4d4d4;
   font-family: 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+  margin: 0.3em 0;
 }
+
+/* Console highlighting (assets/js/slidedown.js consoleHighlight) */
+.tw-prompt { color: #6a9955; }
+.tw-cmd    { color: #4ec9b0; }
+.tw-arg    { color: #d4d4d4; }
+.tw-flag   { color: #9cdcfe; }
+.tw-value  { color: #ce9178; }
+.tw-str    { color: #ce9178; }
+.tw-op     { color: #c586c0; }
+.tw-out    { color: #858585; }
 
 @keyframes typing {
   from { width: 0; }
