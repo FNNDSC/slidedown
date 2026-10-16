@@ -1,6 +1,7 @@
+@import url(https://fonts.googleapis.com/css?family=Anonymous+Pro);
+@layer base {
 
 /* Google Fonts */
-@import url(https://fonts.googleapis.com/css?family=Anonymous+Pro);
 
 /*
  * Presentation Mode with 2K Resolution (2560x1440)
@@ -1062,4 +1063,6 @@ mark {
    this too; the rule here keeps a stray pointer from finding it. */
 .snippet.sl-hidden .sd-jump {
     pointer-events: none;
+}
+
 }

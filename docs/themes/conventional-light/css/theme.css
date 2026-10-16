@@ -1,8 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@300;400;500;700&family=Red+Hat+Mono:wght@400;500&display=swap');
+@layer base {
 
 /* Conventional Light Theme - Google Slides inspired */
 
 /* Red Hat Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@300;400;500;700&family=Red+Hat+Mono:wght@400;500&display=swap');
 
 /* Global */
 html {
@@ -622,3 +623,5 @@ pre[id^="typewriter-"] {
 }
 
 /* Responsive font scaling is handled by JavaScript */
+
+}

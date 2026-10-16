@@ -1,8 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;700&family=JetBrains+Mono:wght@300;400;500;700&display=swap');
+@layer base {
 
 /* Terminal Theme - Modern terminal aesthetic */
 
 /* Fira Code and JetBrains Mono fonts */
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;700&family=JetBrains+Mono:wght@300;400;500;700&display=swap');
 
 /* Global */
 html {
@@ -120,7 +121,8 @@ body {
 }
 
 /* Code blocks */
-.slide pre {
+/* Code blocks. Typewriters are terminal lines, not listings: no box. */
+.slide pre:not([id^="typewriter-"]) {
   font-size: 1.2em;
   line-height: 1.4;
   max-width: 100%;
@@ -373,7 +375,18 @@ img {
 pre[id^="typewriter-"] {
   color: #d4d4d4;
   font-family: 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+  margin: 0.3em 0;
 }
+
+/* Console highlighting (assets/js/slidedown.js consoleHighlight) */
+.tw-prompt { color: #6a9955; }
+.tw-cmd    { color: #4ec9b0; }
+.tw-arg    { color: #d4d4d4; }
+.tw-flag   { color: #9cdcfe; }
+.tw-value  { color: #ce9178; }
+.tw-str    { color: #ce9178; }
+.tw-op     { color: #c586c0; }
+.tw-out    { color: #858585; }
 
 @keyframes typing {
   from { width: 0; }
@@ -518,6 +531,19 @@ pre[id^="typewriter-"] {
   opacity: 0.45;
 }
 
+/* Up/Down cursor on a nexus: a selection box, as in a terminal menu. */
+.sd-jump--cursor {
+  color: #4ec9b0;
+  text-decoration: none;
+  filter: none;
+  outline: 1px solid #4ec9b0;
+  outline-offset: 0.25em;
+  border-radius: 2px;
+  background: rgba(78, 201, 176, 0.08);
+}
+
 .sd-jump--visited::before {
   color: #6a9955;
+}
+
 }

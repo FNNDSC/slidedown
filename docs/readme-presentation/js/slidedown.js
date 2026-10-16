@@ -358,6 +358,63 @@ SMarkDown.prototype = {
 }
 
 /////////
+///////// Console highlighting for typewriters
+/////////
+///////// A line that starts with a prompt ($, $>, #, %, ❯, optionally
+///////// preceded by user@host:path) is a command: the first word is the
+///////// command, -x/--flag are flags, --flag=value splits, quotes are
+///////// strings, and | || && ; switch back to a command. Any other line is
+///////// output. Text containing markup, or with no prompt line at all, is
+///////// left alone. Works on partial text, so it can be re-run per keystroke.
+/////////
+
+const CONSOLE_PROMPT = /^(\s*(?:[\w.-]+@[\w.-]+(?::\S*)?\s*)?(?:\$>?|#|%|❯))(\s|$)/;
+const CONSOLE_TOKEN  = /\s+|"[^"]*"?|'[^']*'?|\|\||&&|[|;]|[^\s|;&]+|&/g;
+
+function consoleHighlight_applies(text) {
+    if (text.indexOf('<') !== -1) return false;
+    return text.split('\n').some(line => CONSOLE_PROMPT.test(line));
+}
+
+function consoleHighlight(text, full = text) {
+    // `full` is the complete text; lines are classified from it so a prompt
+    // that is still being typed is already coloured as a prompt.
+    const esc       = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const span      = (cls, s) => s ? `<span class="tw-${cls}">${esc(s)}</span>` : '';
+    const fullLines = full.split('\n');
+
+    return text.split('\n').map((line, i) => {
+        const m = (fullLines[i] || line).match(CONSOLE_PROMPT);
+        if (!m) return line.trim() ? span('out', line) : esc(line);
+
+        let html     = span('prompt', line.slice(0, m[1].length));
+        let rest     = line.slice(m[1].length);
+        let expectCmd = true;
+        for (const tok of rest.match(CONSOLE_TOKEN) || []) {
+            if (/^\s+$/.test(tok)) {
+                html += tok;
+            } else if (/^(\|\||&&|[|;&])$/.test(tok)) {
+                html += span('op', tok);
+                expectCmd = true;
+            } else if (expectCmd) {
+                html += span('cmd', tok);
+                expectCmd = false;
+            } else if (/^["']/.test(tok)) {
+                html += span('str', tok);
+            } else if (/^-/.test(tok)) {
+                const eq = tok.indexOf('=');
+                html += eq === -1
+                    ? span('flag', tok)
+                    : span('flag', tok.slice(0, eq)) + span('op', '=') + span('value', tok.slice(eq + 1));
+            } else {
+                html += span('arg', tok);
+            }
+        }
+        return html;
+    }).join('\n');
+}
+
+/////////
 ///////// A typewriter effect object
 ///////// from https://codepen.io/stevn/pen/jEZvXa
 /////////
@@ -855,6 +912,13 @@ Page.prototype = {
         // Read from data-text attribute to bypass HTML entity parsing issues
         var HTML            = t.getAttribute('data-text') || t.innerHTML;
         t.innerHTML         = "";
+        // tw-done marks a finished typewriter, so CSS can react to the
+        // command "returning" (e.g. move a terminal cursor to its output).
+        t.classList.remove('tw-done');
+
+        if (consoleHighlight_applies(HTML)) {
+            return this.setupTypewriter_console(t, HTML);
+        }
 
         var cursorPosition  = 0,
             tag             = "",
@@ -913,6 +977,8 @@ Page.prototype = {
             cursorPosition += 1;
             if (cursorPosition < HTML.length) {
                 setTimeout(type, tempTypeSpeed);
+            } else {
+                t.classList.add('tw-done');
             }
 
         };
@@ -921,6 +987,37 @@ Page.prototype = {
             type: type,
             cancel: function() {
                 isActive = false;  // Stop the animation
+            }
+        };
+    },
+
+    setupTypewriter_console:            function(t, text) {
+        // Same pacing as setupTypewriter, but re-highlights the typed prefix
+        // on every keystroke so colours appear as the command is typed.
+        var cursorPosition  = 0,
+            typeSpeed       = 10,
+            isActive        = true;
+
+        t.classList.add('tw-console');
+
+        var type = function() {
+            if (!isActive) {
+                return;
+            }
+            cursorPosition += 1;
+            t.innerHTML = consoleHighlight(text.slice(0, cursorPosition), text);
+            if (cursorPosition < text.length) {
+                let delay = text[cursorPosition - 1] === " " ? 0 : (Math.random() * typeSpeed) + 50;
+                setTimeout(type, delay);
+            } else {
+                t.classList.add('tw-done');
+            }
+        };
+
+        return {
+            type: type,
+            cancel: function() {
+                isActive = false;
             }
         };
     },
@@ -1527,11 +1624,16 @@ Page.prototype = {
         this.slide_transition(index_currentSlide, index_followingSlide);
     },
 
-    resetAllTypewritersOnSlide:         function(slideIndex) {
+    resetAllTypewritersOnSlide:         function(slideIndex, ab_keepFinished) {
         let str_help = `
             Reset ALL typewriters on a slide regardless of location.
             Cancels running animations and restores original HTML.
             Called when entering a slide to ensure clean state.
+
+            'ab_keepFinished' leaves typewriters that already finished
+            as they are. A return to a nexus restores the menu as the
+            presenter left it; re-typing it would repaint the whole menu
+            for no reason.
         `;
 
         let slideElement = document.getElementById(this.str_slideIDprefix + slideIndex);
@@ -1541,6 +1643,9 @@ Page.prototype = {
         let allTypewriters = slideElement.querySelectorAll('[id^="typewriter-"]');
 
         allTypewriters.forEach(typer => {
+            if (ab_keepFinished && typer.classList.contains('tw-done')) {
+                return;
+            }
             let str_idRef = typer.id;
 
             // Cancel any running animation
@@ -1556,10 +1661,11 @@ Page.prototype = {
         });
     },
 
-    startNonSnippetTypewriters:         function(slideIndex) {
+    startNonSnippetTypewriters:         function(slideIndex, ab_keepFinished) {
         let str_help = `
             Start typewriters that are directly on the slide (not inside snippets).
-            Called after slide entry and reset.
+            Called after slide entry and reset. 'ab_keepFinished' skips
+            typewriters that already finished (see resetAllTypewritersOnSlide).
         `;
 
         let slideElement = document.getElementById(this.str_slideIDprefix + slideIndex);
@@ -1570,7 +1676,8 @@ Page.prototype = {
         allTypewriters.forEach(typer => {
             // Check if this typewriter is inside a snippet
             let isInSnippet = typer.closest('.snippet') !== null;
-            if (!isInSnippet) {
+            let isKept      = ab_keepFinished && typer.classList.contains('tw-done');
+            if (!isInSnippet && !isKept) {
                 let str_idRef = typer.id;
 
                 // Store original data-text attribute on first visit
@@ -1627,8 +1734,10 @@ Page.prototype = {
         DOMID_currentSlide.style.display    = "none";
         DOMID_followingSlide.style.display  = "block";
 
-        // Reset ALL typewriters on the slide we're entering
-        this.resetAllTypewritersOnSlide(index_followingSlide);
+        // Reset ALL typewriters on the slide we're entering -- except, on a
+        // return, the ones that had already finished.
+        let b_keepTyped = d_options.isReturn === true;
+        this.resetAllTypewritersOnSlide(index_followingSlide, b_keepTyped);
 
         // Hide all snippets and reset counter
         this.allSnippets_displaySet('none', index_followingSlide);
@@ -1645,7 +1754,7 @@ Page.prototype = {
 
         // Start any typewriters that are directly on the slide (not in snippets)
         if (!ab_deferTypewriters) {
-            this.startNonSnippetTypewriters(index_followingSlide);
+            this.startNonSnippetTypewriters(index_followingSlide, b_keepTyped);
         }
         if(DOMID_slideTitle !== null) {
             DOMID_pageTitle.innerHTML = DOMID_slideTitle.innerHTML.trim();
@@ -2387,7 +2496,7 @@ Page.prototype = {
                 }
                 self.slide_reattach(index_currentSlide);
                 self.slide_reattach(index_followingSlide);
-                self.startNonSnippetTypewriters(index_followingSlide);
+                self.startNonSnippetTypewriters(index_followingSlide, b_isReturn);
                 return;
             }
 
@@ -2412,7 +2521,7 @@ Page.prototype = {
                         arriving.style.transition = '';
                     }
                     self.ghost_destroy(ghost);
-                    self.startNonSnippetTypewriters(index_followingSlide);
+                    self.startNonSnippetTypewriters(index_followingSlide, b_isReturn);
                 });
             });
         };
