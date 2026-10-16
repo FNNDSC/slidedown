@@ -1557,6 +1557,75 @@ test('a menu may hold more entries than there are digit keys', () => {
 });
 
 
+/* --- typewriters on return -------------------------------------------- */
+
+/**
+ * Build a stub typewriter <pre>, finished or not.
+ *
+ * @param {string}  id        Element id (typewriter-S-N).
+ * @param {boolean} finished  Whether it carries tw-done.
+ * @returns {object} Element-like stub.
+ */
+function typer_make(id, finished) {
+    const classes = new Set(finished ? ['tw-done'] : []);
+    return {
+        id,
+        innerHTML: finished ? 'typed' : '',
+        attrs: { 'data-text': '$> talk --outline' },
+        classList: {
+            contains: (c) => classes.has(c),
+            add: (c) => classes.add(c),
+            remove: (c) => classes.delete(c)
+        },
+        getAttribute(k) { return this.attrs[k]; },
+        setAttribute(k, v) { this.attrs[k] = v; },
+        closest: () => null
+    };
+}
+
+function typerSlide_install(ctx, typers) {
+    ctx.elements['slide-1'].querySelectorAll = (sel) => (
+        String(sel).indexOf('typewriter') >= 0 ? typers : []
+    );
+    for (const t of typers) {
+        ctx.page.d_typewriterOriginalHTML[t.id] = t.attrs['data-text'];
+    }
+}
+
+test('a return keeps a finished typewriter as typed', () => {
+    const ctx = context_make({ graph: GRAPH, slideCount: 3 });
+    const done = typer_make('typewriter-1-1', true);
+    typerSlide_install(ctx, [done]);
+    ctx.page.resetAllTypewritersOnSlide(1, true);
+    ctx.page.startNonSnippetTypewriters(1, true);
+    assert.strictEqual(done.innerHTML, 'typed');
+    assert.ok(done.classList.contains('tw-done'));
+});
+
+test('a return still types a typewriter that never finished', () => {
+    // A deep link into a spoke returns to a menu that was never shown.
+    const ctx = context_make({ graph: GRAPH, slideCount: 3 });
+    const fresh = typer_make('typewriter-1-1', false);
+    typerSlide_install(ctx, [fresh]);
+    let started = 0;
+    ctx.page.setupTypewriter = () => ({ type() { started++; } });
+    ctx.page.resetAllTypewritersOnSlide(1, true);
+    ctx.page.startNonSnippetTypewriters(1, true);
+    assert.strictEqual(started, 1);
+});
+
+test('a plain entry re-types even a finished typewriter', () => {
+    const ctx = context_make({ graph: GRAPH, slideCount: 3 });
+    const done = typer_make('typewriter-1-1', true);
+    typerSlide_install(ctx, [done]);
+    let started = 0;
+    ctx.page.setupTypewriter = () => ({ type() { started++; } });
+    ctx.page.resetAllTypewritersOnSlide(1, false);
+    ctx.page.startNonSnippetTypewriters(1, false);
+    assert.strictEqual(done.innerHTML, '');
+    assert.strictEqual(started, 1);
+});
+
 /* --- runner ----------------------------------------------------------- */
 
 let passed = 0;

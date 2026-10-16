@@ -3,10 +3,17 @@
     <meta content="utf-8" http-equiv="encoding">
     <title id="headTitle">slidedown presentation</title>
 
+    <!-- Cascade order: vendor < base (slidedown.css + theme.css) < unlayered
+         deck CSS. Deck .meta{css: ...} rules therefore always beat the theme,
+         whatever their specificity. -->
+    <style>
+    @layer vendor, base;
+    @import url("https://yui.yahooapis.com/pure/0.6.0/pure-min.css") layer(vendor);
+    @import url("https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css") layer(vendor);
+    @import url("https://use.fontawesome.com/releases/v5.13.0/css/all.css") layer(vendor);
+    </style>
+
     <!-- 3rd Party css -->
-    <link rel="stylesheet" href="https://yui.yahooapis.com/pure/0.6.0/pure-min.css">
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.13.0/css/all.css">
     <link rel="stylesheet" href="termynal.css">
 
     <!-- 3rd Party js -->
