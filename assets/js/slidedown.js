@@ -912,6 +912,9 @@ Page.prototype = {
         // Read from data-text attribute to bypass HTML entity parsing issues
         var HTML            = t.getAttribute('data-text') || t.innerHTML;
         t.innerHTML         = "";
+        // tw-done marks a finished typewriter, so CSS can react to the
+        // command "returning" (e.g. move a terminal cursor to its output).
+        t.classList.remove('tw-done');
 
         if (consoleHighlight_applies(HTML)) {
             return this.setupTypewriter_console(t, HTML);
@@ -974,6 +977,8 @@ Page.prototype = {
             cursorPosition += 1;
             if (cursorPosition < HTML.length) {
                 setTimeout(type, tempTypeSpeed);
+            } else {
+                t.classList.add('tw-done');
             }
 
         };
@@ -1004,6 +1009,8 @@ Page.prototype = {
             if (cursorPosition < text.length) {
                 var delay = text[cursorPosition - 1] === " " ? 0 : (Math.random() * typeSpeed) + 50;
                 setTimeout(type, delay);
+            } else {
+                t.classList.add('tw-done');
             }
         };
 
@@ -1617,11 +1624,16 @@ Page.prototype = {
         this.slide_transition(index_currentSlide, index_followingSlide);
     },
 
-    resetAllTypewritersOnSlide:         function(slideIndex) {
+    resetAllTypewritersOnSlide:         function(slideIndex, ab_keepFinished) {
         let str_help = `
             Reset ALL typewriters on a slide regardless of location.
             Cancels running animations and restores original HTML.
             Called when entering a slide to ensure clean state.
+
+            'ab_keepFinished' leaves typewriters that already finished
+            as they are. A return to a nexus restores the menu as the
+            presenter left it; re-typing it would repaint the whole menu
+            for no reason.
         `;
 
         let slideElement = document.getElementById(this.str_slideIDprefix + slideIndex);
@@ -1631,6 +1643,9 @@ Page.prototype = {
         let allTypewriters = slideElement.querySelectorAll('[id^="typewriter-"]');
 
         allTypewriters.forEach(typer => {
+            if (ab_keepFinished && typer.classList.contains('tw-done')) {
+                return;
+            }
             let str_idRef = typer.id;
 
             // Cancel any running animation
@@ -1646,10 +1661,11 @@ Page.prototype = {
         });
     },
 
-    startNonSnippetTypewriters:         function(slideIndex) {
+    startNonSnippetTypewriters:         function(slideIndex, ab_keepFinished) {
         let str_help = `
             Start typewriters that are directly on the slide (not inside snippets).
-            Called after slide entry and reset.
+            Called after slide entry and reset. 'ab_keepFinished' skips
+            typewriters that already finished (see resetAllTypewritersOnSlide).
         `;
 
         let slideElement = document.getElementById(this.str_slideIDprefix + slideIndex);
@@ -1660,7 +1676,8 @@ Page.prototype = {
         allTypewriters.forEach(typer => {
             // Check if this typewriter is inside a snippet
             let isInSnippet = typer.closest('.snippet') !== null;
-            if (!isInSnippet) {
+            let isKept      = ab_keepFinished && typer.classList.contains('tw-done');
+            if (!isInSnippet && !isKept) {
                 let str_idRef = typer.id;
 
                 // Store original data-text attribute on first visit
@@ -1717,8 +1734,10 @@ Page.prototype = {
         DOMID_currentSlide.style.display    = "none";
         DOMID_followingSlide.style.display  = "block";
 
-        // Reset ALL typewriters on the slide we're entering
-        this.resetAllTypewritersOnSlide(index_followingSlide);
+        // Reset ALL typewriters on the slide we're entering -- except, on a
+        // return, the ones that had already finished.
+        let b_keepTyped = d_options.isReturn === true;
+        this.resetAllTypewritersOnSlide(index_followingSlide, b_keepTyped);
 
         // Hide all snippets and reset counter
         this.allSnippets_displaySet('none', index_followingSlide);
@@ -1735,7 +1754,7 @@ Page.prototype = {
 
         // Start any typewriters that are directly on the slide (not in snippets)
         if (!ab_deferTypewriters) {
-            this.startNonSnippetTypewriters(index_followingSlide);
+            this.startNonSnippetTypewriters(index_followingSlide, b_keepTyped);
         }
         if(DOMID_slideTitle !== null) {
             DOMID_pageTitle.innerHTML = DOMID_slideTitle.innerHTML.trim();
@@ -2477,7 +2496,7 @@ Page.prototype = {
                 }
                 self.slide_reattach(index_currentSlide);
                 self.slide_reattach(index_followingSlide);
-                self.startNonSnippetTypewriters(index_followingSlide);
+                self.startNonSnippetTypewriters(index_followingSlide, b_isReturn);
                 return;
             }
 
@@ -2502,7 +2521,7 @@ Page.prototype = {
                         arriving.style.transition = '';
                     }
                     self.ghost_destroy(ghost);
-                    self.startNonSnippetTypewriters(index_followingSlide);
+                    self.startNonSnippetTypewriters(index_followingSlide, b_isReturn);
                 });
             });
         };
