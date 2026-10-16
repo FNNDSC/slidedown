@@ -530,6 +530,17 @@ pre[id^="typewriter-"] {
   opacity: 0.45;
 }
 
+/* Up/Down cursor on a nexus: a selection box, as in a terminal menu. */
+.sd-jump--cursor {
+  color: #4ec9b0;
+  text-decoration: none;
+  filter: none;
+  outline: 1px solid #4ec9b0;
+  outline-offset: 0.25em;
+  border-radius: 2px;
+  background: rgba(78, 201, 176, 0.08);
+}
+
 .sd-jump--visited::before {
   color: #6a9955;
 }
