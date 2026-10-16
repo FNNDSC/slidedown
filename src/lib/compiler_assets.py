@@ -18,7 +18,7 @@ AssetSourceMap: dict[str, Path] = {}
 CSS_LAYER = "base"
 
 _CSS_PRELUDE = re.compile(
-    r"""^\s*@(?:charset|import)\b(?:"[^"]*"|'[^']*'|url\([^)]*\)|[^;"'])*;[ \t]*\n?""",
+    r"""^\s*@(?:charset|import)\b(?:"[^"]*"|'[^']*'|\([^)]*\)|[^;"'(])*;[ \t]*\n?""",
     re.MULTILINE,
 )
 

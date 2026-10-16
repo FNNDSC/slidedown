@@ -1007,7 +1007,7 @@ Page.prototype = {
             cursorPosition += 1;
             t.innerHTML = consoleHighlight(text.slice(0, cursorPosition), text);
             if (cursorPosition < text.length) {
-                var delay = text[cursorPosition - 1] === " " ? 0 : (Math.random() * typeSpeed) + 50;
+                let delay = text[cursorPosition - 1] === " " ? 0 : (Math.random() * typeSpeed) + 50;
                 setTimeout(type, delay);
             } else {
                 t.classList.add('tw-done');
