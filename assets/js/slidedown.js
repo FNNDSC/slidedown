@@ -358,6 +358,63 @@ SMarkDown.prototype = {
 }
 
 /////////
+///////// Console highlighting for typewriters
+/////////
+///////// A line that starts with a prompt ($, $>, #, %, ❯, optionally
+///////// preceded by user@host:path) is a command: the first word is the
+///////// command, -x/--flag are flags, --flag=value splits, quotes are
+///////// strings, and | || && ; switch back to a command. Any other line is
+///////// output. Text containing markup, or with no prompt line at all, is
+///////// left alone. Works on partial text, so it can be re-run per keystroke.
+/////////
+
+const CONSOLE_PROMPT = /^(\s*(?:[\w.-]+@[\w.-]+(?::\S*)?\s*)?(?:\$>?|#|%|❯))(\s|$)/;
+const CONSOLE_TOKEN  = /\s+|"[^"]*"?|'[^']*'?|\|\||&&|[|;]|[^\s|;&]+|&/g;
+
+function consoleHighlight_applies(text) {
+    if (text.indexOf('<') !== -1) return false;
+    return text.split('\n').some(line => CONSOLE_PROMPT.test(line));
+}
+
+function consoleHighlight(text, full = text) {
+    // `full` is the complete text; lines are classified from it so a prompt
+    // that is still being typed is already coloured as a prompt.
+    const esc       = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const span      = (cls, s) => s ? `<span class="tw-${cls}">${esc(s)}</span>` : '';
+    const fullLines = full.split('\n');
+
+    return text.split('\n').map((line, i) => {
+        const m = (fullLines[i] || line).match(CONSOLE_PROMPT);
+        if (!m) return line.trim() ? span('out', line) : esc(line);
+
+        let html     = span('prompt', line.slice(0, m[1].length));
+        let rest     = line.slice(m[1].length);
+        let expectCmd = true;
+        for (const tok of rest.match(CONSOLE_TOKEN) || []) {
+            if (/^\s+$/.test(tok)) {
+                html += tok;
+            } else if (/^(\|\||&&|[|;&])$/.test(tok)) {
+                html += span('op', tok);
+                expectCmd = true;
+            } else if (expectCmd) {
+                html += span('cmd', tok);
+                expectCmd = false;
+            } else if (/^["']/.test(tok)) {
+                html += span('str', tok);
+            } else if (/^-/.test(tok)) {
+                const eq = tok.indexOf('=');
+                html += eq === -1
+                    ? span('flag', tok)
+                    : span('flag', tok.slice(0, eq)) + span('op', '=') + span('value', tok.slice(eq + 1));
+            } else {
+                html += span('arg', tok);
+            }
+        }
+        return html;
+    }).join('\n');
+}
+
+/////////
 ///////// A typewriter effect object
 ///////// from https://codepen.io/stevn/pen/jEZvXa
 /////////
@@ -856,6 +913,10 @@ Page.prototype = {
         var HTML            = t.getAttribute('data-text') || t.innerHTML;
         t.innerHTML         = "";
 
+        if (consoleHighlight_applies(HTML)) {
+            return this.setupTypewriter_console(t, HTML);
+        }
+
         var cursorPosition  = 0,
             tag             = "",
             writingTag      = false,
@@ -921,6 +982,35 @@ Page.prototype = {
             type: type,
             cancel: function() {
                 isActive = false;  // Stop the animation
+            }
+        };
+    },
+
+    setupTypewriter_console:            function(t, text) {
+        // Same pacing as setupTypewriter, but re-highlights the typed prefix
+        // on every keystroke so colours appear as the command is typed.
+        var cursorPosition  = 0,
+            typeSpeed       = 10,
+            isActive        = true;
+
+        t.classList.add('tw-console');
+
+        var type = function() {
+            if (!isActive) {
+                return;
+            }
+            cursorPosition += 1;
+            t.innerHTML = consoleHighlight(text.slice(0, cursorPosition), text);
+            if (cursorPosition < text.length) {
+                var delay = text[cursorPosition - 1] === " " ? 0 : (Math.random() * typeSpeed) + 50;
+                setTimeout(type, delay);
+            }
+        };
+
+        return {
+            type: type,
+            cancel: function() {
+                isActive = false;
             }
         };
     },
