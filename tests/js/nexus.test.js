@@ -726,6 +726,40 @@ test('escape returns from mid-spoke, not only from its end', () => {
     assert.strictEqual(ctx.page.currentSlide, 1);
 });
 
+test('backspace returns from a spoke, as escape does', () => {
+    // Fullscreen browsers swallow Esc, so Backspace must be an equal way home.
+    for (const key of ['Escape', 'Backspace']) {
+        const ctx = sandwich_make();
+        ctx.page.nexusDigit_process(1);         // -> depth(2)
+        let prevented = false;
+        const e = key_make(key, { preventDefault: () => { prevented = true; } });
+        assert.strictEqual(ctx.page.nexusReturn_keyHandle(e), true, key);
+        assert.strictEqual(ctx.page.currentSlide, 1, key);
+        assert.ok(prevented, key);
+    }
+});
+
+test('return keys do nothing outside a spoke or with modifiers', () => {
+    const ctx = sandwich_make();
+    ctx.page.currentSlide = 1;                  // on the nexus itself
+    assert.strictEqual(ctx.page.nexusReturn_keyHandle(key_make('Backspace')), false);
+    ctx.page.nexusDigit_process(1);
+    assert.strictEqual(
+        ctx.page.nexusReturn_keyHandle(key_make('Backspace', { ctrlKey: true })), false
+    );
+    assert.strictEqual(ctx.page.currentSlide, 2);
+});
+
+test('selection beat defaults to 160 ms, and a theme can lengthen it', () => {
+    const ctx = context_make({ graph: GRAPH, slideCount: 3 });
+    assert.strictEqual(ctx.zoomTransition_hitMs(), 160);
+    ctx.document.documentElement = {};
+    ctx.getComputedStyle = () => ({ getPropertyValue: () => ' 360' });
+    assert.strictEqual(ctx.zoomTransition_hitMs(), 360);
+    ctx.getComputedStyle = () => ({ getPropertyValue: () => '' });
+    assert.strictEqual(ctx.zoomTransition_hitMs(), 160);
+});
+
 test('return with no history falls back to the preceding nexus', () => {
     const ctx = sandwich_make();
     ctx.page.currentSlide = 3;              // deep-linked straight in

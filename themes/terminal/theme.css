@@ -530,6 +530,26 @@ pre[id^="typewriter-"] {
   opacity: 0.45;
 }
 
+/* Choosing an entry: an inverse-video flash, twice, as old terminal menus
+   did, before the zoom carries it away. The beat is lengthened to fit. */
+:root {
+  --sd-hit-ms: 360;
+}
+
+@keyframes sd-terminal-hit {
+  0%, 22%   { background: #4ec9b0; color: #141414; }
+  23%, 45%  { background: transparent; color: #4ec9b0; }
+  46%, 100% { background: #4ec9b0; color: #141414; }
+}
+
+.sd-jump--selected {
+  filter: none;
+  outline: 1px solid #4ec9b0;
+  outline-offset: 0.25em;
+  border-radius: 2px;
+  animation: sd-terminal-hit 0.36s steps(1, end) 1 both;
+}
+
 /* Up/Down cursor on a nexus: a selection box, as in a terminal menu. */
 .sd-jump--cursor {
   color: #4ec9b0;
