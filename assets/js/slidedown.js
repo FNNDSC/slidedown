@@ -501,6 +501,21 @@ let typographyScale_noticeTimer = null;
 // be noticed before anything starts travelling.
 const zoomTransition_HITMS = 160;
 
+// A theme may lengthen the beat (e.g. to play a selection pulse) by setting
+// --sd-hit-ms on :root. Falls back to zoomTransition_HITMS.
+function zoomTransition_hitMs() {
+    try {
+        if (typeof getComputedStyle === 'function' && document.documentElement) {
+            let v = parseFloat(getComputedStyle(document.documentElement)
+                                   .getPropertyValue('--sd-hit-ms'));
+            if (v > 0) {
+                return v;
+            }
+        }
+    } catch (err) {}
+    return zoomTransition_HITMS;
+}
+
 // One flight, carrying one line of text. The pages behind it merely
 // cross over, so this is the only duration the eye is actually reading.
 const zoomTransition_FLIGHTMS = 300;
@@ -2607,7 +2622,7 @@ Page.prototype = {
         // Going in, the room is shown what was chosen before anything
         // moves. Returning needs no such beat: nothing was selected.
         let anchor = this.hit_mark(index_nexus, d_options.jumpAddress);
-        this.zoom_defer(null, zoomTransition_HITMS, function() {
+        this.zoom_defer(null, zoomTransition_hitMs(), function() {
             self.hit_clear(anchor);
             fly();
         });

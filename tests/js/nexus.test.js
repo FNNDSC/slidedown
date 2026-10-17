@@ -750,6 +750,16 @@ test('return keys do nothing outside a spoke or with modifiers', () => {
     assert.strictEqual(ctx.page.currentSlide, 2);
 });
 
+test('selection beat defaults to 160 ms, and a theme can lengthen it', () => {
+    const ctx = context_make({ graph: GRAPH, slideCount: 3 });
+    assert.strictEqual(ctx.zoomTransition_hitMs(), 160);
+    ctx.document.documentElement = {};
+    ctx.getComputedStyle = () => ({ getPropertyValue: () => ' 360' });
+    assert.strictEqual(ctx.zoomTransition_hitMs(), 360);
+    ctx.getComputedStyle = () => ({ getPropertyValue: () => '' });
+    assert.strictEqual(ctx.zoomTransition_hitMs(), 160);
+});
+
 test('return with no history falls back to the preceding nexus', () => {
     const ctx = sandwich_make();
     ctx.page.currentSlide = 3;              // deep-linked straight in
