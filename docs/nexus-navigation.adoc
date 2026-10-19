@@ -174,7 +174,7 @@ In nexus decks:
   statement about a deck that is being driven as a graph. Theme
   `navigation.show_progress` is overridden, not respected.
 * Click-to-advance is disabled *on nexus slides only* (see <<click>>).
-* `Esc` is bound (see <<return>>).
+* `Esc` and `Backspace` are bound (see <<return>>); `f` toggles fullscreen.
 
 Spoke-local progress ("2 of 4 in this spoke") is explicitly *deferred*, not
 rejected — see <<deferred>>.
@@ -249,10 +249,18 @@ from the top.
 One rule, no author-facing flag: the deck behaves as a menu when it is being
 driven as one, and as an ordinary linear deck when someone reads it end to end.
 
-=== Return: Esc
+=== Return: Esc and Backspace
 
 `Esc` returns to the departure nexus *from anywhere in a spoke*, not only from
-its last slide.
+its last slide. `Backspace` is an equal binding.
+
+Browsers reserve `Esc` in fullscreen: it leaves fullscreen, and often never
+reaches the page. A presenter in fullscreen therefore needs a second way home,
+and `Backspace` is one no browser claims there. The deck's own fullscreen
+toggle (`f`) additionally requests the Keyboard Lock API for `Esc` where it
+exists (desktop Chromium), which keeps `Esc` on the page; holding `Esc` then
+leaves fullscreen. Mobile browsers generally lack Keyboard Lock, so on a tablet
+`Backspace` is the reliable key.
 
 This is the affordance that most distinguishes a menu from a deck with
 shortcuts. A presenter who reads the room three slides into a topic and decides
