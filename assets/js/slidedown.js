@@ -512,7 +512,9 @@ function zoomTransition_hitMs() {
                 return v;
             }
         }
-    } catch (err) {}
+    } catch {
+        // No computed style (e.g. a test harness): use the default.
+    }
     return zoomTransition_HITMS;
 }
 
