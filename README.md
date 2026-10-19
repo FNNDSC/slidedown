@@ -127,6 +127,94 @@ Common formatting and behavior directives:
 - `.code{}` highlighted code block
 - `.typewriter{}` typing animation
 - `.o{}` progressive reveal bullet/snippet
+- `.nexus{}` / `.jump{}` hub-and-spoke menus (see [Nexus Decks](#nexus-decks-hub-and-spokes))
+
+## Nexus Decks (Hub and Spokes)
+
+A *nexus* is a menu slide. Each entry jumps to a named slide, and the run of
+slides it lands on is a *spoke*. The presenter picks topics live, in any
+order, and comes back to the menu after each one. Use it for talks where the
+audience chooses what to hear, or where time decides how much you cover.
+
+Give each spoke's first slide a name with `.id{}`, then list jumps to those
+names inside `.nexus{}`:
+
+```slidedown
+.meta{
+  transition: zoom
+}
+
+.slide{
+  .title{Outline}
+  .body{
+    .nexus{.id{outline}
+      .div{.jump{.target{state} Current State of AI in Hospitals}}
+      .div{.jump{.target{governance} Governance}}
+      .div{.jump{.target{conclusions} Conclusions}}
+    }
+  }
+}
+
+.slide{.id{state}
+  .title{Current State}
+  .body{
+    .o{First point of the spoke.}
+  }
+}
+
+.slide{
+  .title{Current State, Continued}
+  .body{
+    .o{Still in the same spoke. Advancing past here returns to the outline.}
+  }
+}
+
+.slide{.id{governance}
+  .title{Governance}
+  .body{
+    .o{A one-slide spoke.}
+  }
+}
+
+.slide{.id{conclusions}
+  .title{Conclusions}
+  .body{
+    .o{Last spoke.}
+  }
+}
+```
+
+![Choosing an entry with the cursor](docs/images/nexus-cursor.png)
+
+*Up/Down moves a cursor over the entries; Enter, a number key or a click opens
+one. With `transition: zoom`, the chosen entry zooms into its slide.*
+
+How it behaves:
+
+- **Choose:** press the entry's number (`1`-`9`), move the cursor with
+  Up/Down and press Enter, or click it.
+- **Return:** advancing off the end of a spoke returns to the menu that sent
+  you there. `Backspace` or `Esc` returns from anywhere inside a spoke.
+- **Visited entries dim**, so you can see what you've covered. Visited state is
+  kept per browser tab; open a new tab to reset it after a practice run.
+- **Fullscreen:** browsers keep `Esc` for leaving fullscreen, so use
+  `Backspace` to return. `f` toggles the deck's own fullscreen and, in desktop
+  Chromium, keeps `Esc` on the page too.
+- **Reveal:** wrap entries in `.o{}` instead of `.div{}` to reveal them one at a
+  time. Show the same menu again elsewhere with `.nexus{.ref{outline}}`.
+- **Spoke extent** is implicit: a spoke runs until the next slide that a
+  jump points at, or the next nexus.
+- Jumps also work inline as cross-references: `.jump{.target{state} see above}`.
+
+![An outline after two sections were visited](docs/images/nexus-visited.png)
+
+*An outline in the `terminal` theme after sections 2 and 5 were visited.
+From [Computing Infrastructure for Clinical AI](https://rudolphpienaar.github.io/NSDF2026/)
+([source](https://github.com/rudolphpienaar/NSDF2026/blob/master/talk.sd)).*
+
+A runnable demo is in [`examples/nexus/nexus-demo.sd`](examples/nexus/nexus-demo.sd);
+the full design, including nested spokes, is in
+[`docs/nexus-navigation.adoc`](docs/nexus-navigation.adoc).
 
 ## Themes
 
@@ -175,6 +263,7 @@ Supported density classes are `hero`, `roomy`, `dense`, and `compact`.
 ## Documentation
 
 - Complete guide: [`docs/sd-guide.adoc`](docs/sd-guide.adoc)
+- Nexus navigation design: [`docs/nexus-navigation.adoc`](docs/nexus-navigation.adoc)
 - Tips and patterns: [`docs/tips-n-tricks.adoc`](docs/tips-n-tricks.adoc)
 - LCARS theme guide: [`docs/lcars.adoc`](docs/lcars.adoc)
 - Type system reference: [`docs/types.adoc`](docs/types.adoc)
