@@ -1,0 +1,6 @@
+# pytest tests use plain assert by design; Bandit's B101 is a false
+# positive there. Other engines still analyse tests/.
+engines:
+  bandit:
+    exclude_paths:
+      - "tests/**"
