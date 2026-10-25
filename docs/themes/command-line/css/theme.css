@@ -4,10 +4,10 @@
 /* Command-line theme
  *
  * The terminal theme, plus: each typed command and its output sits in a
- * terminal window (a `.term` block: title bar with traffic lights, label from
+ * terminal window (a `.term{}` block: title bar with traffic lights, label from
  * .meta{label: ...} or --term-label); the cursor follows the last revealed line; a nexus inside a
  * window prints line by line once its command has finished typing; left-aligned
- * uppercase headings; a takeaway bar (`.prompt`), a source line (`.src`) and
+ * uppercase headings; a takeaway bar (`.takeaway{}`), a source line (`.source{}`) and
  * dim captions (`.dim`); and the palette and flare for `.bars{}` charts.
  */
 
@@ -605,7 +605,8 @@ pre[id^="typewriter-"] {
 
 
 /* ---- Takeaway, source, captions ---- */
-.prompt {
+.prompt,
+.takeaway {
   color: #dcdcaa;
   background: rgba(220, 220, 170, 0.08);
   border-left: 4px solid #dcdcaa;
@@ -618,7 +619,8 @@ pre[id^="typewriter-"] {
   color: #6a9955;
 }
 
-.src {
+.src,
+.source {
   font-size: 0.5em;
   color: #6a9955;
   margin-top: 0.6em;
