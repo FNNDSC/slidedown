@@ -16,11 +16,11 @@
     .h2{The largest value fills the width; \.unit\{\} is appended to each value}
     .term{
 .typewriter{$> survey --year=2026}
-      .bars{.unit{%} .max{100}
+      .bars{.unit{%} .max{100} .labelwidth{auto}
         .caption{share using any AI, 2026}
         .bar{health systems .value{75}}
         .bar{physicians .value{81}}
-        .bar{radiology .value{76}}
+        .bar{radiology departments .value{76}}
       }
     }
     .takeaway{A FIXED MAX MAKES PERCENTAGES READ AS PERCENTAGES.}
@@ -92,10 +92,10 @@
     .h2{\.value\{\} in one unit for the length, \.show\{\} in whatever reads best}
     .term{
 .typewriter{$> bench --task=repair}
-      .bars{
+      .bars{.labelwidth{26}
         .caption{median time to finish}
         .bar{hosted model .value{74} .show{74 s}}
-        .bar{local, GPU box .value{540} .show{9 min}}
+        .bar{local, workstation GPU .value{540} .show{9 min}}
         .bar{local, laptop .value{660} .show{11 min}}
       }
     }

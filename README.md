@@ -243,7 +243,9 @@ label:
   `yellow`, `blue`, `green`, `orange`, `muted`) or any CSS colour
 
 On `.bars{}` itself: `.unit{...}`, `.max{N}` to fix the scale (otherwise the
-largest value fills the width), and `.layout{horizontal|vertical}`.
+largest value fills the width), `.layout{horizontal|vertical}`, and
+`.labelwidth{N}` for the label column in characters (default 20; `auto`
+fits the longest label).
 `.caption{...}` adds a dim heading row and starts a new scale, so one chart
 can hold groups in different units.
 
