@@ -586,7 +586,8 @@ full reference.
   charts take one `.value{}` per `.key{}`
 * `.key{.color{c} name}` -- a series and its legend entry
 * `.caption{text}` -- dim heading row; starts a new scale
-* On `.bars{}`: `.unit{}`, `.max{N}`, `.layout{horizontal|vertical}`
+* On `.bars{}`: `.unit{}`, `.max{N}`, `.layout{horizontal|vertical}`,
+  `.labelwidth{N|auto}` (label column, default 20 characters)
 
 ==== .meta{}
 

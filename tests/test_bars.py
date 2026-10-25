@@ -146,3 +146,29 @@ class TestStrayParts:
         # Escaped, it is text (restored to ".unit{}" by the full build).
         html, _ = html_compile(deck(r".h2{set \.unit\{\} here}"))
         assert "<h2>set " in html
+
+
+class TestLabelWidth:
+    def test_default_has_no_inline_width(self) -> None:
+        r = rows(html_compile(deck(".bars{.bar{a .value{1}}}"))[0])[0]
+        assert '<span class="lbl">a</span>' in r
+
+    def test_number(self) -> None:
+        chart = ".bars{.labelwidth{28} .bar{radiology departments .value{1}}}"
+        r = rows(html_compile(deck(chart))[0])[0]
+        assert '<span class="lbl" style="width: 28ch">' in r
+
+    def test_auto_fits_longest_label(self) -> None:
+        chart = ".bars{.labelwidth{auto} .bar{abc .value{1}} .bar{abcdefgh .value{2}}}"
+        r = rows(html_compile(deck(chart))[0])
+        assert all('style="width: 10ch"' in row for row in r)
+
+    def test_applies_to_legend_lead(self) -> None:
+        chart = (".bars{.labelwidth{12} .key{.color{red} a} .key{.color{blue} b}"
+                 " .bar{x .value{1} .value{2}}}")
+        legend = rows(html_compile(deck(chart))[0])[0]
+        assert '<span class="lbl" style="width: 12ch"></span>' in legend
+
+    def test_bad_value(self) -> None:
+        with pytest.raises(BarsError):
+            html_compile(deck(".bars{.labelwidth{-3} .bar{a .value{1}}}"))

@@ -12,7 +12,8 @@ A chart is written as data and the compiler draws it::
     }
 
 Inside ``.bar{}``, ``.key{}`` and ``.caption{}``, anything in a modifier
-is data and the bare text left over is the label. ``.value{}`` is a plain
+is data and the bare text left over is the label. ``.labelwidth{}`` on the
+chart sets the label column (characters, or ``auto``; default 20). ``.value{}`` is a plain
 number setting the bar's length; ``.show{}`` is the text printed at its end
 (default: the value plus the chart's ``.unit{}``); ``.color{}`` is a theme
 palette name (``accent``, ``red``, ...) or any CSS colour.
@@ -177,7 +178,7 @@ def bars_handler(node: DirectiveNode, compiler: CompilerContext) -> str:
     options: dict[str, str] = {}
     parts: list[dict[str, Any]] = []
     for token in tokens:
-        if token["kind"] in ("unit", "max", "layout"):
+        if token["kind"] in ("unit", "max", "layout", "labelwidth"):
             options[token["kind"]] = token["text"]
         elif token["kind"] in ("bar", "key", "caption"):
             parts.append(token)
@@ -191,6 +192,7 @@ def bars_handler(node: DirectiveNode, compiler: CompilerContext) -> str:
     )
     keys: list[dict[str, Any]] = [p for p in parts if p["kind"] == "key"]
     series: int = max(len(keys), 1)
+    label_style: str = _labelWidth_style(options.get("labelwidth", ""), parts)
 
     for part in parts:
         if part["kind"] == "bar" and keys and len(part["values"]) != len(keys):
@@ -217,12 +219,14 @@ def bars_handler(node: DirectiveNode, compiler: CompilerContext) -> str:
                 )
             elif part["kind"] == "key":
                 if not legend_done:
-                    rows.append(_snippet(compiler, _legend(keys, layout)))
+                    rows.append(_snippet(compiler, _legend(keys, layout, label_style)))
                     legend_done = True
             elif layout == "vertical":
                 columns.append(_column(part, keys, unit, top, len(columns)))
             else:
-                rows.append(_snippet(compiler, _row(part, keys, unit, top, series)))
+                rows.append(
+                    _snippet(compiler, _row(part, keys, unit, top, series, label_style))
+                )
         if columns:
             # A vertical group reveals as one row; its columns rise in turn.
             rows.append(
@@ -234,13 +238,34 @@ def bars_handler(node: DirectiveNode, compiler: CompilerContext) -> str:
     return "".join(rows)
 
 
-def _legend(keys: list[dict[str, Any]], layout: str) -> str:
+def _labelWidth_style(raw: str, parts: list[dict[str, Any]]) -> str:
+    """Inline width for the label column, from ``.labelwidth{}``.
+
+    A number is a width in characters; ``auto`` fits the longest label.
+    Empty leaves the theme's default (20ch).
+    """
+    raw = raw.strip().lower()
+    if not raw:
+        return ""
+    if raw == "auto":
+        longest: int = max(
+            (len(re.sub(r"<[^>]+>", "", p["label"])) for p in parts if p["kind"] == "bar"),
+            default=0,
+        )
+        return _style(width=f"{longest + 2}ch")
+    width: float = _number(raw, ".bars .labelwidth")
+    if width <= 0:
+        raise BarsError(f".labelwidth{{{raw}}}: use a positive number or auto")
+    return _style(width=f"{width:g}ch")
+
+
+def _legend(keys: list[dict[str, Any]], layout: str, label_style: str = "") -> str:
     items: str = "".join(
         f'<span class="pair"><span{_style(color=color_resolve(k["color"]) if k["color"] else "")}>'
         f'█</span><span class="dim">{k["label"]}</span></span>'
         for k in keys
     )
-    lead: str = '<span class="lbl"></span>' if layout == "horizontal" else ""
+    lead: str = f'<span class="lbl"{label_style}></span>' if layout == "horizontal" else ""
     return lead + items
 
 
@@ -256,6 +281,7 @@ def _row(
     unit: str,
     top: float,
     series: int,
+    label_style: str = "",
 ) -> str:
     width: float = BAR_WIDTH_CH / series
     colors: list[str] = _bar_colors(part, keys)
@@ -273,7 +299,7 @@ def _row(
             f'<span class="pct"{_style(color=color)}>{show}</span>'
         )
         cells.append(f'<span class="pair">{cell}</span>' if keys else cell)
-    return f'<span class="lbl">{part["label"]}</span>' + "".join(cells)
+    return f'<span class="lbl"{label_style}>{part["label"]}</span>' + "".join(cells)
 
 
 def _column(
@@ -346,6 +372,9 @@ def barsDirectives_register(registry: Any) -> None:
          ".max{100}"),
         ("layout", _scalar_handler("layout"), "Chart layout: horizontal or vertical",
          ".layout{vertical}"),
+        ("labelwidth", _scalar_handler("labelwidth"),
+         "Label column width in characters, or auto to fit the longest label",
+         ".labelwidth{28}"),
     ]
     for name, handler, description, example in specs:
         registry.register(
