@@ -1063,3 +1063,122 @@ mark {
 .snippet.sl-hidden .sd-jump {
     pointer-events: none;
 }
+
+/* ---- Bar charts (.bars{}) ----
+   Horizontal rows: a fixed-width label, then a bar that grows from zero to
+   --w when its row is revealed. Grouped bars sit in fixed-width .pair cells
+   and start one after another (.g2, .g3, ...). Vertical charts are columns
+   that grow to --h. Themes colour them and may add a flare (.grow::after). */
+.lbl {
+  display: inline-block;
+  width: 20ch;
+  text-indent: 0;
+}
+
+.pct {
+  font-weight: bold;
+  margin-left: 0.6ch;
+}
+
+.pair {
+  display: inline-block;
+  width: 19ch;
+  text-indent: 0;
+}
+
+.pair > .dim {
+  margin-left: 0.6ch;
+}
+
+.pair > .pct {
+  margin-left: 0.5ch;
+}
+
+.grow {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  vertical-align: bottom;
+  text-indent: 0;
+  transition: width 0.9s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.fill {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-indent: 0;
+}
+
+.snippet:not(.sl-hidden) .grow {
+  width: var(--w);
+}
+
+.snippet:not(.sl-hidden) .grow.g2 {
+  transition-delay: 0.25s;
+}
+
+.snippet:not(.sl-hidden) .grow.g3 {
+  transition-delay: 0.5s;
+}
+
+.snippet:not(.sl-hidden) .grow.g4 {
+  transition-delay: 0.75s;
+}
+
+.snippet:has(> .lbl)::before,
+.snippet:has(> .pair)::before,
+.snippet:has(> .sd-bars--vertical)::before,
+.snippet:has(> .dim:only-child)::before {
+  content: '';
+}
+
+.sd-bars--vertical {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2ch;
+}
+
+.sd-bars--vertical,
+.sd-bars--vertical * {
+  text-indent: 0;
+}
+
+.sd-vcol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sd-vbars {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5ch;
+}
+
+.sd-vstack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sd-vstack > .pct {
+  margin-left: 0;
+}
+
+.vgrow {
+  display: block;
+  width: 3ch;
+  height: 0;
+  background: currentColor;
+  transition: height 0.9s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.snippet:not(.sl-hidden) .vgrow {
+  height: var(--h);
+}
+
+.vlbl {
+  margin-top: 0.3em;
+}
+
