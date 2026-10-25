@@ -20,6 +20,7 @@ from ..models.compiler import (
     PresentationMetaConfig,
     SlideAddresses,
     SlideCounters,
+    SlideLabels,
 )
 from ..models.handlers import CompilerContext, DirectiveNode
 from . import compiler_assets, compiler_rendering, nexus
@@ -96,6 +97,9 @@ class Compiler:
         # .ref{} copies from.
         self.nexus_placements: NexusPlacements = []
         self.nexus_bodies: NexusBodies = {}
+        # .label{} overrides, slide_num -> text; the rest are derived from
+        # .meta{label: ...} after the walk (see nexus.slideLabels_compute).
+        self.slide_labels: SlideLabels = {}
         self.snippet_counters: SlideCounters = {}  # slide_num -> snippet_count
         self.typewriter_counters: SlideCounters = (
             {}

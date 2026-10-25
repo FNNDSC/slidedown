@@ -248,8 +248,21 @@ a source line, `.span{.class{dim} ...}` a caption.
 .div{.class{prompt} THE HARD PART WAS NEVER THE MODEL.}
 ```
 
-The window title comes from the `--term-label` CSS variable (default
-`terminal`).
+Window titles come from one template in `.meta`, filled in per slide from
+where the slide sits in the deck, so they follow slides when they move:
+
+```slidedown
+.meta{
+  theme: "command-line"
+  label: "me@host: ~ {n} {spoke}"
+}
+```
+
+`{spoke}` is the spoke the slide belongs to (its address, hyphens as spaces),
+or the slide's own address outside any spoke; `{n}` is that spoke's number in
+its menu (`03`); `{slide}` is the slide's own address. A slide can set its own
+with `.label{...}`. Other themes can show the label too: it reaches the page
+as the `--sd-label` CSS variable on each slide.
 
 ## Deck Metadata
 

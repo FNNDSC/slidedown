@@ -3,7 +3,7 @@
  *
  * The terminal theme, plus: each typed command and its output sits in a
  * terminal window (a `.term` block: title bar with traffic lights, label from
- * --term-label); the cursor follows the last revealed line; a nexus inside a
+ * .meta{label: ...} or --term-label); the cursor follows the last revealed line; a nexus inside a
  * window prints line by line once its command has finished typing; left-aligned
  * uppercase headings; a takeaway bar (`.prompt`), a source line (`.src`) and
  * dim captions (`.dim`); and animated text bar charts.
@@ -731,7 +731,7 @@ pre[id^="typewriter-"] {
 }
 
 .term::before {
-  content: var(--term-label, 'terminal');
+  content: var(--term-label, var(--sd-label, 'terminal'));
   position: absolute;
   top: 0;
   left: 0;

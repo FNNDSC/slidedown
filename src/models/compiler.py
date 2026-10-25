@@ -34,6 +34,9 @@ JumpRefs: TypeAlias = list[tuple[str, int]]
 # placement departed from rather than to the definition.
 NexusPlacements: TypeAlias = list[tuple[str, int, list[str]]]
 
+# Per-slide label overrides from .label{} (slide_number -> label text).
+SlideLabels: TypeAlias = dict[int, str]
+
 # Compiled nexus bodies keyed by nexus id, so .ref{} can place a copy.
 NexusBodies: TypeAlias = dict[str, str]
 
@@ -190,6 +193,8 @@ class PresentationMetaConfig(TypedDict, total=False):
     typography: TypographyConfig
     snippets: SnippetsConfig
     transition: str
+    # Slide label template, e.g. "me@host: ~ {n} {spoke}" (see nexus.py).
+    label: str
 
 
 class ThemeLike(Protocol):
