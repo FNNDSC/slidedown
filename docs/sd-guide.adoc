@@ -549,6 +549,23 @@ def hello():
 
 These directives provide presentation-level configuration.
 
+==== .term{}, .takeaway{}, .source{}
+
+Named blocks: a terminal window around a typed command and its output, the
+slide's one line to remember, and the source line for its figures. Themes
+style them (`command-line` draws the window chrome); each takes `.class{}`
+and `.style{}` like any block.
+
+[source,slidedown]
+----
+.term{
+.typewriter{$> survey --year=2026}
+  .o{75% of health systems use some AI.}
+}
+.takeaway{GENERATIVE AI WRITES THE NOTES.}
+.source{Eliciting Insights, 2026}
+----
+
 ==== .bars{}
 
 A bar chart written as data. See the README's "Bar Charts" section for the

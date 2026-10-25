@@ -23,7 +23,7 @@ from ..models.compiler import (
     SlideLabels,
 )
 from ..models.handlers import CompilerContext, DirectiveNode
-from . import compiler_assets, compiler_rendering, nexus
+from . import bars, compiler_assets, compiler_rendering, nexus
 from .directives import DirectiveRegistry
 from .log import LOG
 from .parser import ASTNode
@@ -127,6 +127,7 @@ class Compiler:
         # resolved here rather than during the walk. An unresolved target
         # fails the build: a dead jump must not be discovered at a lectern.
         nexus.jumpRefs_validate(self.jump_refs, self.slide_addresses)
+        bars.strayParts_check(html_content)
 
         # Build complete HTML document
         full_html = self.htmlDocument_build(html_content)

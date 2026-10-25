@@ -47,6 +47,26 @@ def formattingDirectives_register(registry: DirectiveRegistrar) -> None:
         )
     )
 
+    block_specs = [
+        ("term", "term", "Terminal window around a typed command and its output",
+         ".term{.typewriter{$> ls} .o{output}}"),
+        ("takeaway", "takeaway", "The one line to remember from a slide",
+         ".takeaway{THE HARD PART WAS NEVER THE MODEL.}"),
+        ("source", "source", "Source line for the figures on a slide",
+         ".source{ASTP Data Brief 80, Sep 2025}"),
+    ]
+
+    for name, css_class, description, example in block_specs:
+        registry.register(
+            DirectiveSpec(
+                name=name,
+                category=DirectiveCategory.FORMATTING,
+                description=description,
+                handler=_htmlWrapper_make("div", css_class),
+                examples=[example],
+            )
+        )
+
     heading_specs = [
         ("h1", "h1", "Heading level 1 (largest)", [".h1{Main Title}"]),
         ("h2", "h2", "Heading level 2", [".h2{Section Title}"]),

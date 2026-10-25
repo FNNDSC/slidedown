@@ -127,7 +127,10 @@ def bar_handler(node: DirectiveNode, compiler: CompilerContext) -> str:
     shows: list[str] = [t["text"] for t in tokens if t["kind"] == "show"]
     colors: list[str] = [t["text"] for t in tokens if t["kind"] == "color"]
     if not values:
-        raise BarsError(f".bar{{{label}}} has no .value{{}}")
+        raise BarsError(
+            f".bar{{{label}}} has no .value{{}} (to write a directive name "
+            "literally in text, escape it: \\.bar\\{\\})"
+        )
     return _token(
         "bar",
         label=label,
@@ -300,6 +303,23 @@ def _column(
         f'<span class="sd-vcol"><span class="sd-vbars">{"".join(cols)}</span>'
         f'<span class="vlbl">{part["label"]}</span></span>'
     )
+
+
+def strayParts_check(html: str) -> None:
+    """Fail the build if a chart part was used outside a ``.bars{}``.
+
+    Its token would otherwise reach the page as invisible garbage. The
+    usual cause is a directive name written in prose; escape it.
+    """
+    stray: list[str] = sorted(
+        {json.loads(m.group(1))["kind"] for m in _TOKEN_RE.finditer(html)}
+    )
+    if stray:
+        names: str = ", ".join(f".{kind}{{}}" for kind in stray)
+        raise BarsError(
+            f"{names} used outside a .bars{{}} chart (to write a directive "
+            "name literally in text, escape it: \\.unit\\{\\})"
+        )
 
 
 def barsDirectives_register(registry: Any) -> None:
