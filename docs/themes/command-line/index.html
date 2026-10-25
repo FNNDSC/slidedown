@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="utf-8" http-equiv="encoding">
+    <title id="headTitle">slidedown presentation</title>
+
+    <!-- Cascade order: vendor < base (slidedown.css + theme.css) < unlayered
+         deck CSS. Deck .meta{css: ...} rules therefore always beat the theme,
+         whatever their specificity. -->
+    <style>
+    @layer vendor, base;
+    @import url("https://yui.yahooapis.com/pure/0.6.0/pure-min.css") layer(vendor);
+    @import url("https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css") layer(vendor);
+    @import url("https://use.fontawesome.com/releases/v5.13.0/css/all.css") layer(vendor);
+    </style>
+
+    <!-- 3rd Party css -->
+    <link rel="stylesheet" href="termynal.css">
+
+    <!-- 3rd Party js -->
+    <!-- Do we really need jquery? -->
+    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+
+    <!-- This page css -->
+    <link rel="stylesheet" href="css/slidedown.css" type="text/css" />
+
+    <!-- Theme css -->
+    <link rel="stylesheet" href="css/theme.css" type="text/css" />
+</head>
+
+
+    <!-- Custom CSS from .meta{typography/snippets/css: ...} -->
+    <style>
+    .container {
+    font-size: 36px;
+    line-height: 1.6;
+    }
+    </style>
+<body>
+    <div class="presentation-viewport">
+        <div class="metaData" id="numberOfSlides" style="display: none;">18</div>
+        <div class="metaData" id="slideIDprefix" style="display: none;">slide-</div>
+        <div class="metaData" id="slideTransition" style="display: none;">none</div>
+    <script type="application/json" id="nexusGraph">{"isNexusDeck":false,"jumps":[],"nexuses":[],"slideCount":18,"slides":{"a-minimal-example":8,"architecture":13,"contributing":16,"directive-syntax":6,"features":15,"formatting-effects":7,"get-involved":17,"lcars-theme":14,"license-contact":18,"project-structure":11,"quick-start":4,"quick-start-no-make":5,"slidedown":1,"testing":12,"themes":3,"usage-makefile":9,"usage-slideshow-cli":10,"what-is-slidedown":2},"spokes":[],"version":1}</script>
+
+        
+    <div class="boxtext pure-control-group" style="margin-bottom: -3px;">
+        <!-- Top "navigation" bar -->
+        <div id="slideProgress">
+            <div id="slideBar"></div>
+        </div>
+
+        <div class="navbar-container">
+            <input  type    =  "button"
+                    onclick =  "page.advance_toPrevious()"
+                    style   =  "float: left;"
+                    value   =  "&#xf053"
+                    id      =  "previous"
+                    name    =  "previous"
+                    class   =  "pure-button
+                                pure-button-primary
+                                fas fas-chevron-left">
+            </input>
+            <input  type    =  "button"
+                    onclick =  "page.advance_toFirst()"
+                    value   =  "&#xf078"
+                    style   =  "float: left;"
+                    id      =  "first"
+                    name    =  "first"
+                    class   =  "pure-button
+                                pure-button-primary
+                                fas fa-chevron-down">
+            </input>
+
+            <div id="pageTitle" class="navbar-title"></div>
+
+            <input  type    =  "button"
+                    onclick =  "page.advance_toLast()"
+                    value   =  "&#xf077"
+                    style   =  "float: right;"
+                    id      =  "last"
+                    name    =  "last"
+                    class   =  "pure-button
+                                pure-button-primary
+                                fas fa-chevron-up">
+            </input>
+            <input  type    =  "button"
+                    onclick =  "page.advance_toNext()"
+                    value   =  "&#xf054"
+                    style   = "float: right;"
+                    id      =  "next"
+                    name    =  "next"
+                    class   =  "pure-button
+                                pure-button-primary
+                                fas fas-chevron-right">
+            </input>
+        </div>
+        <br style="clear: both;">
+    </div>
+
+
+
+        <div class="formLayout">
+            
+
+
+<div id="slide-1-title" style="display: none;">
+    SLIDEDOWN
+</div>
+<div class="container slide" id="slide-1" name="slide-1" data-address="slidedown" style="display:none;">
+    
+    
+  
+       <pre class="figlet-art"> ____  _     ___ ____  _____ ____   _____        ___   _ 
+/ ___|| |   |_ _|  _ \| ____|  _ \ / _ \ \      / / \ | |
+\___ \| |    | || | | |  _| | | | | | | \ \ /\ / /|  \| |
+ ___) | |___ | || |_| | |___| |_| | |_| |\ V  V / | |\  |
+|____/|_____|___|____/|_____|____/ \___/  \_/\_/  |_| \_|
+                                                         
+</pre>
+<br />
+<br />
+Text-first presentation compiler with behavioral markup.<br>
+<br />
+<br />
+<strong>View as Interactive Presentation:</strong><br>     https://fnndsc.github.io/slidedown/readme-presentation/<br>
+<br />
+<br />
+<div class="snippet sl-hidden" id="order-1-1">Documentation: docs/</div>     <div class="snippet sl-hidden" id="order-1-2">Examples: examples/</div>   
+
+</div>
+
+
+<div id="slide-2-title" style="display: none;">
+    What is slidedown?
+</div>
+<div class="container slide" id="slide-2" name="slide-2" data-address="what-is-slidedown" style="display:none;">
+    
+    
+  
+       Write presentations like you write code —<br>     plain text in, browser slideshow out.<br>
+<br />
+<br />
+<div class="snippet sl-hidden" id="order-2-1">Text-first authoring — diffable, scriptable, version-controlled</div>     <div class="snippet sl-hidden" id="order-2-2">Behavioral markup — .directive\{content\} syntax</div>     <div class="snippet sl-hidden" id="order-2-3">Interactive effects — typewriter animations, progressive reveals</div>     <div class="snippet sl-hidden" id="order-2-4">Single-file workflow — one .sd source → standalone HTML</div>   
+
+</div>
+
+
+<div id="slide-3-title" style="display: none;">
+    Themes
+</div>
+<div class="container slide" id="slide-3" name="slide-3" data-address="themes" style="display:none;">
+    
+    
+  
+       Five built-in themes — same source, different compile:<br>
+<br />
+<br />
+<div class="snippet sl-hidden" id="order-3-1"><strong>conventional-light</strong> → https://fnndsc.github.io/slidedown/themes/conventional-light/</div>     <div class="snippet sl-hidden" id="order-3-2"><strong>default</strong> → https://fnndsc.github.io/slidedown/themes/default/</div>     <div class="snippet sl-hidden" id="order-3-3"><strong>lcars-lower-decks</strong> → https://fnndsc.github.io/slidedown/themes/lcars-lower-decks/</div>     <div class="snippet sl-hidden" id="order-3-4"><strong>retro-terminal</strong> → https://fnndsc.github.io/slidedown/themes/retro-terminal/</div>     <div class="snippet sl-hidden" id="order-3-5"><strong>terminal</strong> → https://fnndsc.github.io/slidedown/themes/terminal/</div>
+<br />
+<br />
+Select with <tt>--theme <name></tt> at compile time.   
+
+</div>
+
+
+<div id="slide-4-title" style="display: none;">
+    Quick Start
+</div>
+<div class="container slide" id="slide-4" name="slide-4" data-address="quick-start" style="display:none;">
+    
+    
+  
+       <pre id="typewriter-4-1" data-text="&gt; Installing slidedown..."></pre>
+<br />
+<br />
+<code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span>git<span style="color: #F8F8F2"> </span>clone<span style="color: #F8F8F2"> </span>https://github.com/FNNDSC/slidedown
+<span style="color: #A6E22E">cd</span><span style="color: #F8F8F2"> </span>slidedown
+make<span style="color: #F8F8F2"> </span>dev
+<span style="color: #F8F8F2">    </span>
+</pre></div>
+</code>
+<br />
+<br />
+<strong>Then compile and serve an example:</strong>
+<br />
+<br />
+<code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span>make<span style="color: #F8F8F2"> </span>presentation<span style="color: #F8F8F2"> SOURCE</span><span style="color: #FF4689">=</span>examples/minimal/minimal.sd
+<span style="color: #959077"># Open http://localhost:8000</span>
+<span style="color: #F8F8F2">    </span>
+</pre></div>
+</code>   
+
+</div>
+
+
+<div id="slide-5-title" style="display: none;">
+    Quick Start — no make
+</div>
+<div class="container slide" id="slide-5" name="slide-5" data-address="quick-start-no-make" style="display:none;">
+    
+    
+  
+       Without <tt>make</tt>, use the <tt>slideshow</tt> script directly:<br>
+<br />
+<br />
+<code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span>./slideshow<span style="color: #F8F8F2"> </span>examples/minimal/minimal.sd<span style="color: #F8F8F2"> </span>--theme<span style="color: #F8F8F2"> </span>conventional-light
+<span style="color: #F8F8F2">    </span>
+</pre></div>
+</code>
+<br />
+<br />
+Or the raw CLI:
+<br />
+<br />
+<code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span>python3<span style="color: #F8F8F2"> </span>-m<span style="color: #F8F8F2"> </span>venv<span style="color: #F8F8F2"> </span>.venv
+.venv/bin/pip<span style="color: #F8F8F2"> </span>install<span style="color: #F8F8F2"> </span>-e<span style="color: #F8F8F2"> </span><span style="color: #E6DB74">".[dev]"</span>
+slidedown<span style="color: #F8F8F2"> </span>examples/minimal/<span style="color: #F8F8F2"> </span>output/<span style="color: #F8F8F2"> </span>--inputFile<span style="color: #F8F8F2"> </span>minimal.sd
+<span style="color: #A6E22E">cd</span><span style="color: #F8F8F2"> </span>output/<span style="color: #F8F8F2"> </span><span style="color: #FF4689">&amp;&amp;</span><span style="color: #F8F8F2"> </span>python3<span style="color: #F8F8F2"> </span>-m<span style="color: #F8F8F2"> </span>http.server<span style="color: #F8F8F2"> </span><span style="color: #AE81FF">8000</span>
+<span style="color: #F8F8F2">    </span>
+</pre></div>
+</code>   
+
+</div>
+
+
+<div id="slide-6-title" style="display: none;">
+    Directive Syntax
+</div>
+<div class="container slide" id="slide-6" name="slide-6" data-address="directive-syntax" style="display:none;">
+    
+    
+  
+       The core syntax is simple:
+<br />
+<br />
+<code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span>.directive{content}
+.directive{\.modifier{value} content}
+.directive{nested \.directives{work} too}
+    
+</pre></div>
+</code>
+<br />
+<br />
+<strong>Structure:</strong>     <div class="snippet sl-hidden" id="order-6-1">.slide{} — defines a slide</div>     <div class="snippet sl-hidden" id="order-6-2">.title{} — slide title</div>     <div class="snippet sl-hidden" id="order-6-3">.body{} — slide content</div>   
+
+</div>
+
+
+<div id="slide-7-title" style="display: none;">
+    Formatting & Effects
+</div>
+<div class="container slide" id="slide-7" name="slide-7" data-address="formatting-effects" style="display:none;">
+    
+    
+  
+       <strong>Formatting directives:</strong>     <div class="snippet sl-hidden" id="order-7-1">.bf{} — bold</div>     <div class="snippet sl-hidden" id="order-7-2">.em{} — italic</div>     <div class="snippet sl-hidden" id="order-7-3">.tt{} — monospace</div>     <div class="snippet sl-hidden" id="order-7-4">.code{} — syntax-highlighted code block</div>
+<br />
+<br />
+<strong>Behavioral directives:</strong>     <div class="snippet sl-hidden" id="order-7-5">.typewriter{} — typing animation</div>     <div class="snippet sl-hidden" id="order-7-6">.o{} — progressive reveal bullet</div>     <div class="snippet sl-hidden" id="order-7-7">.font-standard{} / .font-slant{} — ASCII art titles</div>   
+
+</div>
+
+
+<div id="slide-8-title" style="display: none;">
+    A Minimal Example
+</div>
+<div class="container slide" id="slide-8" name="slide-8" data-address="a-minimal-example" style="display:none;">
+    
+    
+  
+       <code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span>.slide{
+  \.title{My First Slide}
+  \.body{
+    \.typewriter{&gt; Initializing...}
+
+    \.bf{Features:}
+    \.o{\.em{Text-first} authoring}
+    \.o{\.tt{Behavioral} markup}
+    \.o{Interactive \.bf{effects}}
+  }
+}
+    
+</pre></div>
+</code>   
+
+</div>
+
+
+<div id="slide-9-title" style="display: none;">
+    Usage — Makefile
+</div>
+<div class="container slide" id="slide-9" name="slide-9" data-address="usage-makefile" style="display:none;">
+    
+    
+  
+       <code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span><span style="color: #959077"># Compile and serve</span>
+make<span style="color: #F8F8F2"> </span>presentation<span style="color: #F8F8F2"> SOURCE</span><span style="color: #FF4689">=</span>examples/minimal/minimal.sd
+
+<span style="color: #959077"># Change theme or port</span>
+make<span style="color: #F8F8F2"> </span>presentation<span style="color: #F8F8F2"> SOURCE</span><span style="color: #FF4689">=</span>deck.sd<span style="color: #F8F8F2"> THEME</span><span style="color: #FF4689">=</span>retro-terminal<span style="color: #F8F8F2"> PORT</span><span style="color: #FF4689">=</span><span style="color: #AE81FF">9000</span>
+
+<span style="color: #959077"># Compile only (no server)</span>
+make<span style="color: #F8F8F2"> </span>compile<span style="color: #F8F8F2"> SOURCE</span><span style="color: #FF4689">=</span>deck.sd
+
+<span style="color: #959077"># Serve an already-compiled deck</span>
+make<span style="color: #F8F8F2"> </span>serve<span style="color: #F8F8F2"> SOURCE</span><span style="color: #FF4689">=</span>deck.sd
+<span style="color: #F8F8F2">    </span>
+</pre></div>
+</code>   
+
+</div>
+
+
+<div id="slide-10-title" style="display: none;">
+    Usage — slideshow & CLI
+</div>
+<div class="container slide" id="slide-10" name="slide-10" data-address="usage-slideshow-cli" style="display:none;">
+    
+    
+  
+       <strong>Via slideshow script:</strong>     <code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span>./slideshow<span style="color: #F8F8F2"> </span>path/to/deck.sd<span style="color: #F8F8F2"> </span>--theme<span style="color: #F8F8F2"> </span>lcars-lower-decks
+./slideshow<span style="color: #F8F8F2"> </span>path/to/deck.sd<span style="color: #F8F8F2"> </span>--no-serve<span style="color: #F8F8F2"> </span>--outputdir<span style="color: #F8F8F2"> </span>/tmp/out
+<span style="color: #F8F8F2">    </span>
+</pre></div>
+</code>
+<br />
+<br />
+<strong>Direct CLI:</strong>     <code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span>slidedown<span style="color: #F8F8F2"> </span>inputdir/<span style="color: #F8F8F2"> </span>outputdir/<span style="color: #F8F8F2"> </span>--inputFile<span style="color: #F8F8F2"> </span>deck.sd<span style="color: #F8F8F2"> </span>--theme<span style="color: #F8F8F2"> </span>terminal
+<span style="color: #F8F8F2">    </span>
+</pre></div>
+</code>
+<br />
+<br />
+<strong>See all Makefile targets:</strong>     <code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span>make<span style="color: #F8F8F2"> </span><span style="color: #A6E22E">help</span>
+<span style="color: #F8F8F2">    </span>
+</pre></div>
+</code>   
+
+</div>
+
+
+<div id="slide-11-title" style="display: none;">
+    Project Structure
+</div>
+<div class="container slide" id="slide-11" name="slide-11" data-address="project-structure" style="display:none;">
+    
+    
+  
+       <code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span>slidedown/
+├── src/
+│   ├── lib/
+│   │   ├── parser.py        # .sd syntax parser
+│   │   ├── compiler.py      # AST → HTML compiler
+│   │   ├── directives.py    # Directive implementations
+│   │   ├── theme.py         # Theme loader
+│   │   └── theme_base.py    # Theme hook system
+│   └── models/              # Type definitions
+├── themes/                  # 5 built-in themes
+├── assets/                  # CSS, JS, HTML templates
+├── docs/                    # Docs + hosted presentations
+├── examples/                # Example .sd decks
+└── tests/                   # 97 tests
+    
+</pre></div>
+</code>   
+
+</div>
+
+
+<div id="slide-12-title" style="display: none;">
+    Testing
+</div>
+<div class="container slide" id="slide-12" name="slide-12" data-address="testing" style="display:none;">
+    
+    
+  
+       <code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span><span style="color: #959077"># Run all tests</span>
+make<span style="color: #F8F8F2"> </span><span style="color: #A6E22E">test</span>
+
+<span style="color: #959077"># Specific file</span>
+pytest<span style="color: #F8F8F2"> </span>tests/test_parser_basic.py<span style="color: #F8F8F2"> </span>-v
+
+<span style="color: #959077"># With coverage</span>
+make<span style="color: #F8F8F2"> </span>coverage
+<span style="color: #F8F8F2">    </span>
+</pre></div>
+</code>
+<br />
+<br />
+<strong>97 tests across 5 files:</strong>     <div class="snippet sl-hidden" id="order-12-1">test_parser_basic — directive parsing</div>     <div class="snippet sl-hidden" id="order-12-2">test_parser_modifiers — .style{} and .class{} extraction</div>     <div class="snippet sl-hidden" id="order-12-3">test_parser_nesting — recursive structure</div>     <div class="snippet sl-hidden" id="order-12-4">test_parser_escaping — escape sequences</div>     <div class="snippet sl-hidden" id="order-12-5">test_e2e_compilation — full pipeline</div>   
+
+</div>
+
+
+<div id="slide-13-title" style="display: none;">
+    Architecture
+</div>
+<div class="container slide" id="slide-13" name="slide-13" data-address="architecture" style="display:none;">
+    
+    
+  
+       <strong>Functional pipeline:</strong>
+<br />
+<br />
+<code><div class="highlight" style="background: #272822"><pre style="line-height: 125%;"><span></span>.sd source → Parser → AST → Compiler → HTML
+               ↓         ↓        ↓
+          ProgramState → → → → → →
+    
+</pre></div>
+</code>
+<br />
+<br />
+<div class="snippet sl-hidden" id="order-13-1"><em>State Bus</em> — ProgramState dataclass carries pipeline state</div>     <div class="snippet sl-hidden" id="order-13-2"><em>Inside-Out Compilation</em> — children compiled before parents</div>     <div class="snippet sl-hidden" id="order-13-3"><em>Theme Hook System</em> — themes subclass ThemeHooks for custom layouts</div>     <div class="snippet sl-hidden" id="order-13-4"><em>Directive Registry</em> — extensible, add new directives easily</div>   
+
+</div>
+
+
+<div id="slide-14-title" style="display: none;">
+    LCARS Theme
+</div>
+<div class="container slide" id="slide-14" name="slide-14" data-address="lcars-theme" style="display:none;">
+    
+    
+  
+       The <strong>lcars-lower-decks</strong> theme brings a Star Trek LCARS<br>     interface to your presentations.<br>
+<br />
+<br />
+<div class="snippet sl-hidden" id="order-14-1">Dynamic topbar scaling: <tt>[</tt> / <tt>]</tt> keys or TB button</div>     <div class="snippet sl-hidden" id="order-14-2">Dynamic gutter scaling: <tt>\{} / <tt>\</tt></tt> keys or GW button</div>     <div class="snippet sl-hidden" id="order-14-3">Four stops: 100% → 75% → 50% → 25%</div>     <div class="snippet sl-hidden" id="order-14-4">Scale state persists across reloads via localStorage</div>     <div class="snippet sl-hidden" id="order-14-5">HIDEDETAIL / SHOWDETAIL collapses the full topbar</div>
+<br />
+<br />
+<strong>Live demo:</strong><br>     https://fnndsc.github.io/slidedown/themes/lcars-lower-decks/   
+
+</div>
+
+
+<div id="slide-15-title" style="display: none;">
+    Features
+</div>
+<div class="container slide" id="slide-15" name="slide-15" data-address="features" style="display:none;">
+    
+    
+  
+       <div class="snippet sl-hidden" id="order-15-1">Parser — recursive directive parsing</div>     <div class="snippet sl-hidden" id="order-15-2">Compiler — AST to HTML, 97 tests passing</div>     <div class="snippet sl-hidden" id="order-15-3">5 themes — extensible hook system</div>     <div class="snippet sl-hidden" id="order-15-4">Typewriter animations and progressive reveal bullets</div>     <div class="snippet sl-hidden" id="order-15-5">Custom CSS via .meta{css: ...}</div>     <div class="snippet sl-hidden" id="order-15-6">Navbar customization</div>     <div class="snippet sl-hidden" id="order-15-7">Per-slide density classes (hero, roomy, dense, compact)</div>     <div class="snippet sl-hidden" id="order-15-8">Watermarks with percentage sizing</div>     <div class="snippet sl-hidden" id="order-15-9">ASCII art (Figlet) and cowsay</div>   
+
+</div>
+
+
+<div id="slide-16-title" style="display: none;">
+    Contributing
+</div>
+<div class="container slide" id="slide-16" name="slide-16" data-address="contributing" style="display:none;">
+    
+    
+  
+       Developed with <em>test-driven development</em>:
+<br />
+<br />
+<div class="snippet sl-hidden" id="order-16-1">Write tests first</div>     <div class="snippet sl-hidden" id="order-16-2">Implement to pass</div>     <div class="snippet sl-hidden" id="order-16-3">Refactor for clarity</div>
+<br />
+<br />
+<strong>Code conventions:</strong>     <div class="snippet sl-hidden" id="order-16-4">RPN naming: <tt>object_verb</tt></div>     <div class="snippet sl-hidden" id="order-16-5">Type hints everywhere</div>     <div class="snippet sl-hidden" id="order-16-6">Google-style docstrings (Args / Returns)</div>     <div class="snippet sl-hidden" id="order-16-7">Functional over imperative</div>   
+
+</div>
+
+
+<div id="slide-17-title" style="display: none;">
+    Get Involved
+</div>
+<div class="container slide" id="slide-17" name="slide-17" data-address="get-involved" style="display:none;">
+    
+    
+  
+       <div class="snippet sl-hidden" id="order-17-1">Report issues on GitHub</div>     <div class="snippet sl-hidden" id="order-17-2">Add new directive implementations</div>     <div class="snippet sl-hidden" id="order-17-3">Create and share example presentations</div>     <div class="snippet sl-hidden" id="order-17-4">Build new themes via the hook system</div>     <div class="snippet sl-hidden" id="order-17-5">Improve documentation</div>
+<br />
+<br />
+<strong>Repository:</strong><br>     https://github.com/FNNDSC/slidedown   
+
+</div>
+
+
+<div id="slide-18-title" style="display: none;">
+    License & Contact
+</div>
+<div class="container slide" id="slide-18" name="slide-18" data-address="license-contact" style="display:none;">
+    
+    
+  
+       <pre class="figlet-art">    __  _____________
+   /  |/  /  _/_  __/
+  / /|_/ // /  / /   
+ / /  / // /  / /    
+/_/  /_/___/ /_/     
+                     
+</pre>
+<br />
+<br />
+Licensed under the MIT License.     See <tt>LICENSE</tt> file for details.
+<br />
+<br />
+<strong>Author:</strong> Rudolph Pienaar     <strong>Issues:</strong> github.com/FNNDSC/slidedown/issues
+<br />
+<br />
+<pre id="typewriter-18-1" data-text="&gt; Happy presenting!"></pre>   
+
+</div>
+
+        </div>
+
+        
+    <div class="footer-bar">
+        <span class="footer" style="float: left;">
+            Created with slidedown
+        </span>
+        <span id="slideCounter" class="footer" style="float: right;">
+            slide
+        </span>
+    </div>
+
+
+    </div>
+
+    <script src="js/slidedown.js"></script>
+</body>
+</html>

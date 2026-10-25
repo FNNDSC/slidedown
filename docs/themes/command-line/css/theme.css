@@ -1,0 +1,1000 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;700&family=JetBrains+Mono:wght@300;400;500;700&display=swap');
+@layer base {
+
+/* Command-line theme
+ *
+ * The terminal theme, plus: each typed command and its output sits in a
+ * terminal window (a `.term` block: title bar with traffic lights, label from
+ * --term-label); the cursor follows the last revealed line; a nexus inside a
+ * window prints line by line once its command has finished typing; left-aligned
+ * uppercase headings; a takeaway bar (`.prompt`), a source line (`.src`) and
+ * dim captions (`.dim`); and animated text bar charts.
+ */
+
+/* Fira Code and JetBrains Mono fonts */
+
+/* Global */
+html {
+  min-height: 100%;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  color: #d4d4d4;
+  background-color: #0d0d0d;
+  overflow: hidden;
+  font-family: 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+}
+
+/* Presentation viewport wrapper - fixed 2K dimensions */
+.presentation-viewport {
+  position: absolute;
+  width: 2560px;
+  height: 1440px;
+  transform-origin: top left;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: #1e1e1e;
+  box-shadow: 0 0 40px rgba(78, 201, 176, 0.1);
+  border: 1px solid #2d2d30;
+}
+
+/* Form layout container */
+.formLayout {
+  background-color: #1e1e1e;
+  border: none;
+  padding: 0;
+  flex: 1;
+  color: #d4d4d4;
+  font-size: 32px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Slide */
+.slide {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  padding: 50px;
+  --slide-density-scale: 1.1;
+  font-size: calc(
+    32px * var(--deck-typography-scale, 1) *
+    var(--slide-density-scale)
+  );
+}
+
+.slide.hero {
+  --slide-density-scale: 1.32;
+}
+
+.slide.roomy {
+  --slide-density-scale: 1.2;
+}
+
+.slide.dense {
+  --slide-density-scale: 0.94;
+}
+
+.slide.compact {
+  --slide-density-scale: 0.82;
+}
+
+.slide h1 {
+  font-size: 2.6em;
+  margin: 0.3em 0;
+  text-align: left;
+  color: #4ec9b0;
+  font-weight: 500;
+  text-shadow: 0 0 24px rgba(78, 201, 176, 0.45);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  line-height: 1.1;
+  border-bottom: 2px solid #4ec9b0;
+  padding-bottom: 0.15em;
+  margin-bottom: 0.2em;
+}
+
+.slide h2 {
+  font-size: 1.05em;
+  margin: 0.3em 0;
+  text-align: left;
+  color: #9cdcfe;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  margin-top: 0;
+  margin-bottom: 0.8em;
+}
+
+.slide h3 {
+  font-size: 1.8em;
+  margin: 0.3em 0;
+  color: #ce9178;
+  font-weight: 400;
+}
+
+.slide p {
+  font-size: 1.4em;
+  line-height: 1.6;
+  margin: 0.5em 0;
+  color: #d4d4d4;
+}
+
+.slide ul, .slide ol {
+  font-size: 1.3em;
+  line-height: 1.7;
+  margin: 0.5em 0;
+}
+
+.slide li {
+  margin: 0.3em 0;
+  color: #d4d4d4;
+}
+
+/* Code blocks */
+/* Code blocks. Typewriters are terminal lines, not listings: no box. */
+.slide pre:not([id^="typewriter-"]) {
+  font-size: 1.2em;
+  line-height: 1.4;
+  max-width: 100%;
+  overflow: auto;
+  background-color: #252526;
+  border: 1px solid #3e3e42;
+  border-radius: 4px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.slide code {
+  font-family: 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+  color: #ce9178;
+  background-color: #252526;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.slide pre code {
+  background-color: transparent;
+  padding: 0;
+  color: #d4d4d4;
+}
+
+/* Emphasis and strong */
+.slide strong {
+  color: #4ec9b0;
+  font-weight: 500;
+}
+
+.slide em {
+  color: #9cdcfe;
+  font-style: italic;
+}
+
+/* Links */
+a {
+  color: #4ec9b0;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: #6ee7d2;
+  text-decoration: underline;
+}
+
+/* Slide progress bar */
+#slideProgress {
+  width: 100%;
+  background-color: #2d2d30;
+}
+
+#slideBar {
+  width: 1%;
+  height: 5px;
+  background-color: #4ec9b0;
+  box-shadow: 0 0 10px rgba(78, 201, 176, 0.5);
+}
+
+/* Alignment modifiers */
+.align-left {
+  text-align: left;
+}
+
+.align-center {
+  text-align: center;
+}
+
+.align-center ul,
+.align-center ol {
+  list-style-position: inside;
+}
+
+.align-right {
+  text-align: right;
+}
+
+.align-right ul,
+.align-right ol {
+  list-style-position: inside;
+}
+
+/* Column layout support */
+.slide .column {
+  flex: 1;
+  padding: 0 15px;
+  box-sizing: border-box;
+}
+
+.slide .column:first-of-type {
+  padding-left: 0;
+}
+
+.slide .column:last-of-type {
+  padding-right: 0;
+}
+
+/* Buttons */
+button {
+  background-color: #2d2d30;
+  border: 1px solid #3e3e42;
+  color: #d4d4d4;
+  font-family: 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+  font-size: 1em;
+  font-weight: 400;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+button:hover {
+  background-color: #3e3e42;
+  border-color: #4ec9b0;
+}
+
+button:active {
+  background-color: #252526;
+}
+
+/* Footer bar */
+.footer-bar {
+  background-color: #252526;
+  border-top: 1px solid #3e3e42;
+  padding: 15px 50px;
+  color: #858585;
+  font-size: 18px;
+  overflow: hidden;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer {
+  color: #858585;
+  font-size: 18px;
+}
+
+/* Tables */
+td, th {
+  border: 1px solid #3e3e42;
+  padding: 0.5rem;
+  text-align: center;
+  color: #d4d4d4;
+}
+
+th {
+  background-color: #2d2d30;
+  color: #4ec9b0;
+  font-weight: 500;
+}
+
+/* Images */
+img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+/* Selection */
+::selection {
+  background: #4ec9b0;
+  color: #1e1e1e;
+}
+
+/* Behavior Effects */
+
+/* Snippet/bullet visibility */
+.snippet {
+  color: #d4d4d4;
+  margin-bottom: 0.7rem;
+}
+
+/* TTY/Terminal style */
+.tty {
+  color: #d4d4d4;
+  background-color: #1e1e1e;
+}
+
+/* Line positioning for effects */
+.line-1 {
+  position: relative;
+  top: 5%;
+  width: 50em;
+  margin: 0 auto;
+  font-size: 180%;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  transform: translateY(-50%);
+}
+
+/* Typewriter animation */
+.anim-typewriter {
+  animation: typewriter 4s steps(44) 1s 1 normal both,
+             blinkTextCursor 500ms steps(44) infinite normal;
+}
+
+@keyframes typewriter {
+  from { width: 0; }
+  to { width: 50em; }
+}
+
+@keyframes blinkTextCursor {
+  from { border-right-color: #4ec9b0; }
+  to { border-right-color: transparent; }
+}
+
+/* Typing effect with cursor */
+.typing {
+  font-size: 2em;
+  margin: 0;
+  font-family: 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+}
+
+.typing:after {
+  content: "|";
+  animation: blink 500ms linear infinite alternate;
+}
+
+@-webkit-keyframes blink {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@-moz-keyframes blink {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes blink {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* Typewriter effect for pre/code blocks */
+.typewriter pre {
+  overflow: hidden;
+  border-right: .15em solid #4ec9b0;
+  white-space: nowrap;
+  margin: 0 auto;
+  letter-spacing: .15em;
+  animation:
+    typing 3.5s steps(40, end),
+    blink-caret .75s step-end infinite;
+  color: #d4d4d4;
+}
+
+/* Typewriter elements by ID */
+pre[id^="typewriter-"] {
+  color: #d4d4d4;
+  font-family: 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+  margin: 0.3em 0;
+}
+
+/* Console highlighting (assets/js/slidedown.js consoleHighlight) */
+.tw-prompt { color: #6a9955; }
+.tw-cmd    { color: #4ec9b0; }
+.tw-arg    { color: #d4d4d4; }
+.tw-flag   { color: #9cdcfe; }
+.tw-value  { color: #ce9178; }
+.tw-str    { color: #ce9178; }
+.tw-op     { color: #c586c0; }
+.tw-out    { color: #858585; }
+
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes blink-caret {
+  from, to { border-color: transparent; }
+  50% { border-color: #4ec9b0; }
+}
+
+/* Blinking text */
+.blinking {
+  animation: blinkingText 1.2s infinite;
+}
+
+@keyframes blinkingText {
+  0% { color: #d4d4d4; }
+  49% { color: #d4d4d4; }
+  60% { color: transparent; }
+  99% { color: transparent; }
+  100% { color: #d4d4d4; }
+}
+
+/* Syntax highlighting helpers */
+.var-highlight {
+  color: #9cdcfe;
+}
+
+.string-highlight {
+  color: #ce9178;
+}
+
+/* Container for pre alignment */
+.container {
+  text-align: left;
+  font-size: 40px;
+}
+
+.container pre {
+  display: inline-block;
+  text-align: left;
+}
+
+/* Watermark system */
+.slide .watermark {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.5;
+}
+
+/* Watermark positioning - 9 positions */
+.watermark.top-left {
+  top: 30px;
+  left: 30px;
+}
+
+.watermark.top-center {
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.watermark.top-right {
+  top: 30px;
+  right: 30px;
+}
+
+.watermark.center-left {
+  top: 50%;
+  left: 30px;
+  transform: translateY(-50%);
+}
+
+.watermark.center-right {
+  top: 50%;
+  right: 30px;
+  transform: translateY(-50%);
+}
+
+.watermark.bottom-left {
+  bottom: 30px;
+  left: 30px;
+}
+
+.watermark.bottom-center {
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.watermark.bottom-right {
+  bottom: 30px;
+  right: 30px;
+}
+
+/* Center position (both axes) */
+.watermark.center {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* -------------------------------------- */
+/* Nexus navigation                       */
+/* -------------------------------------- */
+
+/* The bracketed index is generated, not authored, so the number shown
+   is always the digit key that triggers it. Renumbering a menu is
+   therefore impossible to get wrong. */
+.sd-nexus {
+  counter-reset: sd-jump;
+  display: block;
+}
+
+.sd-jump {
+  color: #d4d4d4;
+  text-decoration: none;
+  border-bottom: 1px dashed transparent;
+  transition: color 0.15s ease, border-color 0.15s ease, opacity 0.2s ease;
+}
+
+.sd-jump::before {
+  counter-increment: sd-jump;
+  content: "[" counter(sd-jump) "] ";
+  color: #dcdcaa;
+  font-weight: bold;
+}
+
+.sd-jump:hover {
+  color: #4ec9b0;
+  border-bottom-color: #4ec9b0;
+  text-decoration: none;
+}
+
+.sd-jump:focus-visible {
+  outline: 1px solid #4ec9b0;
+  outline-offset: 4px;
+}
+
+.sd-jump--visited {
+  opacity: 0.45;
+}
+
+/* Choosing an entry: an inverse-video flash, twice, as old terminal menus
+   did, before the zoom carries it away. The beat is lengthened to fit. */
+:root {
+  --sd-hit-ms: 360;
+}
+
+@keyframes sd-terminal-hit {
+  0%, 22%   { background: #4ec9b0; color: #141414; }
+  23%, 45%  { background: transparent; color: #4ec9b0; }
+  46%, 100% { background: #4ec9b0; color: #141414; }
+}
+
+.sd-jump--selected {
+  filter: none;
+  outline: 1px solid #4ec9b0;
+  outline-offset: 0.25em;
+  border-radius: 2px;
+  animation: sd-terminal-hit 0.36s steps(1, end) 1 both;
+}
+
+/* Up/Down cursor on a nexus: a selection box, as in a terminal menu. */
+.sd-jump--cursor {
+  color: #4ec9b0;
+  text-decoration: none;
+  filter: none;
+  outline: 1px solid #4ec9b0;
+  outline-offset: 0.25em;
+  border-radius: 2px;
+  background: rgba(78, 201, 176, 0.08);
+}
+
+.sd-jump--visited::before {
+  color: #6a9955;
+}
+
+/* ---- Layout ---- */
+.slide .body {
+  font-size: 1.12em;
+  line-height: 1.4;
+}
+
+.snippet::before {
+  color: #6a9955;
+}
+
+.navbar-container {
+  display: none;
+}
+
+.container > br {
+  display: none;
+}
+
+
+/* ---- Takeaway, source, captions ---- */
+.prompt {
+  color: #dcdcaa;
+  background: rgba(220, 220, 170, 0.08);
+  border-left: 4px solid #dcdcaa;
+  padding: 14px 18px;
+  margin-top: 28px;
+  letter-spacing: 1px;
+}
+
+.dim {
+  color: #6a9955;
+}
+
+.src {
+  font-size: 0.5em;
+  color: #6a9955;
+  margin-top: 0.6em;
+  letter-spacing: 0.5px;
+}
+
+.num {
+  color: #dcdcaa;
+  font-weight: bold;
+}
+
+.cursor {
+  display: inline-block;
+  color: #4ec9b0;
+  font-weight: bold;
+  animation: blink 500ms linear infinite alternate;
+}
+
+
+/* ---- Nexus inside a terminal window: entries print line by line after the command finishes ---- */
+.term .sd-nexus {
+  margin-top: 0.6em;
+}
+
+.term .sd-nexus > div {
+  margin-bottom: 0.45rem;
+  padding-left: 1.2em;
+}
+
+.term:has(> .snippet:not(.sl-hidden)) > pre::after, .term:has(> .sd-nexus) > pre.tw-done::after {
+  content: none;
+  animation: none;
+}
+
+.term > pre:not(.tw-done) ~ .sd-nexus > div, .term > pre:not(.tw-done) ~ .sd-nexus::after {
+  visibility: hidden;
+}
+
+.term > .sd-nexus::after {
+  content: '▊';
+  color: #4ec9b0;
+  animation: blink 500ms linear infinite alternate;
+  display: block;
+  padding-left: 1.2em;
+}
+
+.term > pre.tw-done ~ .sd-nexus::after {
+  transition: visibility 0s linear 0.6s;
+}
+
+.term > pre.tw-done ~ .sd-nexus > div:nth-child(1) {
+  transition: visibility 0s linear 0.00s;
+}
+
+.term > pre.tw-done ~ .sd-nexus > div:nth-child(2) {
+  transition: visibility 0s linear 0.07s;
+}
+
+.term > pre.tw-done ~ .sd-nexus > div:nth-child(3) {
+  transition: visibility 0s linear 0.14s;
+}
+
+.term > pre.tw-done ~ .sd-nexus > div:nth-child(4) {
+  transition: visibility 0s linear 0.21s;
+}
+
+.term > pre.tw-done ~ .sd-nexus > div:nth-child(5) {
+  transition: visibility 0s linear 0.28s;
+}
+
+.term > pre.tw-done ~ .sd-nexus > div:nth-child(6) {
+  transition: visibility 0s linear 0.35s;
+}
+
+.term > pre.tw-done ~ .sd-nexus > div:nth-child(7) {
+  transition: visibility 0s linear 0.42s;
+}
+
+.term > pre.tw-done ~ .sd-nexus > div:nth-child(8) {
+  transition: visibility 0s linear 0.49s;
+}
+
+.term > pre.tw-done ~ .sd-nexus > div:nth-child(9) {
+  transition: visibility 0s linear 0.56s;
+}
+
+.term > pre.tw-done ~ .sd-nexus > div:nth-child(10) {
+  transition: visibility 0s linear 0.63s;
+}
+
+.term > pre.tw-done ~ .sd-nexus > div:nth-child(11) {
+  transition: visibility 0s linear 0.70s;
+}
+
+.term > pre.tw-done ~ .sd-nexus > div:nth-child(12) {
+  transition: visibility 0s linear 0.77s;
+}
+
+
+/* ---- Terminal window ---- */
+.term {
+  position: relative;
+  background: #141414;
+  border: 1px solid #3e3e42;
+  border-radius: 10px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+  padding: 88px 40px 30px 40px;
+  margin: 30px 0 10px 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.term::before {
+  content: var(--term-label, 'terminal');
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 52px;
+  line-height: 52px;
+  text-align: center;
+  font-size: 0.6em;
+  letter-spacing: 1px;
+  color: #858585;
+  background: radial-gradient(circle at 30px 50%, #ff5f57 9px, transparent 10px), radial-gradient(circle at 60px 50%, #febc2e 9px, transparent 10px), radial-gradient(circle at 90px 50%, #28c840 9px, transparent 10px), #2d2d30;
+  border-bottom: 1px solid #3e3e42;
+  border-radius: 10px 10px 0 0;
+}
+
+.term > pre {
+  margin-bottom: 0.5em;
+}
+
+.term .snippet {
+  margin-bottom: 0.35rem;
+  padding-left: 2.8em;
+  text-indent: -1.6em;
+}
+
+.term .snippet::before {
+  display: inline-block;
+  width: 1.6em;
+  margin-right: 0;
+  text-indent: 0;
+}
+
+.term .snippet:has(pre) {
+  padding-left: 0;
+  text-indent: 0;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
+
+.term .snippet:has(pre)::before {
+  display: none;
+}
+
+.term > pre::after {
+  content: '▊';
+  color: #4ec9b0;
+  animation: blink 500ms linear infinite alternate;
+}
+
+.term > .snippet:not(.sl-hidden, :has(~ .snippet:not(.sl-hidden)))::after {
+  content: '▊';
+  color: #4ec9b0;
+  animation: blink 500ms linear infinite alternate;
+  margin-left: 0.15em;
+}
+
+
+/* ---- Text bar charts. Interim: rows are hand-marked spans with width classes (wN = N ch);
+   to be replaced by a .bars directive that emits widths itself. ---- */
+.lbl {
+  display: inline-block;
+  width: 20ch;
+  text-indent: 0;
+}
+
+.bar {
+  color: #4ec9b0;
+}
+
+.pct {
+  color: #dcdcaa;
+  font-weight: bold;
+  margin-left: 0.6ch;
+}
+
+.term .snippet:has(.lbl)::before, .term .snippet:has(> .dim:only-child)::before {
+  content: '';
+}
+
+.pair {
+  display: inline-block;
+  width: 19ch;
+  text-indent: 0;
+}
+
+.pair > .dim {
+  margin-left: 0.6ch;
+}
+
+.barp {
+  color: #4ec9b0;
+}
+
+.barpn {
+  color: #4ec9b0;
+  font-weight: bold;
+  margin-left: 0.5ch;
+}
+
+.barg {
+  color: #c586c0;
+}
+
+.bargn {
+  color: #c586c0;
+  font-weight: bold;
+  margin-left: 0.5ch;
+}
+
+.term .snippet:has(.pair)::before, .term .snippet:has(> .dim:only-child)::before {
+  content: '';
+}
+
+.grow {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  vertical-align: bottom;
+  text-indent: 0;
+  transition: width 0.9s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.fill {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-indent: 0;
+}
+
+.snippet:not(.sl-hidden) .grow {
+  width: var(--w);
+}
+
+.grow::after {
+  content: '';
+  position: absolute;
+  top: 12%;
+  bottom: 12%;
+  right: -0.25ch;
+  width: 0.5ch;
+  border-radius: 40%;
+  background: #ffffff;
+  box-shadow: 0 0 10px 3px currentColor, 0 0 28px 10px currentColor;
+  opacity: 1;
+  pointer-events: none;
+}
+
+.snippet:not(.sl-hidden) .grow::after {
+  opacity: 0;
+  transition: opacity 0.45s ease-out 0.85s;
+}
+
+.snippet:not(.sl-hidden) .grow.g2 {
+  transition-delay: 0.25s;
+}
+
+.snippet:not(.sl-hidden) .grow.g2::after {
+  transition: opacity 0.45s ease-out 1.1s;
+}
+
+.grow.w1 {
+  --w: 1ch;
+}
+
+.grow.w2 {
+  --w: 2ch;
+}
+
+.grow.w3 {
+  --w: 3ch;
+}
+
+.grow.w4 {
+  --w: 4ch;
+}
+
+.grow.w5 {
+  --w: 5ch;
+}
+
+.grow.w6 {
+  --w: 6ch;
+}
+
+.grow.w7 {
+  --w: 7ch;
+}
+
+.grow.w8 {
+  --w: 8ch;
+}
+
+.grow.w9 {
+  --w: 9ch;
+}
+
+.grow.w10 {
+  --w: 10ch;
+}
+
+.grow.w11 {
+  --w: 11ch;
+}
+
+.grow.w12 {
+  --w: 12ch;
+}
+
+.grow.w13 {
+  --w: 13ch;
+}
+
+.grow.w14 {
+  --w: 14ch;
+}
+
+.grow.w15 {
+  --w: 15ch;
+}
+
+.grow.w16 {
+  --w: 16ch;
+}
+
+.grow.w17 {
+  --w: 17ch;
+}
+
+.grow.w18 {
+  --w: 18ch;
+}
+
+.grow.w19 {
+  --w: 19ch;
+}
+
+.grow.w20 {
+  --w: 20ch;
+}
+
+.grow.w21 {
+  --w: 21ch;
+}
+
+.barl {
+  color: #f14c4c;
+}
+
+.pctl {
+  color: #f14c4c;
+  font-weight: bold;
+  margin-left: 0.6ch;
+}
+
+.slide .term pre {
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+  font-size: 1em;
+  color: #4ec9b0;
+}
+
+}
