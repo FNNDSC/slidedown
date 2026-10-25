@@ -130,6 +130,7 @@ Common formatting and behavior directives:
 - `.o{}` progressive reveal bullet/snippet
 - `.nexus{}` / `.jump{}` hub-and-spoke menus (see [Nexus Decks](#nexus-decks-hub-and-spokes))
 - `.bars{}` bar charts from data (see [Bar Charts](#bar-charts))
+- `.term{}`, `.takeaway{}`, `.source{}` terminal window, key line, source line
 
 ## Nexus Decks (Hub and Spokes)
 
@@ -258,6 +259,11 @@ the legend -- and give each bar one `.value{}` per key, in order:
 }
 ```
 
+More examples, including vertical charts, in
+[`examples/bars/bars-demo.sd`](examples/bars/bars-demo.sd). A directive name
+written in prose must be escaped (`\.unit\{\}`); an unescaped chart part
+outside a `.bars{}` fails the build.
+
 ## Themes
 
 Use `--theme` to select a theme:
@@ -275,18 +281,18 @@ Included themes:
 - `retro-terminal`
 - `lcars-lower-decks`
 
-In `command-line`, a `.div{.class{term} ...}` block becomes a terminal window:
-its typed command, then its bullets, with the cursor following the last
-revealed line. A nexus inside one prints line by line once the command
-finishes. `.div{.class{prompt} ...}` is a takeaway bar, `.div{.class{src} ...}`
-a source line, `.span{.class{dim} ...}` a caption.
+In `command-line`, `.term{}` is a terminal window: its typed command, then
+its bullets, with the cursor following the last revealed line. A nexus
+inside one prints line by line once the command finishes. `.takeaway{}` is
+the slide's one line to remember, `.source{}` its source line.
 
 ```slidedown
-.div{.class{term}
+.term{
 .typewriter{$> whatido --at=bch}
   .o{Build the infrastructure that runs research computation inside a hospital.}
 }
-.div{.class{prompt} THE HARD PART WAS NEVER THE MODEL.}
+.takeaway{THE HARD PART WAS NEVER THE MODEL.}
+.source{FNNDSC, Boston Children's Hospital}
 ```
 
 Window titles come from one template in `.meta`, filled in per slide from

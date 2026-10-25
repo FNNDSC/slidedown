@@ -1,0 +1,139 @@
+.meta{
+  title: "Bar Chart Examples"
+  theme: "command-line"
+  transition: zoom
+  label: "demo@slidedown: ~ {slide}"
+  typography:
+    baseline: presentation
+  snippets:
+    marker: "▸ "
+}
+
+.slide{.id{single}
+  .title{One Series}
+  .body{
+    .h1{One Series}
+    .h2{The largest value fills the width; \.unit\{\} is appended to each value}
+    .term{
+.typewriter{$> survey --year=2026}
+      .bars{.unit{%} .max{100}
+        .caption{share using any AI, 2026}
+        .bar{health systems .value{75}}
+        .bar{physicians .value{81}}
+        .bar{radiology .value{76}}
+      }
+    }
+    .takeaway{A FIXED MAX MAKES PERCENTAGES READ AS PERCENTAGES.}
+    .source{Illustrative figures}
+  }
+}
+
+.slide{.id{colour}
+  .title{Colour per Bar}
+  .body{
+    .h1{Colour per Bar}
+    .h2{\.color\{\} on a \.bar\{\}; \.show\{\} when the printed text differs from the value}
+    .term{
+.typewriter{$> stats --labs --year=2025}
+      .bars{
+        .caption{$ billions}
+        .bar{OpenAI earned .value{13.1} .show{$13.1B}}
+        .bar{.color{red} OpenAI lost .value{20.9} .show{$20.9B}}
+        .bar{Anthropic earned .value{4.6} .show{$4.6B}}
+        .bar{.color{red} Anthropic lost .value{8.1} .show{$8.1B}}
+      }
+    }
+    .takeaway{UNCOLOURED BARS USE THE THEME'S DEFAULT.}
+  }
+}
+
+.slide{.id{grouped}
+  .title{Grouped}
+  .body{
+    .h1{Grouped Bars}
+    .h2{\.key\{\} declares each series and draws the legend; one \.value\{\} per key}
+    .term{
+.typewriter{$> stats --by=hospital}
+      .bars{.unit{%} .max{100}
+        .key{.color{accent} predictive}
+        .key{.color{magenta} generative}
+        .key{.color{yellow} imaging}
+        .bar{urban .value{81} .value{35.5} .value{40}}
+        .bar{rural .value{56} .value{25.4} .value{18}}
+      }
+    }
+  }
+}
+
+.slide{.id{groups}
+  .title{Two Scales}
+  .body{
+    .h1{Two Scales in One Chart}
+    .h2{Each \.caption\{\} starts a new scale, so groups can use different units}
+    .term{
+.typewriter{$> stats --economics}
+      .bars{
+        .caption{revenue to 2030, $ trillions}
+        .bar{needed .value{8.5} .show{$8.5T}}
+        .bar{forecast .value{3.6} .show{$3.6T}}
+        .caption{capacity added per year, gigawatts}
+        .bar{2024 .value{6.4} .show{6.4 GW}}
+        .bar{2025 .value{8.5} .show{8.5 GW}}
+        .bar{.color{orange} 2026 scheduled .value{13.6} .show{13.6 GW}}
+      }
+    }
+  }
+}
+
+.slide{.id{units}
+  .title{Mixed Units}
+  .body{
+    .h1{Mixed Units}
+    .h2{\.value\{\} in one unit for the length, \.show\{\} in whatever reads best}
+    .term{
+.typewriter{$> bench --task=repair}
+      .bars{
+        .caption{median time to finish}
+        .bar{hosted model .value{74} .show{74 s}}
+        .bar{local, GPU box .value{540} .show{9 min}}
+        .bar{local, laptop .value{660} .show{11 min}}
+      }
+    }
+  }
+}
+
+.slide{.id{vertical}
+  .title{Vertical}
+  .body{
+    .h1{Vertical}
+    .h2{\.layout\{vertical\} draws columns; each group rises in turn}
+    .term{
+.typewriter{$> capacity --by=year}
+      .bars{.layout{vertical} .unit{GW}
+        .caption{US data-centre capacity added}
+        .bar{2023 .value{4.1}}
+        .bar{2024 .value{6.4}}
+        .bar{2025 .value{8.5}}
+        .bar{.color{orange} 2026 plan .value{13.6}}
+      }
+    }
+  }
+}
+
+.slide{.id{vertical-grouped}
+  .title{Vertical, Grouped}
+  .body{
+    .h1{Vertical, Grouped}
+    .term{
+.typewriter{$> stats --by=hospital --vertical}
+      .bars{.layout{vertical} .unit{%} .max{100}
+        .key{.color{accent} predictive}
+        .key{.color{magenta} generative}
+        .bar{system .value{86} .value{38.5}}
+        .bar{independent .value{37} .value{16.3}}
+        .bar{urban .value{81} .value{35.5}}
+        .bar{rural .value{56} .value{25.4}}
+      }
+    }
+  }
+}

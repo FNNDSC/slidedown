@@ -135,3 +135,14 @@ class TestVertical:
     def test_bar_without_value(self) -> None:
         with pytest.raises(BarsError):
             html_compile(deck(".bars{.bar{a}}"))
+
+
+class TestStrayParts:
+    def test_part_outside_a_chart_fails_the_build(self) -> None:
+        with pytest.raises(BarsError, match="outside a .bars"):
+            html_compile(deck(".h2{set the .unit{GW} here}"))
+
+    def test_escaped_name_does_not_fail(self) -> None:
+        # Escaped, it is text (restored to ".unit{}" by the full build).
+        html, _ = html_compile(deck(r".h2{set \.unit\{\} here}"))
+        assert "<h2>set " in html
