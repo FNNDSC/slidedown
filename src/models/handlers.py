@@ -15,6 +15,7 @@ from .compiler import (
     PresentationMetaConfig,
     SlideAddresses,
     SlideCounters,
+    SlideLabels,
     ThemeLike,
 )
 from .parser import Modifiers
@@ -42,6 +43,7 @@ class CompilerContext(Protocol):
     escaped_sequences: PlaceholderMap
     slide_addresses: SlideAddresses
     slide_count: int
+    slide_labels: SlideLabels
     snippet_counters: SlideCounters
     theme: ThemeLike
     typewriter_counters: SlideCounters

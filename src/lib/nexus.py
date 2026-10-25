@@ -24,6 +24,7 @@ from ..models.compiler import (
     NexusPlacements,
     SlideAddresses,
     SlideCounters,
+    SlideLabels,
 )
 
 # Schema version for the emitted navigation graph. The runtime reads this
@@ -515,3 +516,106 @@ def navigationGraph_htmlEmit(
         f'    <script type="application/json" id="{GRAPH_ELEMENT_ID}">'
         f'{payload.replace("<", chr(92) + "u003c")}</script>'
     )
+
+
+def _label_fill(template: str, number: str, spoke: str, slide: str) -> str:
+    """Substitute label placeholders and tidy the whitespace they leave."""
+    text: str = (
+        template.replace("{n}", number)
+        .replace("{spoke}", spoke)
+        .replace("{slide}", slide)
+    )
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def slideLabels_compute(
+    template: str,
+    addresses: SlideAddresses,
+    jump_refs: JumpRefs,
+    placements: NexusPlacements,
+    slide_count: int,
+    overrides: SlideLabels | None = None,
+) -> SlideLabels:
+    """
+    Work out a label for every slide from where it sits in the deck.
+
+    Themes show the label wherever they choose -- the command-line theme
+    puts it in each terminal window's title bar. Deriving it from the
+    navigation graph means it follows the slides when they move, where a
+    per-slide-number rule would silently attach to the wrong slide.
+
+    Placeholders:
+
+    * ``{spoke}`` -- the address of the spoke the slide belongs to, hyphens
+      as spaces; for a slide outside any spoke, its own address.
+    * ``{n}`` -- that spoke's position in the menu that opens it, two
+      digits (``03``); empty outside a spoke.
+    * ``{slide}`` -- the slide's own address, hyphens as spaces.
+
+    Runs of whitespace left by an empty placeholder collapse to one space.
+    A ``.label{}`` on a slide replaces its label outright (placeholders
+    still apply).
+
+    Args:
+        template: Label template from ``.meta{label: ...}``; may be empty.
+        addresses: Completed address map.
+        jump_refs: Recorded (target_address, source_slide) pairs.
+        placements: Nexus placements, in document order.
+        slide_count: Total slides in the deck.
+        overrides: Per-slide ``.label{}`` text.
+
+    Returns:
+        Slide number -> label, for every slide that has one.
+    """
+    overrides = overrides or {}
+    if not template and not overrides:
+        return {}
+
+    address_bySlide: dict[int, str] = {
+        slide: address for address, slide in addresses.items()
+    }
+    number_byAddress: dict[str, str] = {}
+    for _id, _slide, jumps in placements:
+        for position, target in enumerate(jumps, start=1):
+            number_byAddress.setdefault(target, f"{position:02d}")
+
+    spoke_bySlide: dict[int, str] = {}
+    for spoke in spokes_compute(addresses, jump_refs, placements, slide_count):
+        for slide in range(int(spoke["start"]), int(spoke["end"]) + 1):
+            spoke_bySlide[slide] = str(spoke["address"])
+
+    labels: SlideLabels = {}
+    for slide in range(1, slide_count + 1):
+        own: str = address_bySlide.get(slide, "").replace("-", " ")
+        spoke_address: str | None = spoke_bySlide.get(slide)
+        if spoke_address is not None:
+            number = number_byAddress.get(spoke_address, "")
+            spoke = spoke_address.replace("-", " ")
+        else:
+            number, spoke = "", own
+        chosen: str = overrides.get(slide, template)
+        if chosen:
+            labels[slide] = _label_fill(chosen, number, spoke, own)
+    return labels
+
+
+def slideLabelsCSS_generate(labels: SlideLabels) -> str:
+    """
+    Render slide labels as the ``--sd-label`` custom property per slide.
+
+    Args:
+        labels: Slide number -> label text.
+
+    Returns:
+        CSS rules, one per labelled slide; empty when there are none.
+    """
+    rules: list[str] = []
+    for slide, text in sorted(labels.items()):
+        quoted: str = (
+            text.replace("\\", "\\\\")
+            .replace("'", "\\'")
+            .replace("\n", " ")
+            .replace("<", "\\3c ")
+        )
+        rules.append(f"#slide-{slide} {{ --sd-label: '{quoted}'; }}")
+    return "\n".join(rules)

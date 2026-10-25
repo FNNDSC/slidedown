@@ -585,6 +585,13 @@ navigation:
   show_buttons: true
   show_progress: true
 
+# Per-slide label, filled from where each slide sits (themes decide where
+# to show it; command-line puts it in each terminal window's title bar).
+# {spoke}: the slide's spoke, or its own address outside any spoke
+# {n}: that spoke's number in its menu (03); {slide}: the slide's address
+# A slide overrides with .label{...}
+label: "me@host: ~ {n} {spoke}"
+
 watermarks:
   - image: path/to/image.svg
     position: bottom-right  # top-left, top-center, top-right,

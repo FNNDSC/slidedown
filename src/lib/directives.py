@@ -257,11 +257,16 @@ class DirectiveRegistry:
             # empty. Both are metadata-only children of .slide{}.
             title_content: str = ""
             id_content: str = ""
+            label_content: str = ""
             for child in node.children:
                 if child.directive == "title" and not title_content:
                     title_content = child.content
                 elif child.directive == "id" and not id_content:
                     id_content = child.content
+                elif child.directive == "label" and not label_content:
+                    label_content = child.content.strip()
+            if label_content:
+                compiler.slide_labels[slide_num] = label_content
 
             # Nexus addressing: explicit .id{} wins, else slugified title.
             # Collisions raise, so a deck cannot ship with two slides
@@ -454,6 +459,20 @@ class DirectiveRegistry:
             """
             return ""
 
+        def label_handler(
+            node: DirectiveNode, compiler: CompilerContext
+        ) -> str:
+            """Compile a per-slide label override.
+
+            Args:
+                node: Parsed ``.label{}`` AST node.
+                compiler: Active compiler instance.
+
+            Returns:
+                Empty string; slide_handler reads the label off the node.
+            """
+            return ""
+
         def title_handler(
             node: DirectiveNode, compiler: CompilerContext
         ) -> str:
@@ -594,6 +613,19 @@ class DirectiveRegistry:
                 description="Explicit slide address for nexus navigation",
                 handler=id_handler,
                 examples=[".slide{.id{rerun} .title{Re-Run} .body{...}}"],
+            )
+        )
+
+        self.register(
+            DirectiveSpec(
+                name="label",
+                category=DirectiveCategory.STRUCTURAL,
+                description=(
+                    "Slide label override (metadata); default comes from "
+                    ".meta{label: ...}"
+                ),
+                handler=label_handler,
+                examples=[".slide{.label{~/nsdf2026} .body{...}}"],
             )
         )
 

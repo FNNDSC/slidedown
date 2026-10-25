@@ -26,6 +26,7 @@ from ..models.compiler import (
     PresentationMetaConfig,
     ProgressConfig,
     SlideAddresses,
+    SlideLabels,
     SnippetsConfig,
     ThemeLike,
     TypographyConfig,
@@ -55,6 +56,7 @@ class CompilerRenderer(Protocol):
     nexus_placements: NexusPlacements
     slide_addresses: SlideAddresses
     slide_count: int
+    slide_labels: SlideLabels
     standalone: bool
     theme: ThemeLike
     watch: bool
@@ -302,6 +304,16 @@ def customCSS_generate(compiler: CompilerRenderer) -> str:
     import_statements: list[str] = []
     typography_css: str = typographyCSS_generate(compiler)
     snippets_css: str = snippetsCSS_generate(compiler)
+    labels_css: str = nexus.slideLabelsCSS_generate(
+        nexus.slideLabels_compute(
+            str(compiler.meta_config.get("label", "") or ""),
+            compiler.slide_addresses,
+            compiler.jump_refs,
+            compiler.nexus_placements,
+            compiler.slide_count,
+            compiler.slide_labels,
+        )
+    )
 
     if css_config and isinstance(css_config, dict):
         if is_nested_format:
@@ -312,6 +324,7 @@ def customCSS_generate(compiler: CompilerRenderer) -> str:
     if (
         not typography_css
         and not snippets_css
+        and not labels_css
         and not css_rules
         and not import_statements
     ):
@@ -324,6 +337,8 @@ def customCSS_generate(compiler: CompilerRenderer) -> str:
         style_content.append(typography_css)
     if snippets_css:
         style_content.append(snippets_css)
+    if labels_css:
+        style_content.append(labels_css)
     if css_rules:
         style_content.append("\n\n".join(css_rules))
 
