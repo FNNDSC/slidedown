@@ -8,7 +8,7 @@
  * .meta{label: ...} or --term-label); the cursor follows the last revealed line; a nexus inside a
  * window prints line by line once its command has finished typing; left-aligned
  * uppercase headings; a takeaway bar (`.prompt`), a source line (`.src`) and
- * dim captions (`.dim`); and animated text bar charts.
+ * dim captions (`.dim`); and the palette and flare for `.bars{}` charts.
  */
 
 /* Fira Code and JetBrains Mono fonts */
@@ -789,13 +789,30 @@ pre[id^="typewriter-"] {
   margin-left: 0.15em;
 }
 
+.slide .term pre {
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+  font-size: 1em;
+  color: #4ec9b0;
+}
 
-/* ---- Text bar charts. Interim: rows are hand-marked spans with width classes (wN = N ch);
-   to be replaced by a .bars directive that emits widths itself. ---- */
-.lbl {
-  display: inline-block;
-  width: 20ch;
-  text-indent: 0;
+
+/* ---- Bar charts (.bars{}) ----
+   Layout and growth come from slidedown's base CSS; the theme supplies the
+   palette .color{} names resolve to, the default bar and value colours, and
+   the flare that rides a growing bar's leading edge. */
+:root {
+  --sd-color-accent: #4ec9b0;
+  --sd-color-red: #f14c4c;
+  --sd-color-magenta: #c586c0;
+  --sd-color-yellow: #dcdcaa;
+  --sd-color-blue: #9cdcfe;
+  --sd-color-green: #6a9955;
+  --sd-color-orange: #ce9178;
+  --sd-color-muted: #858585;
 }
 
 .bar {
@@ -804,66 +821,6 @@ pre[id^="typewriter-"] {
 
 .pct {
   color: #dcdcaa;
-  font-weight: bold;
-  margin-left: 0.6ch;
-}
-
-.term .snippet:has(.lbl)::before, .term .snippet:has(> .dim:only-child)::before {
-  content: '';
-}
-
-.pair {
-  display: inline-block;
-  width: 19ch;
-  text-indent: 0;
-}
-
-.pair > .dim {
-  margin-left: 0.6ch;
-}
-
-.barp {
-  color: #4ec9b0;
-}
-
-.barpn {
-  color: #4ec9b0;
-  font-weight: bold;
-  margin-left: 0.5ch;
-}
-
-.barg {
-  color: #c586c0;
-}
-
-.bargn {
-  color: #c586c0;
-  font-weight: bold;
-  margin-left: 0.5ch;
-}
-
-.term .snippet:has(.pair)::before, .term .snippet:has(> .dim:only-child)::before {
-  content: '';
-}
-
-.grow {
-  display: inline-block;
-  position: relative;
-  width: 0;
-  vertical-align: bottom;
-  text-indent: 0;
-  transition: width 0.9s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-.fill {
-  display: block;
-  overflow: hidden;
-  white-space: nowrap;
-  text-indent: 0;
-}
-
-.snippet:not(.sl-hidden) .grow {
-  width: var(--w);
 }
 
 .grow::after {
@@ -885,116 +842,16 @@ pre[id^="typewriter-"] {
   transition: opacity 0.45s ease-out 0.85s;
 }
 
-.snippet:not(.sl-hidden) .grow.g2 {
-  transition-delay: 0.25s;
-}
-
 .snippet:not(.sl-hidden) .grow.g2::after {
   transition: opacity 0.45s ease-out 1.1s;
 }
 
-.grow.w1 {
-  --w: 1ch;
+.snippet:not(.sl-hidden) .grow.g3::after {
+  transition: opacity 0.45s ease-out 1.35s;
 }
 
-.grow.w2 {
-  --w: 2ch;
-}
-
-.grow.w3 {
-  --w: 3ch;
-}
-
-.grow.w4 {
-  --w: 4ch;
-}
-
-.grow.w5 {
-  --w: 5ch;
-}
-
-.grow.w6 {
-  --w: 6ch;
-}
-
-.grow.w7 {
-  --w: 7ch;
-}
-
-.grow.w8 {
-  --w: 8ch;
-}
-
-.grow.w9 {
-  --w: 9ch;
-}
-
-.grow.w10 {
-  --w: 10ch;
-}
-
-.grow.w11 {
-  --w: 11ch;
-}
-
-.grow.w12 {
-  --w: 12ch;
-}
-
-.grow.w13 {
-  --w: 13ch;
-}
-
-.grow.w14 {
-  --w: 14ch;
-}
-
-.grow.w15 {
-  --w: 15ch;
-}
-
-.grow.w16 {
-  --w: 16ch;
-}
-
-.grow.w17 {
-  --w: 17ch;
-}
-
-.grow.w18 {
-  --w: 18ch;
-}
-
-.grow.w19 {
-  --w: 19ch;
-}
-
-.grow.w20 {
-  --w: 20ch;
-}
-
-.grow.w21 {
-  --w: 21ch;
-}
-
-.barl {
-  color: #f14c4c;
-}
-
-.pctl {
-  color: #f14c4c;
-  font-weight: bold;
-  margin-left: 0.6ch;
-}
-
-.slide .term pre {
-  background: none;
-  border: none;
-  box-shadow: none;
-  padding: 0;
-  margin: 0;
-  font-size: 1em;
-  color: #4ec9b0;
+.snippet:not(.sl-hidden) .grow.g4::after {
+  transition: opacity 0.45s ease-out 1.6s;
 }
 
 }
