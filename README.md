@@ -129,6 +129,7 @@ Common formatting and behavior directives:
 - `.typewriter{}` typing animation
 - `.o{}` progressive reveal bullet/snippet
 - `.nexus{}` / `.jump{}` hub-and-spoke menus (see [Nexus Decks](#nexus-decks-hub-and-spokes))
+- `.bars{}` bar charts from data (see [Bar Charts](#bar-charts))
 
 ## Nexus Decks (Hub and Spokes)
 
@@ -216,6 +217,46 @@ From [Computing Infrastructure for Clinical AI](https://rudolphpienaar.github.io
 A runnable demo is in [`examples/nexus/nexus-demo.sd`](examples/nexus/nexus-demo.sd);
 the full design, including nested spokes, is in
 [`docs/nexus-navigation.adoc`](docs/nexus-navigation.adoc).
+
+## Bar Charts
+
+Write a chart as data; slidedown draws it, and each row reveals in turn
+with its bar growing from zero:
+
+```slidedown
+.bars{.unit{$B}
+  .caption{2025, $ billions}
+  .bar{OpenAI earned .value{13.1}}
+  .bar{.color{red} OpenAI lost .value{20.9}}
+}
+```
+
+Inside `.bar{}`, anything in a modifier is data and the bare text is the
+label:
+
+- `.value{13.1}` -- the number that sets the bar's length
+- `.show{$13.1B}` -- the text printed at the end of the bar (default: the
+  value plus the chart's `.unit{}`; use it when they differ, as in
+  `.value{540} .show{9 min}`)
+- `.color{red}` -- a theme palette name (`accent`, `red`, `magenta`,
+  `yellow`, `blue`, `green`, `orange`, `muted`) or any CSS colour
+
+On `.bars{}` itself: `.unit{...}`, `.max{N}` to fix the scale (otherwise the
+largest value fills the width), and `.layout{horizontal|vertical}`.
+`.caption{...}` adds a dim heading row and starts a new scale, so one chart
+can hold groups in different units.
+
+Grouped bars declare their series once with `.key{}` -- which also draws
+the legend -- and give each bar one `.value{}` per key, in order:
+
+```slidedown
+.bars{.unit{%} .max{100}
+  .key{.color{accent} predictive}
+  .key{.color{magenta} generative}
+  .bar{all hospitals .value{71} .value{31.5}}
+  .bar{rural .value{56} .value{25.4}}
+}
+```
 
 ## Themes
 

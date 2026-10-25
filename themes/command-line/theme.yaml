@@ -1,5 +1,5 @@
 name: "Command Line"
-description: "Terminal windows, typed commands, a cursor that follows the output, text bar charts"
+description: "Terminal windows, typed commands, a cursor that follows the output"
 author: "slidedown team"
 version: "1.0"
 

@@ -22,7 +22,7 @@ from pygments.util import ClassNotFound
 from ..models.compiler import PlaceholderMap, PresentationMetaConfig
 from ..models.directives import DirectiveCategory, DirectiveSpec
 from ..models.handlers import CompilerContext, DirectiveNode
-from . import directive_groups, nexus
+from . import bars, directive_groups, nexus
 from .lexer import SlidedownLexer
 from .log import LOG
 
@@ -158,6 +158,7 @@ class DirectiveRegistry:
         self.modifierDirectives_register()
         self.metadataDirectives_register()
         self.includeDirectives_register()
+        bars.barsDirectives_register(self)
 
     def register(self, spec: DirectiveSpec) -> None:
         """Register a directive specification.

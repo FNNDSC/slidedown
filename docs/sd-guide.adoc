@@ -549,6 +549,28 @@ def hello():
 
 These directives provide presentation-level configuration.
 
+==== .bars{}
+
+A bar chart written as data. See the README's "Bar Charts" section for the
+full reference.
+
+[source,slidedown]
+----
+.bars{.unit{%} .max{100}
+  .key{.color{accent} predictive}
+  .key{.color{magenta} generative}
+  .bar{all hospitals .value{71} .value{31.5}}
+  .caption{a dim heading row; starts a new scale}
+  .bar{.color{red} OpenAI lost .value{20.9} .show{$20.9B}}
+}
+----
+
+* `.bar{label .value{N} [.show{text}] [.color{c}]}` -- one row; grouped
+  charts take one `.value{}` per `.key{}`
+* `.key{.color{c} name}` -- a series and its legend entry
+* `.caption{text}` -- dim heading row; starts a new scale
+* On `.bars{}`: `.unit{}`, `.max{N}`, `.layout{horizontal|vertical}`
+
 ==== .meta{}
 
 Presentation metadata and configuration in YAML format. Overrides theme settings.
@@ -856,7 +878,7 @@ In the browser:
 
 * `default` - Dark terminal-style theme
 * `terminal` - Classic green-on-black terminal
-* `command-line` - The terminal theme with terminal windows (`.term`), a cursor that follows the output, takeaway (`.prompt`) and source (`.src`) lines, and text bar charts
+* `command-line` - The terminal theme with terminal windows (`.term`), a cursor that follows the output, takeaway (`.prompt`) and source (`.src`) lines, and the palette for `.bars{}` charts
 * `retro-terminal` - Vintage CRT terminal with effects
 * `conventional-light` - Google Slides inspired light theme
 
