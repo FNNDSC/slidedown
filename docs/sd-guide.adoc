@@ -818,7 +818,7 @@ Using the convenience script:
 
 Options:
 
-* `--theme <name>` - Use a specific theme (default, terminal, retro-terminal, conventional-light)
+* `--theme <name>` - Use a specific theme (default, terminal, command-line, retro-terminal, conventional-light, lcars-lower-decks)
 * `--outputdir <path>` - Output directory (default: ./output)
 * `--port <number>` - HTTP server port (default: 8000)
 * `--no-serve` - Don't start HTTP server after compilation
@@ -849,6 +849,7 @@ In the browser:
 
 * `default` - Dark terminal-style theme
 * `terminal` - Classic green-on-black terminal
+* `command-line` - The terminal theme with terminal windows (`.term`), a cursor that follows the output, takeaway (`.prompt`) and source (`.src`) lines, and text bar charts
 * `retro-terminal` - Vintage CRT terminal with effects
 * `conventional-light` - Google Slides inspired light theme
 

@@ -31,7 +31,7 @@ jobs:
 
       - name: Compile presentations for all themes
         run: |
-          THEMES="conventional-light default lcars-lower-decks retro-terminal terminal"
+          THEMES="command-line conventional-light default lcars-lower-decks retro-terminal terminal"
           SOURCE="docs/readme-presentation.sd"
 
           # Default presentation (conventional-light → docs/readme-presentation/)

@@ -13,6 +13,7 @@ View the README as an interactive presentation — pick a theme:
 
 | Theme | Live Demo |
 |---|---|
+| `command-line` | https://fnndsc.github.io/slidedown/themes/command-line/ |
 | `conventional-light` | https://fnndsc.github.io/slidedown/readme-presentation/ |
 | `default` | https://fnndsc.github.io/slidedown/themes/default/ |
 | `lcars-lower-decks` | https://fnndsc.github.io/slidedown/themes/lcars-lower-decks/ |
@@ -208,7 +209,7 @@ How it behaves:
 
 ![An outline after two sections were visited](docs/images/nexus-visited.png)
 
-*An outline in the `terminal` theme after sections 2 and 5 were visited.
+*An outline in the `command-line` theme after sections 2 and 5 were visited.
 From [Computing Infrastructure for Clinical AI](https://rudolphpienaar.github.io/NSDF2026/)
 ([source](https://github.com/rudolphpienaar/NSDF2026/blob/master/talk.sd)).*
 
@@ -226,11 +227,29 @@ slidedown input/ output/ --inputFile deck.sd --theme retro-terminal
 
 Included themes:
 
+- `command-line` (terminal windows around typed commands; see below)
 - `conventional-light`
 - `default`
 - `terminal`
 - `retro-terminal`
 - `lcars-lower-decks`
+
+In `command-line`, a `.div{.class{term} ...}` block becomes a terminal window:
+its typed command, then its bullets, with the cursor following the last
+revealed line. A nexus inside one prints line by line once the command
+finishes. `.div{.class{prompt} ...}` is a takeaway bar, `.div{.class{src} ...}`
+a source line, `.span{.class{dim} ...}` a caption.
+
+```slidedown
+.div{.class{term}
+.typewriter{$> whatido --at=bch}
+  .o{Build the infrastructure that runs research computation inside a hospital.}
+}
+.div{.class{prompt} THE HARD PART WAS NEVER THE MODEL.}
+```
+
+The window title comes from the `--term-label` CSS variable (default
+`terminal`).
 
 ## Deck Metadata
 
