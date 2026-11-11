@@ -566,6 +566,24 @@ and `.style{}` like any block.
 .source{Eliciting Insights, 2026}
 ----
 
+A terminal session with several commands puts each command in its own reveal,
+with its output on the lines beneath it. A line that starts with a prompt
+(`$`, `$>`, `#`, `%` or `❯`, optionally after `user@host:path`) is a command: its prompt appears at once and the command after it is typed. The
+lines under it are printed in one step once the command has been typed, as a
+terminal would. The cursor sits after the command being typed.
+
+[source,slidedown]
+----
+.term{
+.typewriter{$> chell}
+  .o{.typewriter{chris@cube:/home$ ls /bin
+ pl-dircopy
+ pl-fshack}}
+  .o{.typewriter{chris@cube:/home$ cat /proc/jobs/feed_1/status
+finishedSuccessfully}}
+}
+----
+
 ==== .bars{}
 
 A bar chart written as data. See the README's "Bar Charts" section for the

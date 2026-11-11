@@ -376,6 +376,49 @@ function consoleHighlight_applies(text) {
     return text.split('\n').some(line => CONSOLE_PROMPT.test(line));
 }
 
+function consoleOutput_runsFind(text) {
+    // Maps the offset where a command line ends to the offset where the
+    // output beneath it ends, so a typewriter can print that output in one
+    // step. A run is every line up to the next prompt line. Lines before the
+    // first prompt are not output of anything and are left out.
+    const endByStart = {};
+    const lines      = text.split('\n');
+    let offset       = 0;
+    let commandEnd   = -1;
+    let runEnd       = -1;
+
+    lines.forEach(line => {
+        const lineEnd = offset + line.length;
+        if (CONSOLE_PROMPT.test(line)) {
+            if (commandEnd !== -1 && runEnd !== -1) endByStart[commandEnd] = runEnd;
+            commandEnd = lineEnd;
+            runEnd     = -1;
+        } else if (commandEnd !== -1) {
+            runEnd = lineEnd;
+        }
+        offset = lineEnd + 1;
+    });
+    if (commandEnd !== -1 && runEnd !== -1) endByStart[commandEnd] = runEnd;
+
+    return endByStart;
+}
+
+function consolePrompt_endsFind(text) {
+    // Maps the offset where a prompt line starts to the offset just past its
+    // prompt, so a typewriter can show the prompt at once and type only the
+    // command. The shell prints a prompt; nobody types it.
+    const endByStart = {};
+    let offset       = 0;
+
+    text.split('\n').forEach(line => {
+        const m = line.match(CONSOLE_PROMPT);
+        if (m) endByStart[offset] = offset + m[0].length;
+        offset += line.length + 1;
+    });
+
+    return endByStart;
+}
+
 function consoleHighlight(text, full = text) {
     // `full` is the complete text; lines are classified from it so a prompt
     // that is still being typed is already coloured as a prompt.
@@ -1011,9 +1054,18 @@ Page.prototype = {
     setupTypewriter_console:            function(t, text) {
         // Same pacing as setupTypewriter, but re-highlights the typed prefix
         // on every keystroke so colours appear as the command is typed.
+        //
+        // Only commands are typed. A prompt is printed by the shell, so it is
+        // there before the first keystroke. The output lines under a command
+        // are what the terminal prints back, so they arrive all at once, a
+        // beat after the command's last keystroke. Output with no command
+        // above it has nothing to answer and is typed like any other text.
         var cursorPosition  = 0,
             typeSpeed       = 10,
-            isActive        = true;
+            returnDelay     = 350,
+            isActive        = true,
+            outputEndByStart = consoleOutput_runsFind(text),
+            promptEndByStart = consolePrompt_endsFind(text);
 
         t.classList.add('tw-console');
 
@@ -1021,10 +1073,25 @@ Page.prototype = {
             if (!isActive) {
                 return;
             }
-            cursorPosition += 1;
+            let outputEnd   = outputEndByStart[cursorPosition];
+            let promptEnd   = promptEndByStart[cursorPosition];
+            if (outputEnd !== undefined) {
+                cursorPosition = outputEnd;
+            } else if (promptEnd !== undefined) {
+                cursorPosition = promptEnd;
+            } else {
+                cursorPosition += 1;
+            }
+            // A prompt on the line after a newline appears with that newline.
+            if (promptEndByStart[cursorPosition] !== undefined) {
+                cursorPosition = promptEndByStart[cursorPosition];
+            }
             t.innerHTML = consoleHighlight(text.slice(0, cursorPosition), text);
             if (cursorPosition < text.length) {
                 let delay = text[cursorPosition - 1] === " " ? 0 : (Math.random() * typeSpeed) + 50;
+                if (outputEndByStart[cursorPosition] !== undefined) {
+                    delay = returnDelay;
+                }
                 setTimeout(type, delay);
             } else {
                 t.classList.add('tw-done');

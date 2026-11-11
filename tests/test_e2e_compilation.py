@@ -1059,3 +1059,64 @@ class TestHTMLPassthrough:
             assert "<strong>HTML tags</strong>" in html  # Raw HTML
             assert '<div class="custom-container">' in html
             assert "<em>Emphasized</em>" in html  # From .em{}
+
+
+class TestTerminalNestedTypewriter:
+    """A command typed inside a revealed line of a ``.term{}`` window."""
+
+    def test_command_and_output_survive_in_one_reveal(self) -> None:
+        """The command and its output lines reach the page as one typewriter.
+
+        The browser side then types the command and prints the output in one
+        step, with the cursor riding the command. That behaviour lives in the
+        theme stylesheet and the runtime script, so this test checks that all
+        three pieces are emitted: the markup, the rule and the helper.
+        """
+        source: str = """
+.meta{
+  theme: "command-line"
+}
+
+.slide{
+  .title{Shell}
+  .body{
+    .term{
+.typewriter{$> chell}
+      .o{.typewriter{chris@cube:/home$ ls /bin
+ pl-dircopy
+ pl-fshack}}
+    }
+  }
+}
+"""
+        parser: Parser = Parser(source)
+        ast = parser.parse()
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            packageRoot: Path = Path(__file__).parent.parent
+            assetsDir: Path = packageRoot / "assets"
+
+            compiler: Compiler = Compiler(
+                ast=ast,
+                output_dir=tmpdir,
+                assets_dir=str(assetsDir),
+                verbosity=0,
+                theme_name="command-line",
+            )
+            result = compiler.compile()
+
+            assert result["status"] is True
+
+            html: str = (Path(tmpdir) / "index.html").read_text()
+            themeCss: str = (Path(tmpdir) / "css" / "theme.css").read_text()
+            slideJs: str = (Path(tmpdir) / "js" / "slidedown.js").read_text()
+
+            assert "chris@cube:/home$ ls /bin\n pl-dircopy\n pl-fshack" in html
+            assert (
+                '.snippet:has(> pre[id^="typewriter-"])::after' in themeCss
+            )
+            assert (
+                '> pre[id^="typewriter-"]:not(.tw-done) ~ *' in themeCss
+            )
+            assert "function consoleOutput_runsFind(text)" in slideJs
+            assert "function consolePrompt_endsFind(text)" in slideJs
