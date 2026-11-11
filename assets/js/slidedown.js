@@ -1735,6 +1735,50 @@ Page.prototype = {
         return true;
     },
 
+    slideWindow_get:                    function() {
+        let str_help = `
+            The element whose content the page looks at through a window:
+            the visible layout container. Null when there is none.
+        `;
+        let l_layout = document.querySelectorAll('.formLayout');
+        for (let i = 0; i < l_layout.length; i++) {
+            if (l_layout[i].offsetParent !== null) {
+                return l_layout[i];
+            }
+        }
+        return null;
+    },
+
+    slideWindow_reset:                  function() {
+        let DOMwindow = this.slideWindow_get();
+        if (DOMwindow) {
+            DOMwindow.scrollTop = 0;
+        }
+    },
+
+    slideWindow_pan:                    function(direction) {
+        let str_help = `
+            Move the page's window over a slide that is taller than the
+            page: 'direction' is +1 for down, -1 for up.
+
+            Returns true when the current slide is taller than the page, so
+            the caller knows the key was a pan and not deck navigation. That
+            holds at the top and bottom edges too, where nothing moves: on a
+            tall slide the Up and Down keys never leave the slide.
+        `;
+        let DOMwindow = this.slideWindow_get();
+        if (!DOMwindow) {
+            return false;
+        }
+        let overflow = DOMwindow.scrollHeight - DOMwindow.clientHeight;
+        if (overflow <= 2) {
+            return false;
+        }
+        let step = Math.round(DOMwindow.clientHeight * 0.4);
+        DOMwindow.scrollBy({top: direction * step, behavior: 'smooth'});
+        return true;
+    },
+
     advance_toFirst:                    function() {
         let str_help = `
             Advance to first slide...
@@ -2580,6 +2624,10 @@ Page.prototype = {
             takes.
         `;
 
+        // A slide taller than the page may have been panned. The next slide
+        // starts at its top.
+        this.slideWindow_reset();
+
         let d_options = options || {};
 
         // Measure nothing while a previous move is still in flight.
@@ -2867,11 +2915,17 @@ Page.prototype = {
         if (e.keyCode == '38') {
             // up arrow
             console.log('up arrow')
+            if (page.slideWindow_pan(-1)) {
+                return;
+            }
             page.upArrow_process();
         }
         else if (e.keyCode == '40') {
             // down arrow
             console.log('down arrow')
+            if (page.slideWindow_pan(1)) {
+                return;
+            }
             page.downArrow_process();
         }
         else if (e.keyCode == '37') {

@@ -830,6 +830,13 @@ pre[id^="typewriter-"] {
   margin-bottom: 0.2em;
 }
 
+/* A code block ends the line it is in, so a cursor after it would sit alone
+   on a line of its own. */
+.slide .term > .snippet:has(.highlight)::after {
+  content: none;
+  animation: none;
+}
+
 .term .highlight {
   background: none !important;
   margin: 0 0 0.4em 1.6em;

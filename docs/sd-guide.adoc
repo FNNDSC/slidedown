@@ -905,8 +905,8 @@ In the browser:
 
 * *Right Arrow / Click right half* - Next slide or reveal next snippet
 * *Left Arrow / Click left half* - Previous slide or hide last snippet
-* *Up Arrow* - First slide
-* *Down Arrow* - Last slide
+* *Up Arrow* - First slide. On a slide taller than the page, moves the window up over it instead
+* *Down Arrow* - Last slide. On a slide taller than the page, moves the window down over it instead
 
 == Themes
 

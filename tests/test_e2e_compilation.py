@@ -1120,3 +1120,45 @@ class TestTerminalNestedTypewriter:
             )
             assert "function consoleOutput_runsFind(text)" in slideJs
             assert "function consolePrompt_endsFind(text)" in slideJs
+
+
+class TestTallSlidePan:
+    """Up and Down move the window over a slide taller than the page."""
+
+    def test_pan_helpers_are_shipped_and_wired_to_the_arrows(self) -> None:
+        """The runtime carries the pan helpers and the arrow keys call them.
+
+        Panning itself happens in the browser. This checks that the script
+        copied into a compiled deck has the three helpers and that both arrow
+        branches try a pan before they fall through to first and last slide.
+        """
+        source: str = """
+.slide{
+  .title{Tall}
+  .body{ .h1{Tall} }
+}
+"""
+        parser: Parser = Parser(source)
+        ast = parser.parse()
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            packageRoot: Path = Path(__file__).parent.parent
+            assetsDir: Path = packageRoot / "assets"
+
+            compiler: Compiler = Compiler(
+                ast=ast,
+                output_dir=tmpdir,
+                assets_dir=str(assetsDir),
+                verbosity=0,
+            )
+            result = compiler.compile()
+
+            assert result["status"] is True
+
+            slideJs: str = (Path(tmpdir) / "js" / "slidedown.js").read_text()
+
+            assert "slideWindow_get:" in slideJs
+            assert "slideWindow_reset:" in slideJs
+            assert "slideWindow_pan:" in slideJs
+            assert "page.slideWindow_pan(-1)" in slideJs
+            assert "page.slideWindow_pan(1)" in slideJs
