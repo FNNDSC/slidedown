@@ -791,6 +791,65 @@ pre[id^="typewriter-"] {
   margin-left: 0.15em;
 }
 
+/* A command typed inside a revealed line (.o{.typewriter{...}}). The line is
+   a block holding the command and its output, so a cursor after the line
+   would sit under the output. It rides the typewriter instead, and anything
+   else in the line waits for the command to return. */
+.slide .term > .snippet:has(> pre[id^="typewriter-"])::after {
+  content: none;
+  animation: none;
+}
+
+.slide .term > .snippet:not(.sl-hidden, :has(~ .snippet:not(.sl-hidden))) > pre[id^="typewriter-"]::after {
+  content: '▊';
+  color: #4ec9b0;
+  animation: blink 500ms linear infinite alternate;
+  margin-left: 0.15em;
+}
+
+.term > .snippet > pre[id^="typewriter-"]:not(.tw-done) ~ * {
+  visibility: hidden;
+}
+
+.term > .snippet:has(> pre[id^="typewriter-"]) {
+  margin-top: 0.35em;
+  margin-bottom: 0.35em;
+}
+
+/* Highlighted code inside a terminal (.code{.syntax{...}}) is what a command
+   printed, so it sits on the window's own background with no box of its own.
+   Pygments writes its background inline, hence the !important. */
+.term code:has(> .highlight) {
+  display: block;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.term .snippet:has(.highlight) {
+  margin-top: 0.2em;
+  margin-bottom: 0.2em;
+}
+
+/* A code block ends the line it is in, so a cursor after it would sit alone
+   on a line of its own. */
+.slide .term > .snippet:has(.highlight)::after {
+  content: none;
+  animation: none;
+}
+
+.term .highlight {
+  background: none !important;
+  margin: 0 0 0.4em 1.6em;
+}
+
+.slide .term .highlight pre {
+  color: #d4d4d4;
+  border: none;
+  overflow: visible;
+  line-height: 1.25 !important;
+}
+
 .slide .term pre {
   background: none;
   border: none;
