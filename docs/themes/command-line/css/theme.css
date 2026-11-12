@@ -151,6 +151,17 @@ body {
 
 /* Code blocks */
 /* Code blocks. Typewriters are terminal lines, not listings: no box. */
+/* A pre block otherwise takes the browser's own `monospace`, which is a
+ * different font on every device. On Android that font has no box-drawing
+ * characters, so they come from a wider fallback and ASCII figures lose their
+ * alignment. Name the theme's font so letters and lines share one advance. */
+.slide pre,
+.slide pre code,
+.slide pre samp,
+.slide pre kbd {
+  font-family: 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+}
+
 .slide pre:not([id^="typewriter-"]) {
   font-size: 1.2em;
   line-height: 1.4;
