@@ -9,8 +9,20 @@
  * dim captions (`.dim`); and the palette and flare for `.bars{}` charts.
  */
 
-/* Fira Code and JetBrains Mono fonts */
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;700&family=JetBrains+Mono:wght@300;400;500;700&display=swap');
+/* Fira Code ships with the theme (assets/fonts, SIL OFL 1.1), as one file
+ * with no unicode-range split. A hosted copy is served in subsets, and a
+ * browser that takes letters from one subset and box-drawing characters from
+ * a fallback font breaks every ASCII figure. JetBrains Mono stays as a hosted
+ * fallback. */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap');
+
+@font-face {
+  font-family: 'Fira Code';
+  src: url('../theme-assets/fonts/FiraCode-VF.woff2') format('woff2');
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
 
 /* Global */
 html {
